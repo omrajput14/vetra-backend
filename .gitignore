@@ -29,3 +29,7 @@ logs/
 
 # ─── Docker volumes ───────────────────────────────────────────────────
 postgres-data/
+
+# ─── Scratch and temp files ────────────────────────────────────────────
+scratch/
+*.tmp
