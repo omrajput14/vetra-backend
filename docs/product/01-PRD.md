@@ -1,8 +1,13 @@
 # Product Requirements Document (PRD) — Vetra Veterinary Operating System (VetOS)
+
 **Document ID:** PRD-01  
 **Version:** 2.0.0  
 **Status:** Approved / Active  
 **Last Updated:** 2026-07-29  
+**Owner:** Product Team  
+**Approver:** CTO  
+**Review Cycle:** Quarterly  
+**Next Review:** 2026-10-29  
 **Applies To:** Vetra Ecosystem (`omrajput14/vetra` & `omrajput14/vetra-backend`)  
 **References:** [Engineering Principles](../engineering/00-principles.md), [Domain Model](../../vetra-backend/docs/domain/03-domain-model.md), [API Specification](../../vetra-backend/docs/api/06-specification.md)
 
@@ -23,7 +28,7 @@ Vetra is **not** an "AI app." Vetra is an **Enterprise Operating System**. AI-as
 ## 2. Product Vision & Mission
 
 ### 2.1 Product Vision
-To build the world's most trusted, resilient, and scalable Veterinary Operating System, powering digital animal healthcare identity, clinical excellence, and disease eradication across global agricultural supply chains.
+To become the trusted digital operating system for veterinary healthcare, enabling better clinical outcomes, healthier livestock, and more efficient veterinary practice through secure, scalable, and accessible technology.
 
 ### 2.2 Product Mission
 To digitize every livestock animal's identity and medical lineage, streamline veterinary clinical operations, eliminate preventable animal disease outbreaks through real-time surveillance, and maximize economic yields for livestock producers.
@@ -48,11 +53,13 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 
 ## 4. Problem Statement
 
-### 4.1 Enterprise & Agricultural Challenges
-1. **Absence of Verified Animal Health Lineage:** Over $12B in annual global livestock value is lost due to unverified animal health histories, leading to misdiagnoses, buyer fraud, and vaccine failure.
-2. **Veterinary Practice Inefficiencies:** Field veterinarians spend up to 40% of their working hours on manual paper registers, phone coordination, and billing tracking rather than direct clinical care.
-3. **Catastrophic Outbreak Propagation:** Infectious livestock diseases (e.g., Foot-and-Mouth, Lumpy Skin Disease) propagate undetected due to non-existent real-time disease surveillance systems.
-4. **Unregulated Drug Administration:** Paper-based prescriptions result in unmonitored antibiotic usage, contributing to Antimicrobial Resistance (AMR) and international trade rejections.
+Incomplete animal health records, delayed diagnosis, and fragmented veterinary workflows result in significant economic losses for livestock producers, reduce treatment effectiveness, and increase disease transmission risks.
+
+Key industry challenges addressed by Vetra:
+1. **Absence of Verified Animal Health Lineage:** Lack of continuous health records leads to repeated misdiagnoses, unverified animal transactions, and vaccine failures.
+2. **Veterinary Practice Inefficiencies:** Field veterinarians spend significant time on manual record-keeping, telephone coordination, and paper registers rather than direct clinical care.
+3. **Catastrophic Outbreak Propagation:** Infectious livestock diseases propagate undetected due to non-existent real-time disease surveillance systems.
+4. **Unregulated Drug Administration:** Paper-based prescriptions result in unmonitored antibiotic usage, contributing to Antimicrobial Resistance (AMR) and trade barriers.
 
 ---
 
@@ -76,7 +83,28 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 
 ---
 
-## 6. Stakeholders
+## 6. Epic Success Criteria
+
+### Animal Passport
+- Animal registration completed in under 60 seconds.
+- QR code generated automatically.
+- Passport retrieval in under 2 seconds.
+
+### Appointment Management
+- Farmers can book an appointment in fewer than five user interactions.
+- Appointment state transitions remain valid and auditable.
+
+### Electronic Veterinary Medical Records
+- Every completed appointment generates exactly one immutable EVMR.
+- Historical medical records remain searchable and chronologically ordered.
+
+### AI Diagnostic Support
+- AI suggestions are clearly identified as decision support.
+- Clinical decisions always require veterinarian validation.
+
+---
+
+## 7. Stakeholders
 
 | Stakeholder Group | Role & Primary Interest |
 |---|---|
@@ -85,11 +113,12 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 | **Field Veterinarians & Surgeons** | Clinical workflow, EVMR creation, appointment scheduling, billing |
 | **Veterinary Clinics & Hospitals** | Practice management, vet resource allocation, revenue tracking |
 | **Government Epidemiologists** | Real-time disease outbreak mapping, biosecurity containment |
+| **Platform Administrators** | User verification, operational oversight, audit management, support operations, and platform governance |
 | **Vetra Platform Operations** | Security, system availability, multi-tenant compliance, platform health |
 
 ---
 
-## 7. Target Audience & User Personas
+## 8. Target Audience & User Personas
 
 ### Persona A: Ramesh Kumar — Smallholder Dairy Farmer
 - **Demographics:** 42 years old, Karnal District, Haryana | 8 Cattle & Buffaloes.
@@ -105,7 +134,7 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 
 ---
 
-## 8. End-to-End User Journeys
+## 9. End-to-End User Journeys
 
 ### Journey 1: Clinical Appointment & EVMR Creation Flow
 1. **Booking:** Farmer selects an animal, chooses visit type (`TREATMENT`), and requests an appointment with a nearby registered Vet via the mobile client.
@@ -116,40 +145,39 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 
 ---
 
-## 9. Functional Requirements
+## 10. Functional Requirements
 
-### FR-1: Identity, Multi-Tenancy & Access Management
-- **FR-1.1:** System shall support strict role separation between `FARMER` and `VET` user accounts.
-- **FR-1.2:** Authentication shall utilize JWT access tokens (15-min expiry) with database-backed refresh token rotation (7-day expiry).
-- **FR-1.3:** System shall enforce resource-level ownership: Farmers can only view their own animals/records; Vets can only manage assigned appointments.
+### Identity, Multi-Tenancy & Access Management
+- **AUTH-001:** System shall support strict role separation between `FARMER` and `VET` user accounts.
+- **AUTH-002:** Authentication shall utilize JWT access tokens (15-min expiry) with database-backed refresh token rotation (7-day expiry).
+- **USER-001:** System shall enforce resource-level ownership: Farmers can only view their own animals/records; Vets can only manage assigned appointments.
 
-### FR-2: Livestock Management & Digital Animal Passport
-- **FR-2.1:** Farmers shall register animals with ear tag numbers, species, breed, gender, birth date, and optional photo.
-- **FR-2.2:** System shall generate a globally unique `qr_code_id` for every registered animal.
-- **FR-2.3:** Scanning an animal's QR code shall open its digital Animal Passport, displaying current health status and full chronological medical history.
+### Livestock Management & Digital Animal Passport
+- **ANIMAL-001:** Farmers shall register animals with ear tag numbers, species, breed, gender, birth date, and optional photo.
+- **ANIMAL-002:** System shall generate a globally unique `qr_code_id` for every registered animal.
+- **ANIMAL-003:** Scanning an animal's QR code shall open its digital Animal Passport, displaying current health status and full chronological medical history.
 
-### FR-3: Veterinary Practice & Appointment Operations
-- **FR-3.1:** Farmers shall search registered veterinarians by location, specialization, and availability status.
-- **FR-3.2:** System shall implement a formal appointment state machine (`PENDING` → `CONFIRMED` → `COMPLETED` / `CANCELLED`).
-- **FR-3.3:** System shall use database optimistic locking (`version` column) to prevent concurrent update race conditions.
+### Veterinary Practice & Appointment Operations
+- **APPT-001:** Farmers shall search registered veterinarians by location, specialization, and availability status.
+- **APPT-002:** System shall implement a formal appointment state machine (`PENDING` → `CONFIRMED` → `COMPLETED` / `CANCELLED`).
+- **APPT-003:** System shall use database optimistic locking (`version` column) to prevent concurrent update race conditions.
 
-### FR-4: Electronic Veterinary Medical Record (EVMR) System
-- **FR-4.1:** System shall allow licensed veterinarians to generate an EVMR for any `COMPLETED` appointment.
-- **FR-4.2:** EVMR shall capture diagnosis, symptoms, clinical treatment, prescription, weight, temperature, follow-up date, and notes.
-- **FR-4.3:** Once created, an EVMR shall be **immutable** — no `PUT` or `DELETE` endpoints shall exist for medical records.
-- **FR-4.4:** System shall enforce a maximum of 1 EVMR per appointment (`appointment_id` UNIQUE constraint).
+### Electronic Veterinary Medical Record (EVMR) System
+- **EVMR-001:** System shall allow licensed veterinarians to generate an EVMR for any `COMPLETED` appointment.
+- **EVMR-002:** EVMR shall capture diagnosis, symptoms, clinical treatment, prescription, weight, temperature, follow-up date, and notes.
+- **EVMR-003:** Once created, an EVMR shall be **immutable** — no `PUT` or `DELETE` endpoints shall exist for medical records. Enforce maximum of 1 EVMR per appointment (`appointment_id` UNIQUE constraint).
 
-### FR-5: Clinical Decision Support & Visual Diagnostics (Optional Capability)
-- **FR-5.1:** Platform shall provide an optional camera-assisted visual diagnostic module for preliminary lesion and symptom analysis.
-- **FR-5.2:** Visual diagnostic outputs shall be clearly designated as "Diagnostic Support Suggestions" and require veterinarian verification before clinical action.
+### Clinical Decision Support & Visual Diagnostics (Optional Capability)
+- **AI-001:** Platform shall provide an optional camera-assisted visual diagnostic module for preliminary lesion and symptom analysis.
+- **AI-002:** Visual diagnostic outputs shall be clearly designated as decision support suggestions and require veterinarian verification before clinical action.
 
-### FR-6: Epidemiological Surveillance & Spatial Mapping (Planned)
-- **FR-6.1:** System shall record geo-coordinates for farm locations and clinic practices using PostGIS.
-- **FR-6.2:** System shall aggregate anonymized disease diagnoses to detect regional outbreak clusters and render risk zones on an interactive map.
+### Epidemiological Surveillance & Spatial Mapping (Planned)
+- **MAP-001:** System shall record geo-coordinates for farm locations and clinic practices using PostGIS.
+- **MAP-002:** System shall aggregate anonymized disease diagnoses to detect regional outbreak clusters and render risk zones on an interactive map.
 
 ---
 
-## 10. Non-Functional Requirements
+## 11. Non-Functional Requirements
 
 ### NFR-1: Scalability & Performance
 - **NFR-1.1:** API response latency shall be < 150 ms (p95) for all core read/write operations.
@@ -170,7 +198,7 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 
 ---
 
-## 11. Feature Implementation Matrix
+## 12. Feature Implementation Matrix
 
 | Feature / Subsystem | Description | Target Role | Enterprise Status |
 |---|---|---|---|
@@ -180,17 +208,17 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 | **Appointment State Machine** | Booking, confirmation, completion, optimistic locking | Both | **Implemented** |
 | **EVMR Clinical System** | Immutable record creation, clinical history timeline | Both | **Implemented** |
 | **Repository Separation & Docs** | Independent Git repos, 25 engineering docs, `.git` optimization | System | **Implemented** |
-| **AI Visual Diagnostic Support** | Camera-based lesion/symptom image inference | Farmer / Vet | **Planned** (Stage 9) |
-| **PostGIS Spatial Outbreak Map** | Geospatial disease cluster analysis, outbreak alerts | All | **Planned** (Stage 10) |
-| **Push Notifications (FCM)** | Automated appointment alerts & biosecurity warnings | Both | **Planned** (Stage 11) |
-| **Cloud CI/CD & Monitoring** | GitHub Actions, AWS ECS/RDS, Prometheus/Grafana | System | **Planned** (Stage 12) |
-| **Structured Prescription Table** | Normalized drug codes & dosage unit schema | Vet | **Deferred** (Post-V1) |
+| **AI Visual Diagnostic Support** | Camera-based lesion/symptom image inference | Farmer / Vet | **Planned** |
+| **PostGIS Spatial Outbreak Map** | Geospatial disease cluster analysis, outbreak alerts | All | **Planned** |
+| **Push Notifications (FCM)** | Automated appointment alerts & biosecurity warnings | Both | **Planned** |
+| **Cloud CI/CD & Monitoring** | GitHub Actions, AWS ECS/RDS, Prometheus/Grafana | System | **Planned** |
+| **Structured Prescription Table** | Normalized drug codes & dosage unit schema | Vet | **Deferred** |
 
 ---
 
-## 12. Scope & Out of Scope
+## 13. Scope, Non-Goals & Boundaries
 
-### In-Scope (Vetra V1 Platform)
+### In-Scope (Vetra Platform V1)
 - Dual-role authentication (Farmer & Vet).
 - Livestock herd management & QR Animal Passport.
 - Appointment scheduling with state machine validation.
@@ -201,11 +229,20 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 - Direct e-commerce / pharmacy payment processing.
 - Hardware RFID ear tag reader bluetooth pairing (QR scanning only for V1).
 - In-app video calling (phone & field visit coordination only for V1).
-- Automated AI prescription generation (prescriptions must be authored by licensed veterinarians).
+
+### Non-Goals
+
+The following are intentionally outside the scope of Vetra's current product strategy:
+- Vetra does not replace professional veterinary judgment.
+- AI-generated recommendations are advisory only and never constitute a medical diagnosis.
+- Vetra is not a livestock marketplace.
+- Vetra is not an insurance platform.
+- Vetra does not automate prescription generation without veterinarian approval.
+- Vetra is not intended to replace existing government regulatory systems.
 
 ---
 
-## 13. Risks, Assumptions & Mitigations
+## 14. Risks, Assumptions & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation Strategy |
 |---|---|---|---|
@@ -216,27 +253,39 @@ Every architectural, product, and design decision in Vetra must adhere to the fo
 
 ---
 
-## 14. Multi-Phase Release Strategy
+## 15. Multi-Phase Release Strategy
 
 ```
-Phase 1: Core Foundation (Implemented)
-└── Stages 1–7: Auth, Animals, Appointments, EVMR, Dual-Role Dashboards
+Phase 1: Core Platform (Implemented)
+└── Auth, Animals, Appointments, EVMR, Dual-Role Dashboards
 
-Phase 2: Standardization & Documentation (Implemented — Current)
-└── Stage 8: Repository separation, history rewrite, 25 engineering specs
+Phase 2: Engineering Standardisation (Implemented — Current)
+└── Repository separation, history rewrite, 25 engineering specs
 
-Phase 3: Intelligence & Spatial Surveillance (Planned — Q3 2026)
-└── Stages 9–10: AI Diagnostic Support, PostGIS Outbreak Mapping
+Phase 3: Clinical Intelligence (Planned)
+└── AI Diagnostic Support, PostGIS Spatial Outbreak Mapping
 
-Phase 4: Ecosystem & Production Scale (Planned — Q4 2026)
-└── Stages 11–12: FCM Notifications, AWS Cloud Infrastructure, CI/CD, Audits
+Phase 4: Enterprise Production (Planned)
+└── FCM Notifications, AWS Cloud Infrastructure, CI/CD, Audits
+
+Phase 5: National Scale (Planned)
+└── National registry integration, regional government dashboard
+
+Phase 6: International Expansion (Planned)
+└── Multi-language localization, cross-border biosecurity standards
 ```
 
 ---
 
-## 15. Future Vision (5–10 Year Horizon)
+## 16. Future Vision (5–10 Year Horizon)
 
-Over the next decade, Vetra will evolve into the national and international digital backbone for livestock health intelligence. Key long-term vectors include:
-- **National Disease Eradication Intelligence:** Real-time integration with national agricultural departments for automated disease reporting and quarantine zoning.
-- **Genomic & Breeding Health Lineage:** Incorporating genetic tracking into the Animal Passport to improve livestock breeding valuations.
-- **Cross-Border Biosecurity Certification:** Export-grade digital health certificates verified via immutable clinical records for international livestock trade.
+Over the next decade, Vetra will evolve into the comprehensive digital backbone for veterinary healthcare and livestock intelligence:
+- **Veterinary Practice Management Platform:** Full clinic operations, inventory control, and practitioner scheduling.
+- **National Livestock Registry Integration:** Real-time synchronization with national departments of agriculture for official animal census and disease tracking.
+- **Open Developer APIs:** Public API platform for agricultural software, IoT sensors, and wearable farm monitors.
+- **Third-Party Integration Platform:** Ecosystem hooks for diagnostic labs, vaccine manufacturers, and feed supply chains.
+- **Enterprise Analytics:** Advanced herd health predictive analytics for commercial operations.
+- **Research Data Platform:** Anonymized epidemiological datasets for veterinary research universities.
+- **National Disease Eradication Intelligence:** Automated outbreak detection and quarantine boundary calculations.
+- **Genomic & Breeding Health Lineage:** Inherited trait tracking and genetic health scores for elite breeding stock.
+- **Cross-Border Biosecurity Certification:** Export-grade digital health certificates verified via immutable clinical records for international trade.
