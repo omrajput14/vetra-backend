@@ -1,227 +1,97 @@
-# 🐄 Vetra — Backend API Service
+# Vetra Backend — Spring Boot 3 & PostgreSQL Service
 
-> **Spring Boot REST API** powering the Vetra livestock management and veterinary healthcare platform.
+[![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL 15](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[![Java](https://img.shields.io/badge/Java-17-orange)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
-[![Maven](https://img.shields.io/badge/Maven-3.9-red)](https://maven.apache.org/)
-
----
-
-## 📋 Overview
-
-Vetra Backend is a **production-quality RESTful API** built with Spring Boot 3 and PostgreSQL. It powers:
-
-- **JWT-based dual-role authentication** (Farmer & Veterinarian)
-- **Animal management** — register, update, track livestock
-- **Appointment management** — booking, state machine workflow, optimistic locking
-- **Electronic Veterinary Medical Records (EVMR)** — immutable clinical history
-- **Disease reporting and outbreak tracking**
-- **Dashboard metrics** for both Farmer and Veterinarian roles
+Vetra Backend is the production-quality, modular monolith REST API powering the **Vetra** livestock healthcare and disease surveillance ecosystem. Built with Spring Boot 3, Java 17, and PostgreSQL 15, it manages dual-role authentication (Farmer/Veterinarian), livestock records, clinical appointments, and immutable Electronic Veterinary Medical Records (EVMR).
 
 ---
 
-## 📦 Tech Stack
+## Key Features
 
-| Layer | Technology |
-|---|---|
-| Runtime | Java 17 |
-| Framework | Spring Boot 3.x |
-| Database | PostgreSQL 15 |
-| Migrations | Flyway |
-| Security | Spring Security + JWT |
-| Build | Maven 3.9 |
-| Containers | Docker + Docker Compose |
-| Code Style | Checkstyle |
+- **Dual-Role Identity & Access Control:** Separate registration and profile management for Farmers and Veterinarians, secured with JWT and refresh token rotation.
+- **Livestock Management:** Digital animal registration with unique QR-code Animal Passports.
+- **Clinical Appointment Engine:** Complete state machine (`PENDING` → `CONFIRMED` → `COMPLETED`/`CANCELLED`) with JPA optimistic locking (`version`).
+- **Electronic Veterinary Medical Records (EVMR):** Immutable clinical medical records created by veterinarians for completed appointments, providing a permanent medical history.
+- **Role-Specific Dashboards:** Aggregated metrics tailored to farmer and veterinarian workflows.
 
 ---
 
-## 🚀 Getting Started
+## System Architecture Overview
 
-### Prerequisites
+Vetra Backend is designed as a **Modular Monolith** following **Clean Architecture** principles:
 
-- Java 17+
-- Maven 3.9+
-- Docker & Docker Compose
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/omrajput14/vetra-backend.git
-cd vetra-backend
+```
+app.vetra/
+├── auth/           ← Identity, JWT, Vet Directory
+├── animal/         ← Animal registration & passports
+├── appointment/    ← Booking & clinical state machine
+├── medicalrecord/  ← Immutable EVMR clinical history
+├── dashboard/      ← Role-based metric aggregation
+└── infrastructure/ ← Shared entities, Spring Security, Flyway, exceptions
 ```
 
-### 2. Configure environment
+---
 
+## Professional Documentation Index
+
+Every aspect of this system is thoroughly documented. Please consult the engineering guides before contributing:
+
+### 🏛 Architecture & Design
+- [Engineering Principles](docs/engineering/00-principles.md) — *The Vetra Engineering Constitution*
+- [Software Architecture Document (SAD)](docs/architecture/02-SAD.md)
+- [Modular Monolith Architecture](docs/architecture/08-modular-monolith.md)
+- [Deployment Architecture](docs/architecture/09-deployment.md)
+- [Infrastructure Diagram](docs/architecture/10-infrastructure.md)
+- [Architecture Decision Log](docs/domain/21-decision-log.md)
+
+### 📊 Domain & Database
+- [Domain Model & Ubiquitous Language](docs/domain/03-domain-model.md)
+- [Database Design Document](docs/database/04-database-design.md)
+- [Entity Relationship Diagram (ERD)](docs/database/05-ERD.md)
+
+### 🔌 API & Security
+- [API Specification (REST Endpoints)](docs/api/06-specification.md)
+- [Authentication & Authorization Design](docs/api/07-auth-design.md)
+- [API Versioning Strategy](docs/api/22-versioning.md)
+- [Application Error Catalogue](docs/api/23-error-catalogue.md)
+- [Security Design Document](docs/security/11-security-design.md)
+
+### 🛠 Operations & Engineering Guides
+- [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md) — *Start here!*
+- [Coding Standards & Conventions (Java/Spring)](docs/engineering/12-coding-standards.md)
+- [Git Workflow & Branching Strategy](docs/engineering/13-git-workflow.md)
+- [Testing Strategy](docs/guides/14-testing-strategy.md)
+- [CI/CD Pipeline Specification](docs/operations/15-cicd.md)
+- [Logging & Monitoring Strategy](docs/operations/16-logging-monitoring.md)
+- [Disaster Recovery & Backup Plan](docs/operations/17-disaster-recovery.md)
+- [Scalability & Performance Plan](docs/operations/18-scalability.md)
+- [Environment Configuration](docs/operations/24-environment-config.md)
+
+---
+
+## Quick Start (Local Development)
+
+### 1. Prerequisites
+- JDK 17+
+- Docker Desktop
+
+### 2. Start Database
 ```bash
 cp .env.example .env
-# Edit .env with your database credentials
-```
-
-### 3. Start PostgreSQL via Docker
-
-```bash
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-### 4. Run the application
-
+### 3. Run Backend
 ```bash
 ./mvnw spring-boot:run
 ```
 
-The API will be available at `http://localhost:8080`.
-
-### 5. Run tests
-
+### 4. Health Check
 ```bash
-./mvnw test
+curl http://localhost:8080/actuator/health
 ```
 
----
-
-## 🗄️ Database Migrations
-
-Flyway manages all schema changes:
-
-| Version | Description |
-|---|---|
-| V1 | Initial schema |
-| V2 | Schema entities (Animal, User, VetProfile, FarmerProfile) |
-| V3 | Refresh token table |
-| V4 | Add animal name column |
-| V5 | Appointment management tables |
-| V6 | Medical records table |
-
----
-
-## 🔑 Authentication
-
-JWT-based authentication with refresh token support.
-
-| Endpoint | Method | Role | Description |
-|---|---|---|---|
-| `/api/v1/auth/register/farmer` | POST | Public | Register as farmer |
-| `/api/v1/auth/register/vet` | POST | Public | Register as veterinarian |
-| `/api/v1/auth/login` | POST | Public | Login (farmer or vet) |
-| `/api/v1/auth/refresh` | POST | Public | Refresh access token |
-| `/api/v1/auth/profile` | GET/PUT | Authenticated | Get/update profile |
-| `/api/v1/auth/vets` | GET | Authenticated | List veterinarians |
-
----
-
-## 📋 API Endpoints
-
-### Animals
-| Endpoint | Method | Role | Description |
-|---|---|---|---|
-| `/api/v1/animals` | GET, POST | Farmer | List / create animals |
-| `/api/v1/animals/{id}` | GET, PUT, DELETE | Farmer | Manage animal |
-
-### Appointments
-| Endpoint | Method | Role | Description |
-|---|---|---|---|
-| `/api/v1/appointments` | GET, POST | Farmer/Vet | List / create appointments |
-| `/api/v1/appointments/{id}` | GET | Farmer/Vet | Get appointment |
-| `/api/v1/appointments/{id}/status` | PUT | Vet | Update appointment status |
-
-### Medical Records
-| Endpoint | Method | Role | Description |
-|---|---|---|---|
-| `/api/v1/medical-records` | POST | Vet | Create medical record |
-| `/api/v1/medical-records/{id}` | GET | Farmer/Vet | View record |
-| `/api/v1/animals/{id}/medical-history` | GET | Farmer | Animal medical history |
-| `/api/v1/appointments/{id}/medical-record` | GET | Farmer/Vet | Record by appointment |
-
-### Dashboard
-| Endpoint | Method | Role | Description |
-|---|---|---|---|
-| `/api/v1/dashboard` | GET | Authenticated | Role-aware dashboard metrics |
-
----
-
-## 🏛️ Architecture
-
-```
-src/main/java/app/vetra/
-├── auth/                    # Authentication module (JWT, refresh tokens, user management)
-├── animal/                  # Animal management module
-├── appointment/             # Appointment management + state machine
-├── medicalrecord/           # Electronic Veterinary Medical Records (EVMR)
-├── dashboard/               # Dashboard metrics aggregation
-└── infrastructure/
-    ├── persistence/
-    │   ├── entity/          # JPA entities
-    │   └── enums/           # Domain enumerations
-    ├── security/            # Spring Security configuration, JWT filter
-    └── config/              # JPA, application config
-```
-
-### Key Design Decisions
-
-- **Medical records are immutable** — no PUT or DELETE endpoints. Clinical history is a permanent legal record.
-- **Appointment state machine** — appointments progress through `PENDING → CONFIRMED → COMPLETED/CANCELLED` with optimistic locking.
-- **Authenticated ownership** — the authenticated user's identity is always bound server-side. Client inputs cannot impersonate another user.
-- **Single record per appointment** — duplicate creation returns `409 CONFLICT`.
-
----
-
-## 🐳 Docker
-
-### Development
-
-```bash
-docker compose -f docker-compose.dev.yml up -d
-```
-
-### Production
-
-```bash
-docker compose up -d
-```
-
-### Build Docker image
-
-```bash
-docker build -t vetra-backend .
-```
-
----
-
-## 📁 Folder Structure
-
-```
-vetra-backend/
-├── docs/
-│   ├── api/             # API documentation
-│   ├── architecture/    # Architecture decisions
-│   ├── database/        # ERD, schema notes
-│   └── deployment/      # Docker & deployment guides
-├── src/
-│   ├── main/
-│   │   ├── java/        # Application source
-│   │   └── resources/
-│   │       ├── db/migration/   # Flyway migrations
-│   │       ├── application.yml
-│   │       └── application-dev.yml
-│   └── test/            # Unit & integration tests
-├── Dockerfile
-├── docker-compose.yml
-├── docker-compose.dev.yml
-├── pom.xml
-├── checkstyle.xml
-└── .env.example
-```
-
----
-
-## 🔗 Related Repository
-
-- **Flutter Mobile App**: [github.com/omrajput14/vetra](https://github.com/omrajput14/vetra)
-
----
-
-## 📄 License
-
-To be determined.
+For full local environment setup details, read the [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md).
