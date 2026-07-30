@@ -138,6 +138,7 @@ graph TB
         ApptMod["Appointment Module<br/>(Booking, State Machine)"]
         MedicalMod["Medical Record Module<br/>(Immutable EVMR Engine)"]
         DashMod["Dashboard Module<br/>(Role Metrics Aggregation)"]
+        AiMod["AI Module<br/>(AI Orchestrator, Provider Registry, Retry Policy)"]
     end
 
     subgraph Infrastructure Tier
@@ -155,12 +156,14 @@ graph TB
     Controllers --> ApptMod
     Controllers --> MedicalMod
     Controllers --> DashMod
+    Controllers --> AiMod
 
     AuthMod --> SharedInfra
     AnimalMod --> SharedInfra
     ApptMod --> SharedInfra
     MedicalMod --> SharedInfra
     DashMod --> SharedInfra
+    AiMod --> SharedInfra
 
     SharedInfra -- "JDBC HikariCP" --> Postgres
 ```
@@ -173,6 +176,7 @@ graph TB
 | **`animal`**         | Livestock animal registration, ear tag indexing, unique QR code generation, Animal Passport retrieval.                                              | `animals`                                                          |
 | **`appointment`**    | Appointment scheduling, vet allocation, state machine validation (`PENDING` → `CONFIRMED` → `COMPLETED`/`CANCELLED`), optimistic locking. | `appointments`                                                     |
 | **`medicalrecord`**  | Generation of immutable Electronic Veterinary Medical Records (EVMR), clinical history timeline queries for animals.                                | `medical_records`                                                  |
+| **`ai`**             | AI diagnostic platform orchestration, provider registry strategy lookup, retry policy backoff, latency metrics, and verification workflow.          | `ai_scans`, `ai_scan_results`                                      |
 | **`dashboard`**      | Aggregation of role-specific metrics (Farmer herd counts/upcoming appointments; Vet pending requests/daily schedule).                               | Read-only aggregator                                                 |
 | **`infrastructure`** | Cross-cutting security filters, Flyway schema migrations, global exception handling, JPA database configuration.                                    | System infrastructure                                                |
 

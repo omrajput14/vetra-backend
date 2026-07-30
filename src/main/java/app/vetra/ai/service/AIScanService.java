@@ -1,11 +1,17 @@
 package app.vetra.ai.service;
 
+import app.vetra.ai.config.AIProperties;
 import app.vetra.ai.dto.AIScanResponse;
 import app.vetra.ai.dto.CreateAIScanRequest;
 import app.vetra.ai.dto.VerifyAIScanRequest;
 import app.vetra.ai.entity.AIScan;
+import app.vetra.ai.entity.AIScanResultEntity;
 import app.vetra.ai.entity.AIScanStatus;
+import app.vetra.ai.event.AIScanCreatedEvent;
+import app.vetra.ai.event.AIScanVerifiedEvent;
+import app.vetra.ai.orchestrator.AIOrchestrator;
 import app.vetra.ai.repository.AIScanRepository;
+import app.vetra.ai.repository.AIScanResultRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
@@ -19,6 +25,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,25 +39,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AIScanService {
 
+  private static final Logger log = LoggerFactory.getLogger(AIScanService.class);
+
   private final AIScanRepository aiScanRepository;
+  private final AIScanResultRepository aiScanResultRepository;
   private final AnimalRepository animalRepository;
   private final UserRepository userRepository;
   private final FarmerProfileRepository farmerProfileRepository;
+  private final AIOrchestrator aiOrchestrator;
+  private final AIProperties aiProperties;
+  private final ApplicationEventPublisher eventPublisher;
 
   /** Constructor injection. */
   public AIScanService(
       AIScanRepository aiScanRepository,
+      AIScanResultRepository aiScanResultRepository,
       AnimalRepository animalRepository,
       UserRepository userRepository,
-      FarmerProfileRepository farmerProfileRepository) {
+      FarmerProfileRepository farmerProfileRepository,
+      AIOrchestrator aiOrchestrator,
+      AIProperties aiProperties,
+      ApplicationEventPublisher eventPublisher) {
     this.aiScanRepository = aiScanRepository;
+    this.aiScanResultRepository = aiScanResultRepository;
     this.animalRepository = animalRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
+    this.aiOrchestrator = aiOrchestrator;
+    this.aiProperties = aiProperties;
+    this.eventPublisher = eventPublisher;
   }
 
   /**
-   * Registers a new AI diagnostic scan request for an animal.
+   * Registers a new AI diagnostic scan request for an animal and triggers orchestration if enabled.
    *
    * @param userIdentifier email or phone of authenticated requesting user
    * @param request create scan request parameters
@@ -78,6 +101,16 @@ public class AIScanService {
         .build();
 
     scan = aiScanRepository.save(scan);
+    eventPublisher.publishEvent(new AIScanCreatedEvent(scan.getId(), animal.getId(), scan.getImageUrl(), user.getId()));
+
+    if (aiProperties.isEnabled()) {
+      try {
+        scan = aiOrchestrator.processScan(scan, aiProperties.getDefaultProvider());
+      } catch (Exception ex) {
+        log.warn("AI Orchestration attempt completed with error: {}", ex.getMessage());
+      }
+    }
+
     return AIScanResponse.fromEntity(scan);
   }
 
@@ -99,7 +132,7 @@ public class AIScanService {
   }
 
   /**
-   * Lists AI scans relevant to the active user (Farmers see their scans, Vets/Admins see all) non-paginated.
+   * Lists AI scans relevant to the active user non-paginated.
    *
    * @param userIdentifier email or phone of active user
    * @return list of {@link AIScanResponse}
@@ -137,6 +170,23 @@ public class AIScanService {
   }
 
   /**
+   * Retrieves all historical inference iteration records saved for an AIScan.
+   *
+   * @param userIdentifier email or phone of requesting user
+   * @param scanId scan UUID
+   * @return list of {@link AIScanResultEntity}
+   */
+  @Transactional(readOnly = true)
+  public List<AIScanResultEntity> getScanResults(String userIdentifier, UUID scanId) {
+    User user = getUserByEmailOrPhone(userIdentifier);
+    AIScan scan = aiScanRepository.findById(scanId)
+        .orElseThrow(() -> new ResourceNotFoundException("AI Diagnostic scan not found with ID: " + scanId, "AI_001"));
+
+    validateScanAccess(user, scan);
+    return aiScanResultRepository.findByScanIdOrderByCreatedAtDesc(scanId);
+  }
+
+  /**
    * Allows a licensed veterinarian to verify or correct an AI diagnostic scan.
    *
    * @param userIdentifier email or phone of active user (must be VETERINARIAN)
@@ -159,7 +209,8 @@ public class AIScanService {
     scan.setVerifiedBy(user);
     scan.setVerifiedAt(Instant.now());
 
-    if (Boolean.TRUE.equals(request.acceptDiagnosis())) {
+    boolean accepted = Boolean.TRUE.equals(request.acceptDiagnosis());
+    if (accepted) {
       scan.setStatus(AIScanStatus.VERIFIED);
     } else {
       scan.setStatus(AIScanStatus.REJECTED);
@@ -173,16 +224,17 @@ public class AIScanService {
     }
 
     scan = aiScanRepository.save(scan);
+    eventPublisher.publishEvent(new AIScanVerifiedEvent(scan.getId(), accepted, user.getId()));
     return AIScanResponse.fromEntity(scan);
   }
 
   /**
-   * Helper method for updating scan status and diagnostic outputs (to be called by provider background tasks).
+   * Helper method for updating scan status and diagnostic outputs.
    *
    * @param scanId scan UUID
    * @param status target status
    * @param diagnosis diagnostic text output
-   * @param confidenceScore confidence score (0.000 to 1.000)
+   * @param confidenceScore confidence score
    * @return updated {@link AIScanResponse}
    */
   @Transactional
