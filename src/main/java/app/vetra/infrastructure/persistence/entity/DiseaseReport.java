@@ -1,5 +1,6 @@
 package app.vetra.infrastructure.persistence.entity;
 
+import app.vetra.ai.entity.AIScan;
 import app.vetra.infrastructure.persistence.enums.DiseaseReportStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +34,7 @@ public class DiseaseReport extends BaseEntity {
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "scan_id")
-  private AiScan scan;
+  private AIScan scan;
 
   @NotNull
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
