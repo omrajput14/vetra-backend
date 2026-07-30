@@ -135,6 +135,13 @@ vetra:
     retry:
       max-attempts: ${AI_RETRY_MAX_ATTEMPTS:3}
       backoff: ${AI_RETRY_BACKOFF:2s}
+    gemini:
+      enabled: ${GEMINI_ENABLED:false}
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-1.5-flash}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+      timeout: ${GEMINI_TIMEOUT:30s}
+      max-retries: ${GEMINI_MAX_RETRIES:3}
 
 # ─── Application Info (exposed via /actuator/info) ───────────────────
 info:
