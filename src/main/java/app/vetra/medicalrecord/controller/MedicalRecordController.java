@@ -10,6 +10,10 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,12 +49,22 @@ public class MedicalRecordController {
     return ApiResponse.created("Medical record created successfully", response);
   }
 
-  /** Retrieves all medical records relevant to current authenticated user. */
+  /** Retrieves all medical records relevant to current authenticated user (non-paginated). */
   @GetMapping("/medical-records")
   @Operation(summary = "List Medical Records", description = "Lists medical records for active Farmer or Veterinarian")
   public ApiResponse<List<MedicalRecordResponse>> listMedicalRecords(Principal principal) {
     List<MedicalRecordResponse> response = medicalRecordService.listMedicalRecords(principal.getName());
     return ApiResponse.ok("Medical records retrieved successfully", response);
+  }
+
+  /** Retrieves paginated medical records for current authenticated user. */
+  @GetMapping("/medical-records/page")
+  @Operation(summary = "Paginated List of Medical Records", description = "Lists medical records with page, size, sort support")
+  public ApiResponse<Page<MedicalRecordResponse>> listMedicalRecordsPaginated(
+      Principal principal,
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    Page<MedicalRecordResponse> response = medicalRecordService.listMedicalRecords(principal.getName(), pageable);
+    return ApiResponse.ok("Paginated medical records retrieved successfully", response);
   }
 
   /** Retrieves a specific medical record by ID. */

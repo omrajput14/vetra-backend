@@ -7,6 +7,8 @@ import app.vetra.infrastructure.persistence.enums.Species;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,8 +18,11 @@ import org.springframework.data.repository.query.Param;
  */
 public interface AnimalRepository extends JpaRepository<Animal, UUID> {
 
-  /** Finds all animals owned by farmer. */
+  /** Finds all animals owned by farmer (non-paginated). */
   List<Animal> findByFarmer(FarmerProfile farmer);
+
+  /** Finds all animals owned by farmer with pagination. */
+  Page<Animal> findByFarmer(FarmerProfile farmer, Pageable pageable);
 
   /** Counts total animals owned by farmer. */
   long countByFarmer(FarmerProfile farmer);

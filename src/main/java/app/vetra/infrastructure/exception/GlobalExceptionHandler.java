@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
@@ -19,12 +20,24 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 /**
- * Global exception handler enforcing standard ApiResponse envelope without 500 error leaks.
+ * Global exception handler enforcing standard ApiResponse envelope and Error Catalogue mapping.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+  /** Handles custom typed domain exceptions (ResourceNotFoundException, ConflictException, etc.). */
+  @ExceptionHandler(BaseDomainException.class)
+  public ResponseEntity<ApiResponse<Void>> handleBaseDomainException(
+      BaseDomainException ex, HttpServletRequest request) {
+
+    log.warn("Domain exception on {} {} [{}]: {}",
+        request.getMethod(), request.getRequestURI(), ex.getErrorCode(), ex.getMessage());
+
+    return ResponseEntity.status(ex.getStatus())
+        .body(ApiResponse.error(ex.getStatus(), ex.getMessage()));
+  }
 
   /** Handles MethodArgumentNotValidException raised by @Valid. */
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -44,16 +57,29 @@ public class GlobalExceptionHandler {
         .body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Request validation failed", fieldErrors));
   }
 
-  /** Handles IllegalArgumentException for business rule violations. */
+  /** Handles IllegalArgumentException for simple client validation errors. */
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(
       IllegalArgumentException ex, HttpServletRequest request) {
 
-    log.warn("Business rule violation on {} {}: {}",
+    log.warn("Illegal argument on {} {}: {}",
         request.getMethod(), request.getRequestURI(), ex.getMessage());
 
     return ResponseEntity.badRequest()
         .body(ApiResponse.error(HttpStatus.BAD_REQUEST, ex.getMessage()));
+  }
+
+  /** Handles optimistic locking conflicts (HTTP 409 CONFLICT - APPT_006). */
+  @ExceptionHandler({ObjectOptimisticLockingFailureException.class, jakarta.persistence.OptimisticLockException.class})
+  public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailure(
+      Exception ex, HttpServletRequest request) {
+
+    log.warn("Optimistic locking conflict on {} {}: {}",
+        request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body(ApiResponse.error(HttpStatus.CONFLICT,
+            "This record was modified by another request. Please refresh and try again."));
   }
 
   /** Handles DataIntegrityViolationException for database constraint failures. */

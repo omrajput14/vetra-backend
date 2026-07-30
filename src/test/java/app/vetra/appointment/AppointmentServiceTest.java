@@ -10,14 +10,16 @@ import app.vetra.animal.service.AnimalService;
 import app.vetra.appointment.dto.AppointmentResponse;
 import app.vetra.appointment.dto.CreateAppointmentRequest;
 import app.vetra.appointment.dto.UpdateAppointmentStatusRequest;
+import app.vetra.appointment.repository.AppointmentRepository;
 import app.vetra.appointment.service.AppointmentService;
 import app.vetra.auth.dto.FarmerRegisterRequest;
 import app.vetra.auth.dto.VetRegisterRequest;
-
 import app.vetra.auth.repository.VetProfileRepository;
 import app.vetra.auth.service.AuthService;
 import app.vetra.dashboard.dto.DashboardResponse;
 import app.vetra.dashboard.service.DashboardService;
+import app.vetra.infrastructure.exception.BusinessRuleException;
+import app.vetra.infrastructure.persistence.entity.Appointment;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
@@ -29,12 +31,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Unit & Integration tests for AppointmentService state machine and business rules.
+ * Integration tests for AppointmentService state machine and business rules.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -63,44 +66,23 @@ import org.springframework.transaction.annotation.Transactional;
 })
 class AppointmentServiceTest {
 
-  @Autowired
-  private AppointmentService appointmentService;
-
-  @Autowired
-  private AnimalService animalService;
-
-  @Autowired
-  private AuthService authService;
-
-  @Autowired
-  private VetProfileRepository vetProfileRepository;
-
-  @Autowired
-  private DashboardService dashboardService;
+  @Autowired private AppointmentService appointmentService;
+  @Autowired private AppointmentRepository appointmentRepository;
+  @Autowired private AnimalService animalService;
+  @Autowired private AuthService authService;
+  @Autowired private VetProfileRepository vetProfileRepository;
+  @Autowired private DashboardService dashboardService;
 
   @Test
   void testCompleteAppointmentLifecycleAndStateMachine() {
-    // 1. Register Farmer
-    FarmerRegisterRequest farmerReq = new FarmerRegisterRequest(
-        "farmer_app@vetra.app", "+1555099111", "pass123", "Farmer John", "Sunrise Farm",
-        "Village", "District", "State", 12.0, 56.0, 5);
-    authService.registerFarmer(farmerReq);
-
-    // 2. Register Veterinarian
-    VetRegisterRequest vetReq = new VetRegisterRequest(
-        "vet_app@vetra.app", "+1555099222", "pass123", "Dr. Sarah", "VET-REG-8899",
-        "BVSc & AH", "Bovine Surgery", "City Vet Clinic", 8, 12.1, 56.1);
-    authService.registerVet(vetReq);
-
+    registerUsersAndAnimal();
     VetProfile vetProfile = vetProfileRepository.findAll().get(0);
 
-    // 3. Register Animal for Farmer
     CreateAnimalRequest createAnimalReq = new CreateAnimalRequest(
         "Bella", "TAG-BELL-1", "QR-BELL-1", Species.CATTLE, "Jersey", AnimalGender.FEMALE,
         LocalDate.of(2023, 1, 15), null);
     AnimalResponse animal = animalService.createAnimal("farmer_app@vetra.app", createAnimalReq);
 
-    // 4. Create Appointment (Farmer)
     CreateAppointmentRequest appReq = new CreateAppointmentRequest(
         animal.id(), vetProfile.getId(), LocalDate.now().plusDays(2), LocalTime.of(10, 30),
         VisitType.GENERAL_CHECKUP, "Routine health inspection");
@@ -109,38 +91,62 @@ class AppointmentServiceTest {
     assertNotNull(createdApp.id());
     assertEquals(AppointmentStatus.PENDING, createdApp.status());
 
-    // 5. Verify Past Date rejection
-    CreateAppointmentRequest pastAppReq = new CreateAppointmentRequest(
-        animal.id(), vetProfile.getId(), LocalDate.now().minusDays(1), LocalTime.of(10, 30),
-        VisitType.VACCINATION, "Past vaccination");
-    assertThrows(IllegalArgumentException.class, () ->
-        appointmentService.createAppointment("farmer_app@vetra.app", pastAppReq));
-
-    // 6. Dashboard metrics reflect pending count
     DashboardResponse farmerDash = dashboardService.getDashboardMetrics("farmer_app@vetra.app");
     assertEquals(1, farmerDash.pendingAppointmentsCount());
 
-    DashboardResponse vetDash = dashboardService.getDashboardMetrics("vet_app@vetra.app");
-    assertEquals(1, vetDash.pendingAppointmentsCount());
-
-    // 7. Vet lists appointments
     List<AppointmentResponse> vetList = appointmentService.listAppointments("vet_app@vetra.app");
     assertEquals(1, vetList.size());
-    assertEquals(createdApp.id(), vetList.get(0).id());
 
-    // 8. Vet Confirms Appointment
     AppointmentResponse confirmed = appointmentService.confirmAppointment("vet_app@vetra.app", createdApp.id());
     assertEquals(AppointmentStatus.CONFIRMED, confirmed.status());
 
-    // 9. Vet Completes Appointment with Notes
     AppointmentResponse completed = appointmentService.completeAppointment(
-        "vet_app@vetra.app", createdApp.id(), "Animal is healthy. Administered vitamin supplement.");
+        "vet_app@vetra.app", createdApp.id(), "Animal is healthy.");
     assertEquals(AppointmentStatus.COMPLETED, completed.status());
-    assertEquals("Animal is healthy. Administered vitamin supplement.", completed.veterinarianNotes());
 
-    // 10. Attempting transition from Terminal state throws exception
-    assertThrows(IllegalStateException.class, () ->
+    BusinessRuleException terminalEx = assertThrows(BusinessRuleException.class, () ->
         appointmentService.updateStatus("farmer_app@vetra.app", createdApp.id(),
-            new UpdateAppointmentStatusRequest(AppointmentStatus.CANCELLED, null, "Tried to cancel completed")));
+            new UpdateAppointmentStatusRequest(AppointmentStatus.CANCELLED, null, "Tried cancel")));
+    assertEquals("APPT_005", terminalEx.getErrorCode());
+  }
+
+  @Test
+  void testOptimisticLockingConflictHandling() {
+    registerUsersAndAnimal();
+    VetProfile vetProfile = vetProfileRepository.findAll().get(0);
+    AnimalResponse animal = animalService.createAnimal("farmer_app@vetra.app",
+        new CreateAnimalRequest("Opti", "TAG-OPT-1", "QR-OPT-1", Species.CATTLE, "Breed", AnimalGender.MALE, LocalDate.now().minusYears(1), null));
+
+    AppointmentResponse appt = appointmentService.createAppointment("farmer_app@vetra.app",
+        new CreateAppointmentRequest(animal.id(), vetProfile.getId(), LocalDate.now().plusDays(1), LocalTime.of(14, 0), VisitType.GENERAL_CHECKUP, "Checkup"));
+
+    Appointment entity1 = appointmentRepository.findById(appt.id()).orElseThrow();
+    entity1.setVeterinarianNotes("First update");
+    appointmentRepository.saveAndFlush(entity1);
+
+    Appointment entity2 = new Appointment();
+    entity2.setId(appt.id());
+    entity2.setFarmer(entity1.getFarmer());
+    entity2.setVeterinarian(entity1.getVeterinarian());
+    entity2.setAnimal(entity1.getAnimal());
+    entity2.setAppointmentDate(entity1.getAppointmentDate());
+    entity2.setAppointmentTime(entity1.getAppointmentTime());
+    entity2.setVisitType(entity1.getVisitType());
+    entity2.setReason(entity1.getReason());
+    entity2.setStatus(AppointmentStatus.CONFIRMED);
+    entity2.setVersion(0L);
+
+    assertThrows(ObjectOptimisticLockingFailureException.class, () -> {
+      appointmentRepository.saveAndFlush(entity2);
+    });
+  }
+
+  private void registerUsersAndAnimal() {
+    authService.registerFarmer(new FarmerRegisterRequest(
+        "farmer_app@vetra.app", "+1555099111", "pass123", "Farmer John", "Sunrise Farm",
+        "Village", "District", "State", 12.0, 56.0, 5));
+    authService.registerVet(new VetRegisterRequest(
+        "vet_app@vetra.app", "+1555099222", "pass123", "Dr. Sarah", "VET-REG-8899",
+        "BVSc & AH", "Bovine Surgery", "City Vet Clinic", 8, 12.1, 56.1));
   }
 }

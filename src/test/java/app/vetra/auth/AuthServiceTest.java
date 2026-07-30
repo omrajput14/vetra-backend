@@ -15,6 +15,7 @@ import app.vetra.auth.dto.VetRegisterRequest;
 import app.vetra.auth.repository.RefreshTokenRepository;
 import app.vetra.auth.service.AuthService;
 import app.vetra.auth.service.RefreshTokenService;
+import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.RefreshToken;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import java.util.Optional;
@@ -123,7 +124,7 @@ class AuthServiceTest {
     assertNotEquals(oldRawToken, newRawToken);
 
     // Old token should be invalidated/deleted
-    assertThrows(IllegalArgumentException.class, () ->
+    assertThrows(UnauthorizedResourceAccessException.class, () ->
         authService.refreshToken(new RefreshTokenRequest(oldRawToken)));
   }
 
@@ -150,7 +151,7 @@ class AuthServiceTest {
     authService.changePassword("security@vetra.app", new ChangePasswordRequest("oldpass123", "newpass456"));
 
     // Attempting to refresh with old token must fail
-    assertThrows(IllegalArgumentException.class, () ->
+    assertThrows(UnauthorizedResourceAccessException.class, () ->
         authService.refreshToken(new RefreshTokenRequest(rawRefreshToken)));
 
     // New login with new password works

@@ -11,14 +11,15 @@ import app.vetra.auth.dto.VetRegisterRequest;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.exception.ConflictException;
+import app.vetra.infrastructure.exception.ResourceNotFoundException;
+import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.RefreshToken;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.infrastructure.security.JwtUtil;
-import app.vetra.auth.service.RefreshTokenService;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,10 +57,10 @@ public class AuthService {
   @Transactional
   public AuthResponse registerFarmer(FarmerRegisterRequest request) {
     if (userRepository.existsByEmail(request.email())) {
-      throw new IllegalArgumentException("Email is already registered");
+      throw new ConflictException("Email is already registered", "USER_001");
     }
     if (request.phone() != null && userRepository.existsByPhone(request.phone())) {
-      throw new IllegalArgumentException("Phone number is already registered");
+      throw new ConflictException("Phone number is already registered", "USER_002");
     }
 
     User user = User.builder()
@@ -93,13 +94,13 @@ public class AuthService {
   @Transactional
   public AuthResponse registerVet(VetRegisterRequest request) {
     if (userRepository.existsByEmail(request.email())) {
-      throw new IllegalArgumentException("Email is already registered");
+      throw new ConflictException("Email is already registered", "USER_001");
     }
     if (request.phone() != null && !request.phone().isBlank() && userRepository.existsByPhone(request.phone())) {
-      throw new IllegalArgumentException("Phone number is already registered");
+      throw new ConflictException("Phone number is already registered", "USER_002");
     }
     if (vetProfileRepository.existsByRegistrationNumber(request.registrationNumber())) {
-      throw new IllegalArgumentException("Registration number is already registered");
+      throw new ConflictException("Registration number is already registered", "USER_003");
     }
 
     User user = User.builder()
@@ -135,7 +136,7 @@ public class AuthService {
   public AuthResponse loginFarmer(LoginRequest request) {
     User user = authenticateUser(request, UserRole.FARMER);
     FarmerProfile profile = farmerProfileRepository.findByUser(user)
-        .orElseThrow(() -> new IllegalStateException("Farmer profile missing for user"));
+        .orElseThrow(() -> new ResourceNotFoundException("Farmer profile missing for user", "USER_004"));
     return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
   }
 
@@ -144,7 +145,7 @@ public class AuthService {
   public AuthResponse loginVet(LoginRequest request) {
     User user = authenticateUser(request, UserRole.VETERINARIAN);
     VetProfile profile = vetProfileRepository.findByUser(user)
-        .orElseThrow(() -> new IllegalStateException("Veterinarian profile missing for user"));
+        .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile missing for user", "USER_004"));
     return createAuthResponse(user, mapVetProfileToDto(user, profile));
   }
 
@@ -153,7 +154,7 @@ public class AuthService {
   public AuthResponse refreshToken(RefreshTokenRequest request) {
     RefreshToken refreshToken = refreshTokenService.findByRawToken(request.refreshToken())
         .map(refreshTokenService::verifyExpiration)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+        .orElseThrow(() -> new UnauthorizedResourceAccessException("Invalid or expired refresh token", "AUTH_004"));
 
     User user = refreshToken.getUser();
     UserProfileDto profileDto = getCurrentUserProfileDto(user);
@@ -170,10 +171,10 @@ public class AuthService {
   @Transactional
   public void changePassword(String identifier, ChangePasswordRequest request) {
     User user = userRepository.findByIdentifier(identifier)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
 
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-      throw new IllegalArgumentException("Current password does not match");
+      throw new UnauthorizedResourceAccessException("Current password does not match", "AUTH_001");
     }
 
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
@@ -186,7 +187,7 @@ public class AuthService {
   @Transactional
   public UserProfileDto updateUserProfile(String currentUserIdentifier, UpdateProfileRequest request) {
     User user = userRepository.findByIdentifier(currentUserIdentifier)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
 
     if (request.phone() != null && !request.phone().isBlank() && !request.phone().equals(user.getPhone())) {
       user.setPhone(request.phone());
@@ -248,20 +249,20 @@ public class AuthService {
   @Transactional(readOnly = true)
   public UserProfileDto getCurrentUserProfileDtoByIdentifier(String identifier) {
     User user = userRepository.findByIdentifier(identifier)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
     return getCurrentUserProfileDto(user);
   }
 
   private User authenticateUser(LoginRequest request, UserRole expectedRole) {
     User user = userRepository.findByIdentifier(request.identifier())
-        .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+        .orElseThrow(() -> new UnauthorizedResourceAccessException("Invalid credentials", "AUTH_001"));
 
     if (user.getRole() != expectedRole) {
-      throw new AccessDeniedException("Access denied for role: " + user.getRole());
+      throw new UnauthorizedResourceAccessException("Access denied for role: " + user.getRole(), "AUTH_006");
     }
 
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-      throw new IllegalArgumentException("Invalid credentials");
+      throw new UnauthorizedResourceAccessException("Invalid credentials", "AUTH_001");
     }
 
     return user;

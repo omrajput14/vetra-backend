@@ -12,6 +12,9 @@ import app.vetra.appointment.repository.AppointmentRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.exception.BusinessRuleException;
+import app.vetra.infrastructure.exception.ConflictException;
+import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.Appointment;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
@@ -36,8 +39,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.access.AccessDeniedException;
 
 @ExtendWith(MockitoExtension.class)
 class MedicalRecordServiceTest {
@@ -148,8 +149,9 @@ class MedicalRecordServiceTest {
     when(vetProfileRepository.findByUserId(vetUser.getId())).thenReturn(Optional.of(vetProfile));
     when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
 
-    assertThrows(IllegalArgumentException.class, () ->
+    BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
         medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
+    assertEquals("APPT_008", ex.getErrorCode());
   }
 
   @Test
@@ -164,8 +166,9 @@ class MedicalRecordServiceTest {
     when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
     when(medicalRecordRepository.existsByAppointmentId(appointmentId)).thenReturn(true);
 
-    assertThrows(DataIntegrityViolationException.class, () ->
+    ConflictException ex = assertThrows(ConflictException.class, () ->
         medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
+    assertEquals("MEDICAL_004", ex.getErrorCode());
   }
 
   @Test
@@ -184,8 +187,9 @@ class MedicalRecordServiceTest {
         appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null
     );
 
-    assertThrows(AccessDeniedException.class, () ->
+    UnauthorizedResourceAccessException ex = assertThrows(UnauthorizedResourceAccessException.class, () ->
         medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
+    assertEquals("MEDICAL_003", ex.getErrorCode());
   }
 
   @Test
@@ -199,7 +203,8 @@ class MedicalRecordServiceTest {
     when(animalRepository.findById(animal.getId())).thenReturn(Optional.of(animal));
     when(farmerProfileRepository.findByUserId(farmerUser.getId())).thenReturn(Optional.of(otherFarmer));
 
-    assertThrows(AccessDeniedException.class, () ->
+    UnauthorizedResourceAccessException ex = assertThrows(UnauthorizedResourceAccessException.class, () ->
         medicalRecordService.getAnimalMedicalHistory("farmer.john@vetra.com", animal.getId()));
+    assertEquals("MEDICAL_002", ex.getErrorCode());
   }
 }

@@ -6,6 +6,9 @@ import app.vetra.animal.dto.UpdateAnimalRequest;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
+import app.vetra.infrastructure.exception.ConflictException;
+import app.vetra.infrastructure.exception.ResourceNotFoundException;
+import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.User;
@@ -14,7 +17,8 @@ import app.vetra.infrastructure.persistence.enums.Species;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,18 +47,18 @@ public class AnimalService {
   public AnimalResponse createAnimal(String currentUserIdentifier, CreateAnimalRequest request) {
     User user = getUserByHeader(currentUserIdentifier);
     if (user.getRole() != UserRole.FARMER) {
-      throw new AccessDeniedException("Only farmers can register animals");
+      throw new UnauthorizedResourceAccessException("Only farmers can register animals", "AUTH_006");
     }
 
     FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-        .orElseThrow(() -> new IllegalStateException("Farmer profile not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
 
     if (animalRepository.existsByTagNumber(request.tagNumber())) {
-      throw new IllegalArgumentException("Tag number is already registered: " + request.tagNumber());
+      throw new ConflictException("Tag number is already registered: " + request.tagNumber(), "ANIMAL_003");
     }
     if (request.qrCodeId() != null && !request.qrCodeId().isBlank()
         && animalRepository.existsByQrCodeId(request.qrCodeId())) {
-      throw new IllegalArgumentException("QR Code ID is already registered: " + request.qrCodeId());
+      throw new ConflictException("QR Code ID is already registered: " + request.qrCodeId(), "ANIMAL_003");
     }
 
     Animal animal = Animal.builder()
@@ -78,7 +82,7 @@ public class AnimalService {
   public AnimalResponse getAnimalById(String currentUserIdentifier, UUID animalId) {
     User user = getUserByHeader(currentUserIdentifier);
     Animal animal = animalRepository.findById(animalId)
-        .orElseThrow(() -> new IllegalArgumentException("Animal not found with ID: " + animalId));
+        .orElseThrow(() -> new ResourceNotFoundException("Animal not found with ID: " + animalId, "ANIMAL_001"));
 
     if (user.getRole() == UserRole.FARMER) {
       verifyFarmerOwnership(user, animal);
@@ -87,14 +91,28 @@ public class AnimalService {
     return mapToResponse(animal);
   }
 
-  /** Lists animals based on user role (Farmers see their own animals, Vets/Admins see all). */
+  /** Lists animals with pagination based on user role. */
+  @Transactional(readOnly = true)
+  public Page<AnimalResponse> listAnimals(String currentUserIdentifier, Pageable pageable) {
+    User user = getUserByHeader(currentUserIdentifier);
+
+    if (user.getRole() == UserRole.FARMER) {
+      FarmerProfile farmer = farmerProfileRepository.findByUser(user)
+          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
+      return animalRepository.findByFarmer(farmer, pageable).map(this::mapToResponse);
+    }
+
+    return animalRepository.findAll(pageable).map(this::mapToResponse);
+  }
+
+  /** Legacy list helper for non-paginated backward compatibility. */
   @Transactional(readOnly = true)
   public List<AnimalResponse> listAnimals(String currentUserIdentifier) {
     User user = getUserByHeader(currentUserIdentifier);
 
     if (user.getRole() == UserRole.FARMER) {
       FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new IllegalStateException("Farmer profile not found"));
+          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
       return animalRepository.findByFarmer(farmer).stream().map(this::mapToResponse).toList();
     }
 
@@ -117,7 +135,7 @@ public class AnimalService {
 
     if (user.getRole() == UserRole.FARMER) {
       FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new IllegalStateException("Farmer profile not found"));
+          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
       farmerId = farmer.getId();
     }
 
@@ -132,7 +150,7 @@ public class AnimalService {
   public AnimalResponse updateAnimal(String currentUserIdentifier, UUID animalId, UpdateAnimalRequest request) {
     User user = getUserByHeader(currentUserIdentifier);
     Animal animal = animalRepository.findById(animalId)
-        .orElseThrow(() -> new IllegalArgumentException("Animal not found with ID: " + animalId));
+        .orElseThrow(() -> new ResourceNotFoundException("Animal not found with ID: " + animalId, "ANIMAL_001"));
 
     if (user.getRole() == UserRole.FARMER) {
       verifyFarmerOwnership(user, animal);
@@ -140,12 +158,12 @@ public class AnimalService {
 
     if (!animal.getTagNumber().equalsIgnoreCase(request.tagNumber())
         && animalRepository.existsByTagNumber(request.tagNumber())) {
-      throw new IllegalArgumentException("Tag number is already registered: " + request.tagNumber());
+      throw new ConflictException("Tag number is already registered: " + request.tagNumber(), "ANIMAL_003");
     }
 
     if (request.qrCodeId() != null && !request.qrCodeId().equalsIgnoreCase(animal.getQrCodeId())
         && animalRepository.existsByQrCodeId(request.qrCodeId())) {
-      throw new IllegalArgumentException("QR Code ID is already registered: " + request.qrCodeId());
+      throw new ConflictException("QR Code ID is already registered: " + request.qrCodeId(), "ANIMAL_003");
     }
 
     animal.setAnimalName(request.animalName());
@@ -166,7 +184,7 @@ public class AnimalService {
   public void deleteAnimal(String currentUserIdentifier, UUID animalId) {
     User user = getUserByHeader(currentUserIdentifier);
     Animal animal = animalRepository.findById(animalId)
-        .orElseThrow(() -> new IllegalArgumentException("Animal not found with ID: " + animalId));
+        .orElseThrow(() -> new ResourceNotFoundException("Animal not found with ID: " + animalId, "ANIMAL_001"));
 
     if (user.getRole() == UserRole.FARMER) {
       verifyFarmerOwnership(user, animal);
@@ -177,14 +195,14 @@ public class AnimalService {
 
   private User getUserByHeader(String identifier) {
     return userRepository.findByIdentifier(identifier)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
   }
 
   private void verifyFarmerOwnership(User user, Animal animal) {
     FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-        .orElseThrow(() -> new IllegalStateException("Farmer profile not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
     if (!animal.getFarmer().getId().equals(farmer.getId())) {
-      throw new AccessDeniedException("Access denied: You do not own this animal record");
+      throw new UnauthorizedResourceAccessException("Access denied: You do not own this animal record", "ANIMAL_002");
     }
   }
 

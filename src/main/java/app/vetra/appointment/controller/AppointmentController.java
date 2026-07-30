@@ -11,6 +11,10 @@ import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,12 +51,22 @@ public class AppointmentController {
     return ApiResponse.created("Appointment requested successfully", response);
   }
 
-  /** Lists appointments for the active user. */
+  /** Lists appointments for the active user (non-paginated). */
   @GetMapping
   @Operation(summary = "List Appointments", description = "Lists appointment history for the authenticated farmer or veterinarian")
   public ApiResponse<List<AppointmentResponse>> listAppointments(Principal principal) {
     List<AppointmentResponse> response = appointmentService.listAppointments(principal.getName());
     return ApiResponse.ok("Appointments retrieved successfully", response);
+  }
+
+  /** Paginated list of appointments for the active user. */
+  @GetMapping("/page")
+  @Operation(summary = "Paginated List of Appointments", description = "Retrieves paginated appointments with page, size, sort support")
+  public ApiResponse<Page<AppointmentResponse>> listAppointmentsPaginated(
+      Principal principal,
+      @PageableDefault(size = 20, sort = "appointmentDate", direction = Sort.Direction.DESC) Pageable pageable) {
+    Page<AppointmentResponse> response = appointmentService.listAppointments(principal.getName(), pageable);
+    return ApiResponse.ok("Paginated appointments retrieved successfully", response);
   }
 
   /** Retrieves appointment details by ID. */

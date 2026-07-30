@@ -47,13 +47,16 @@ public class SecurityConfig {
   };
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
   private final CorsConfig corsConfig;
 
   /** Constructor injection. */
   public SecurityConfig(
       JwtAuthenticationFilter jwtAuthenticationFilter,
+      CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
       CorsConfig corsConfig) {
     this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
     this.corsConfig = corsConfig;
   }
 
@@ -64,6 +67,7 @@ public class SecurityConfig {
    *   <li>CSRF disabled — stateless REST API using JWT
    *   <li>CORS sourced from {@link CorsConfig}
    *   <li>Session policy: STATELESS
+   *   <li>CustomAuthenticationEntryPoint formats 401 unauthorized errors
    *   <li>JWT filter runs before {@link UsernamePasswordAuthenticationFilter}
    *   <li>All non-public endpoints require authentication
    * </ul>
@@ -78,6 +82,8 @@ public class SecurityConfig {
         .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(eh ->
+            eh.authenticationEntryPoint(customAuthenticationEntryPoint))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
             .anyRequest().authenticated())

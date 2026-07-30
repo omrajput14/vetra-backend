@@ -7,6 +7,8 @@ import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +21,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
   /** Finds all appointments for a farmer ordered by date and time descending. */
   List<Appointment> findByFarmerOrderByAppointmentDateDescAppointmentTimeDesc(FarmerProfile farmer);
 
+  /** Finds all appointments for a farmer with pagination. */
+  Page<Appointment> findByFarmer(FarmerProfile farmer, Pageable pageable);
+
   /** Finds appointments for a farmer filtered by status. */
   List<Appointment> findByFarmerAndStatusOrderByAppointmentDateDescAppointmentTimeDesc(
       FarmerProfile farmer, AppointmentStatus status);
@@ -26,6 +31,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
   /** Finds all appointments for a veterinarian ordered by date and time descending. */
   List<Appointment> findByVeterinarianOrderByAppointmentDateDescAppointmentTimeDesc(
       VetProfile veterinarian);
+
+  /** Finds all appointments for a veterinarian with pagination. */
+  Page<Appointment> findByVeterinarian(VetProfile veterinarian, Pageable pageable);
 
   /** Finds appointments for a veterinarian filtered by status. */
   List<Appointment> findByVeterinarianAndStatusOrderByAppointmentDateDescAppointmentTimeDesc(
