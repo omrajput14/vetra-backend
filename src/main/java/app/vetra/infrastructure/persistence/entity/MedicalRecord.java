@@ -40,8 +40,8 @@ public class MedicalRecord {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @OneToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "appointment_id", nullable = false, unique = true)
+  @OneToOne(fetch = FetchType.LAZY, optional = true)
+  @JoinColumn(name = "appointment_id", nullable = true, unique = true)
   private Appointment appointment;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

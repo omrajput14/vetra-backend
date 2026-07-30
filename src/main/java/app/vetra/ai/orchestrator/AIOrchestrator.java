@@ -49,6 +49,11 @@ public class AIOrchestrator {
     this.eventPublisher = eventPublisher;
   }
 
+  /** Returns true if AI orchestration platform is enabled in properties. */
+  public boolean isAiEnabled() {
+    return providerRegistry.getDefaultProvider() != null && providerRegistry.getDefaultProvider().isAvailable();
+  }
+
   /**
    * Orchestrates inference execution for a scan using requested or default AI provider.
    *

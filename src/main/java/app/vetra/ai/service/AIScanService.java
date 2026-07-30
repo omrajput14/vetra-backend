@@ -1,26 +1,32 @@
 package app.vetra.ai.service;
 
-import app.vetra.ai.config.AIProperties;
 import app.vetra.ai.dto.AIScanResponse;
+import app.vetra.ai.dto.ApproveAIScanRequest;
 import app.vetra.ai.dto.CreateAIScanRequest;
+import app.vetra.ai.dto.RejectAIScanRequest;
 import app.vetra.ai.dto.VerifyAIScanRequest;
 import app.vetra.ai.entity.AIScan;
 import app.vetra.ai.entity.AIScanResultEntity;
 import app.vetra.ai.entity.AIScanStatus;
 import app.vetra.ai.event.AIScanCreatedEvent;
+import app.vetra.ai.event.AIScanRejectedEvent;
 import app.vetra.ai.event.AIScanVerifiedEvent;
+import app.vetra.ai.event.MedicalRecordCreatedFromAIEvent;
 import app.vetra.ai.orchestrator.AIOrchestrator;
 import app.vetra.ai.repository.AIScanRepository;
 import app.vetra.ai.repository.AIScanResultRepository;
 import app.vetra.animal.repository.AnimalRepository;
-import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
+import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.Animal;
-import app.vetra.infrastructure.persistence.entity.FarmerProfile;
+import app.vetra.infrastructure.persistence.entity.MedicalRecord;
 import app.vetra.infrastructure.persistence.entity.User;
+import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.medicalrecord.repository.MedicalRecordRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -34,7 +40,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Core business service managing AI diagnostic scan requests, status updates, and veterinarian verification.
+ * Core business service managing AI diagnostic scan requests, orchestration execution,
+ * veterinarian review workflow, and automated Electronic Veterinary Medical Record creation.
  */
 @Service
 public class AIScanService {
@@ -45,28 +52,28 @@ public class AIScanService {
   private final AIScanResultRepository aiScanResultRepository;
   private final AnimalRepository animalRepository;
   private final UserRepository userRepository;
-  private final FarmerProfileRepository farmerProfileRepository;
+  private final VetProfileRepository vetProfileRepository;
+  private final MedicalRecordRepository medicalRecordRepository;
   private final AIOrchestrator aiOrchestrator;
-  private final AIProperties aiProperties;
   private final ApplicationEventPublisher eventPublisher;
 
-  /** Constructor injection. */
+  /** Constructor injection with 8 parameters to satisfy Checkstyle constraints. */
   public AIScanService(
       AIScanRepository aiScanRepository,
       AIScanResultRepository aiScanResultRepository,
       AnimalRepository animalRepository,
       UserRepository userRepository,
-      FarmerProfileRepository farmerProfileRepository,
+      VetProfileRepository vetProfileRepository,
+      MedicalRecordRepository medicalRecordRepository,
       AIOrchestrator aiOrchestrator,
-      AIProperties aiProperties,
       ApplicationEventPublisher eventPublisher) {
     this.aiScanRepository = aiScanRepository;
     this.aiScanResultRepository = aiScanResultRepository;
     this.animalRepository = animalRepository;
     this.userRepository = userRepository;
-    this.farmerProfileRepository = farmerProfileRepository;
+    this.vetProfileRepository = vetProfileRepository;
+    this.medicalRecordRepository = medicalRecordRepository;
     this.aiOrchestrator = aiOrchestrator;
-    this.aiProperties = aiProperties;
     this.eventPublisher = eventPublisher;
   }
 
@@ -84,9 +91,7 @@ public class AIScanService {
         .orElseThrow(() -> new ResourceNotFoundException("Animal not found with ID: " + request.animalId(), "ANIMAL_001"));
 
     if (user.getRole() == UserRole.FARMER) {
-      FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
-      if (!animal.getFarmer().getId().equals(farmer.getId())) {
+      if (!animal.getFarmer().getUser().getId().equals(user.getId())) {
         throw new UnauthorizedResourceAccessException("Farmers can only create diagnostic scans for their own animals", "ANIMAL_002");
       }
     }
@@ -103,11 +108,11 @@ public class AIScanService {
     scan = aiScanRepository.save(scan);
     eventPublisher.publishEvent(new AIScanCreatedEvent(scan.getId(), animal.getId(), scan.getImageUrl(), user.getId()));
 
-    if (aiProperties.isEnabled()) {
+    if (aiOrchestrator.isAiEnabled()) {
       try {
-        scan = aiOrchestrator.processScan(scan, aiProperties.getDefaultProvider());
+        scan = aiOrchestrator.processScan(scan, null);
       } catch (Exception ex) {
-        log.warn("AI Orchestration attempt completed with error: {}", ex.getMessage());
+        log.warn("AI Orchestration attempt completed with status update: {}", ex.getMessage());
       }
     }
 
@@ -187,55 +192,122 @@ public class AIScanService {
   }
 
   /**
-   * Allows a licensed veterinarian to verify or correct an AI diagnostic scan.
+   * Approves an AI diagnostic scan, records vet verification, and automatically generates an immutable MedicalRecord.
    *
    * @param userIdentifier email or phone of active user (must be VETERINARIAN)
    * @param scanId scan UUID
-   * @param request verification request body
+   * @param request approval request body with optional notes and diagnosis overrides
    * @return updated {@link AIScanResponse}
    */
   @Transactional
-  public AIScanResponse verifyScan(String userIdentifier, UUID scanId, VerifyAIScanRequest request) {
+  public AIScanResponse approveScan(String userIdentifier, UUID scanId, ApproveAIScanRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
+    validateVeterinarianRole(user);
 
-    if (user.getRole() != UserRole.VETERINARIAN) {
-      throw new UnauthorizedResourceAccessException("Only licensed veterinarians can verify AI diagnostic scans", "AUTH_006");
-    }
+    VetProfile vetProfile = vetProfileRepository.findByUser(user)
+        .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile not found", "USER_004"));
 
     AIScan scan = aiScanRepository.findById(scanId)
         .orElseThrow(() -> new ResourceNotFoundException("AI Diagnostic scan not found with ID: " + scanId, "AI_001"));
 
+    validateReviewableState(scan);
+
+    scan.setStatus(AIScanStatus.VERIFIED);
     scan.setVeterinarianVerified(true);
     scan.setVerifiedBy(user);
     scan.setVerifiedAt(Instant.now());
 
-    boolean accepted = Boolean.TRUE.equals(request.acceptDiagnosis());
-    if (accepted) {
-      scan.setStatus(AIScanStatus.VERIFIED);
-    } else {
-      scan.setStatus(AIScanStatus.REJECTED);
-      if (request.correctedDiagnosis() != null && !request.correctedDiagnosis().isBlank()) {
-        scan.setDiagnosis(request.correctedDiagnosis().trim());
-      }
+    if (request != null && request.customDiagnosis() != null && !request.customDiagnosis().isBlank()) {
+      scan.setDiagnosis(request.customDiagnosis().trim());
     }
-
-    if (request.veterinarianNotes() != null && !request.veterinarianNotes().isBlank()) {
-      scan.setNotes(request.veterinarianNotes().trim());
+    if (request != null && request.notes() != null && !request.notes().isBlank()) {
+      scan.setNotes(request.notes().trim());
     }
 
     scan = aiScanRepository.save(scan);
-    eventPublisher.publishEvent(new AIScanVerifiedEvent(scan.getId(), accepted, user.getId()));
+
+    // Automatically create immutable MedicalRecord entry
+    String finalDiagnosis = scan.getDiagnosis() != null ? scan.getDiagnosis() : "AI Visual Observation Approved";
+    String symptomsText = "Visual Observation via " + (scan.getAiProvider() != null ? scan.getAiProvider() : "AI Provider")
+        + " [Model: " + (scan.getAiModel() != null ? scan.getAiModel() : "N/A")
+        + ", Confidence: " + (scan.getConfidenceScore() != null ? scan.getConfidenceScore() : "N/A") + "]";
+
+    String treatmentText = (request != null && request.treatmentNotes() != null && !request.treatmentNotes().isBlank())
+        ? request.treatmentNotes().trim()
+        : "Follow-up clinical inspection and care recommended.";
+
+    MedicalRecord medicalRecord = MedicalRecord.builder()
+        .animal(scan.getAnimal())
+        .farmer(scan.getAnimal().getFarmer())
+        .veterinarian(vetProfile)
+        .diagnosis(finalDiagnosis)
+        .symptoms(symptomsText)
+        .treatment(treatmentText)
+        .notes("AI Scan verified by Dr. " + vetProfile.getFullName() + ". Notes: " + (scan.getNotes() != null ? scan.getNotes() : ""))
+        .build();
+
+    medicalRecord = medicalRecordRepository.save(medicalRecord);
+
+    log.info("AI Scan APPROVED scanId={} by vetId={} -> Created MedicalRecord id={}",
+        scan.getId(), user.getId(), medicalRecord.getId());
+
+    eventPublisher.publishEvent(new AIScanVerifiedEvent(scan.getId(), true, user.getId()));
+    eventPublisher.publishEvent(new MedicalRecordCreatedFromAIEvent(
+        medicalRecord.getId(), scan.getId(), scan.getAnimal().getId(), user.getId()));
+
     return AIScanResponse.fromEntity(scan);
   }
 
   /**
-   * Helper method for updating scan status and diagnostic outputs.
+   * Rejects an AI diagnostic scan output and records the rejection reason.
    *
+   * @param userIdentifier email or phone of active user (must be VETERINARIAN)
    * @param scanId scan UUID
-   * @param status target status
-   * @param diagnosis diagnostic text output
-   * @param confidenceScore confidence score
+   * @param request rejection request body containing reason
    * @return updated {@link AIScanResponse}
+   */
+  @Transactional
+  public AIScanResponse rejectScan(String userIdentifier, UUID scanId, RejectAIScanRequest request) {
+    User user = getUserByEmailOrPhone(userIdentifier);
+    validateVeterinarianRole(user);
+
+    AIScan scan = aiScanRepository.findById(scanId)
+        .orElseThrow(() -> new ResourceNotFoundException("AI Diagnostic scan not found with ID: " + scanId, "AI_001"));
+
+    validateReviewableState(scan);
+
+    scan.setStatus(AIScanStatus.REJECTED);
+    scan.setVeterinarianVerified(true);
+    scan.setVerifiedBy(user);
+    scan.setVerifiedAt(Instant.now());
+    scan.setNotes("REJECTED: " + request.rejectionReason().trim());
+
+    scan = aiScanRepository.save(scan);
+
+    log.info("AI Scan REJECTED scanId={} by vetId={} reason='{}'",
+        scan.getId(), user.getId(), request.rejectionReason());
+
+    eventPublisher.publishEvent(new AIScanRejectedEvent(scan.getId(), request.rejectionReason().trim(), user.getId()));
+
+    return AIScanResponse.fromEntity(scan);
+  }
+
+  /**
+   * Backward-compatible verify scan method delegating to approve or reject flow.
+   */
+  @Transactional
+  public AIScanResponse verifyScan(String userIdentifier, UUID scanId, VerifyAIScanRequest request) {
+    if (Boolean.TRUE.equals(request.acceptDiagnosis())) {
+      return approveScan(userIdentifier, scanId, new ApproveAIScanRequest(
+          request.veterinarianNotes(), request.correctedDiagnosis(), null));
+    } else {
+      String reason = request.veterinarianNotes() != null ? request.veterinarianNotes() : "Diagnosis rejected by veterinarian";
+      return rejectScan(userIdentifier, scanId, new RejectAIScanRequest(reason));
+    }
+  }
+
+  /**
+   * Helper method for updating scan status and diagnostic outputs.
    */
   @Transactional
   public AIScanResponse updateStatus(
@@ -253,6 +325,24 @@ public class AIScanService {
 
     scan = aiScanRepository.save(scan);
     return AIScanResponse.fromEntity(scan);
+  }
+
+  private void validateVeterinarianRole(User user) {
+    if (user.getRole() != UserRole.VETERINARIAN) {
+      throw new UnauthorizedResourceAccessException("Only licensed veterinarians can review AI diagnostic scans", "AUTH_006");
+    }
+  }
+
+  private void validateReviewableState(AIScan scan) {
+    if (scan.getStatus() == AIScanStatus.VERIFIED || scan.getStatus() == AIScanStatus.REJECTED) {
+      throw new BusinessRuleException("AI Diagnostic scan has already been reviewed", "AI_006");
+    }
+    if (scan.getStatus() == AIScanStatus.FAILED) {
+      throw new BusinessRuleException("Failed AI scans cannot be reviewed by a veterinarian", "AI_007");
+    }
+    if (scan.getStatus() == AIScanStatus.PENDING) {
+      throw new BusinessRuleException("AI scan processing must complete before review", "AI_008");
+    }
   }
 
   private void validateScanAccess(User user, AIScan scan) {

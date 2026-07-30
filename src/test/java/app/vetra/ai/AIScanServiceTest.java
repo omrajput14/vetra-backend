@@ -24,6 +24,7 @@ import app.vetra.auth.service.AuthService;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
 import app.vetra.infrastructure.persistence.enums.Species;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +110,9 @@ class AIScanServiceTest {
     // 4. List Scans with Pageable
     Page<AIScanResponse> farmerPage = aiScanService.listScans("farmer_ai@vetra.app", PageRequest.of(0, 10));
     assertEquals(1, farmerPage.getTotalElements());
+
+    // Set scan status to COMPLETED to simulate finished AI processing before vet review
+    aiScanService.updateStatus(createdScan.id(), AIScanStatus.COMPLETED, "Initial Dermatological Observation", new BigDecimal("0.850"));
 
     // 5. Verify Scan (Farmer cannot verify -> UnauthorizedResourceAccessException)
     assertThrows(UnauthorizedResourceAccessException.class, () ->

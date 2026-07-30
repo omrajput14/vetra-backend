@@ -278,6 +278,33 @@ sequenceDiagram
 | **DTO Mapping**               | Service / DTO Mapper           | Maps internal JPA domain entities into immutable public response DTOs.                         |
 | **Exception Handling**        | `GlobalExceptionHandler`     | Catches uncaught exceptions and serializes standard`ApiErrorResponse` envelopes.             |
 
+### 6.3 AI Scan Review & Automatic EVMR Creation Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Vet as Licensed Veterinarian
+    participant Controller as AIScanController
+    participant Service as AIScanService
+    participant AIRepo as AIScanRepository
+    participant EVMRRepo as MedicalRecordRepository
+    participant Event as ApplicationEventPublisher
+
+    Vet->>Controller: POST /api/v1/ai/scans/{id}/approve
+    Controller->>Service: approveScan(vetEmail, scanId, request)
+    Service->>Service: Verify VETERINARIAN Role
+    Service->>AIRepo: findById(scanId)
+    Service->>Service: Assert Status == COMPLETED
+    
+    Service->>AIRepo: save(status=VERIFIED, verifiedBy=vet, verifiedAt=now())
+    Service->>EVMRRepo: save(MedicalRecord entity)
+    
+    Service->>Event: publishEvent(AIScanVerifiedEvent)
+    Service->>Event: publishEvent(MedicalRecordCreatedFromAIEvent)
+    Service-->>Controller: AIScanResponse (VERIFIED)
+    Controller-->>Vet: 200 OK + ApiResponse
+```
+
 ---
 
 ## 7. Security Architecture
