@@ -1,47 +1,50 @@
-# Vetra Backend — Spring Boot 3 & PostgreSQL Service
+# Vetra Backend — Veterinary Operating System (VetOS) REST API
 
-[![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
-[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.x-green.svg)](https://spring.io/projects/spring-boot)
+[![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://www.oracle.com/java/technologies/downloads/#java21)
+[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.5-green.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL 15](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
+[![Flyway](https://img.shields.io/badge/Flyway-Migrations-red.svg)](https://flywaydb.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Vetra Backend is the production-quality, modular monolith REST API powering the **Vetra** livestock healthcare and disease surveillance ecosystem. Built with Spring Boot 3, Java 17, and PostgreSQL 15, it manages dual-role authentication (Farmer/Veterinarian), livestock records, clinical appointments, and immutable Electronic Veterinary Medical Records (EVMR).
+Vetra Backend is the production-grade, modular monolith REST API powering **Vetra** — an enterprise Veterinary Operating System (VetOS) for livestock healthcare, practice management, and epidemiological disease surveillance. Built with Spring Boot 3, Java 21 LTS, and PostgreSQL 15, it provides dual-role authentication (Farmer/Veterinarian), digital animal passports, clinical appointment state management, and immutable Electronic Veterinary Medical Records (EVMR).
 
 ---
 
-## Key Features
+## Key Capabilities
 
-- **Dual-Role Identity & Access Control:** Separate registration and profile management for Farmers and Veterinarians, secured with JWT and refresh token rotation.
-- **Livestock Management:** Digital animal registration with unique QR-code Animal Passports.
-- **Clinical Appointment Engine:** Complete state machine (`PENDING` → `CONFIRMED` → `COMPLETED`/`CANCELLED`) with JPA optimistic locking (`version`).
-- **Electronic Veterinary Medical Records (EVMR):** Immutable clinical medical records created by veterinarians for completed appointments, providing a permanent medical history.
-- **Role-Specific Dashboards:** Aggregated metrics tailored to farmer and veterinarian workflows.
+- **Dual-Role Identity & Access Control:** Role-Based Access Control (RBAC) separating Farmers and Veterinarians, secured via stateless JWT and database-backed refresh token rotation.
+- **Digital Livestock Passport:** Unique QR-code registration (`qr_code_id`) providing tamper-proof animal health records and chronological medical history.
+- **Clinical Appointment Engine:** Formal state machine (`PENDING` → `CONFIRMED` → `COMPLETED` / `CANCELLED`) with JPA optimistic locking (`version`).
+- **Electronic Veterinary Medical Records (EVMR):** Immutable clinical medical records created by licensed veterinarians for completed appointments, fulfilling medical data compliance.
+- **Role-Specific Dashboards:** Aggregated metrics tailored to farmer herd health and veterinarian clinical schedules.
+- **Interactive OpenAPI / Swagger UI:** Built-in dynamic API documentation powered by SpringDoc OpenAPI.
 
 ---
 
 ## System Architecture Overview
 
-Vetra Backend is designed as a **Modular Monolith** following **Clean Architecture** principles:
+Vetra Backend is designed as a **Modular Monolith** following **Clean Architecture** and **Domain-Driven Design (DDD)** principles:
 
 ```
 app.vetra/
-├── auth/           ← Identity, JWT, Vet Directory
-├── animal/         ← Animal registration & passports
-├── appointment/    ← Booking & clinical state machine
+├── auth/           ← Identity, JWT, Refresh Tokens, Vet Directory
+├── animal/         ← Animal registration & QR Animal Passports
+├── appointment/    ← Scheduling & clinical state machine
 ├── medicalrecord/  ← Immutable EVMR clinical history
-├── dashboard/      ← Role-based metric aggregation
-└── infrastructure/ ← Shared entities, Spring Security, Flyway, exceptions
+├── dashboard/      ← Role-based metrics aggregation
+└── infrastructure/ ← Shared JPA entities, Spring Security, Flyway, exception handling
 ```
 
 ---
 
 ## Professional Documentation Index
 
-Every aspect of this system is thoroughly documented. Please consult the engineering guides before contributing:
+Comprehensive engineering specifications and design records are maintained under `docs/`:
 
-### 🏛 Architecture & Design
+### 🏛 Architecture & Product
 - [Engineering Principles](docs/engineering/00-principles.md) — *The Vetra Engineering Constitution*
-- [Software Architecture Document (SAD)](docs/architecture/02-SAD.md)
+- [Product Requirements Document (PRD v2.0.0)](docs/product/01-PRD.md)
+- [Software Architecture Document (SAD v2.0.0)](docs/architecture/02-SAD.md)
 - [Modular Monolith Architecture](docs/architecture/08-modular-monolith.md)
 - [Deployment Architecture](docs/architecture/09-deployment.md)
 - [Infrastructure Diagram](docs/architecture/10-infrastructure.md)
@@ -61,7 +64,7 @@ Every aspect of this system is thoroughly documented. Please consult the enginee
 
 ### 🛠 Operations & Engineering Guides
 - [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md) — *Start here!*
-- [Coding Standards & Conventions (Java/Spring)](docs/engineering/12-coding-standards.md)
+- [Coding Standards & Conventions (Java 21/Spring)](docs/engineering/12-coding-standards.md)
 - [Git Workflow & Branching Strategy](docs/engineering/13-git-workflow.md)
 - [Testing Strategy](docs/guides/14-testing-strategy.md)
 - [CI/CD Pipeline Specification](docs/operations/15-cicd.md)
@@ -75,8 +78,8 @@ Every aspect of this system is thoroughly documented. Please consult the enginee
 ## Quick Start (Local Development)
 
 ### 1. Prerequisites
-- JDK 17+
-- Docker Desktop
+- **JDK 21 LTS** (`java -version` → 21.x)
+- **Docker Desktop** (for PostgreSQL 15 + PostGIS)
 
 ### 2. Start Database
 ```bash
@@ -84,14 +87,25 @@ cp .env.example .env
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-### 3. Run Backend
+### 3. Run Backend Application
 ```bash
 ./mvnw spring-boot:run
 ```
 
-### 4. Health Check
+### 4. Verify Health & OpenAPI Docs
+- **Actuator Health Check:** `curl http://localhost:8080/actuator/health` → `{"status":"UP"}`
+- **Swagger UI:** Open `http://localhost:8080/swagger-ui.html` in your browser
+
+### 5. Format & Lint
 ```bash
-curl http://localhost:8080/actuator/health
+# Code formatting check
+./mvnw spotless:check
+
+# Apply Google Java Format
+./mvnw spotless:apply
+
+# Run Checkstyle validation
+./mvnw checkstyle:check
 ```
 
-For full local environment setup details, read the [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md).
+For step-by-step onboarding, read the [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md).
