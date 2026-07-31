@@ -1010,177 +1010,65 @@ SERVICE
 
 Create
 
-DiseaseService
 
-Responsibilities
+---
 
-- createReport()
-- updateReport()
-- getReport()
-- searchNearbyReports()
-- detectPotentialOutbreak()
-- listOutbreaks()
+## 20. Notification & Communication Platform Architecture (Stage 11)
 
-Business logic only.
+```mermaid
+graph TD
+    subgraph Domain Event Publishers
+        Appt[Appointment Module]
+        AI[AI Diagnostic Module]
+        Disease[Disease Module]
+        MR[Medical Record Module]
+    end
 
-====================================================
-REPOSITORY
-==========
+    subgraph Notification Bounded Context (app.vetra.notification)
+        Listener[NotificationEventListener<br/>@Async @EventListener]
+        PrefSvc[NotificationPreferenceService]
+        DeviceSvc[DeviceManagementService]
+        Svc[NotificationService]
+        RetrySched[NotificationRetryScheduler<br/>@Scheduled Cron]
+        
+        subgraph Provider Abstraction Layer
+            ProvInterface[NotificationProvider Interface]
+            FCM[FirebaseNotificationProvider<br/>FCM Push]
+            NoOp[NoOpNotificationProvider<br/>Fallback/Test]
+        end
+        
+        Repo[NotificationRepository]
+        DeviceRepo[NotificationDeviceRepository]
+        PrefRepo[NotificationPreferenceRepository]
+        LogRepo[NotificationDeliveryLogRepository]
+    end
 
-Create
+    subgraph Storage Tier
+        DB[(PostgreSQL 15<br/>Flyway V14)]
+    end
 
-DiseaseReportRepository
+    Appt -->|AppointmentBookedEvent| Listener
+    AI -->|AIScanCompletedEvent / Verified| Listener
+    Disease -->|DiseaseReportCreated / OutbreakAlert| Listener
+    MR -->|MedicalRecordCreatedEvent| Listener
 
-OutbreakRepository
+    Listener --> PrefSvc
+    PrefSvc --> PrefRepo
+    Listener --> Svc
 
-Support
+    Svc --> DeviceSvc
+    DeviceSvc --> DeviceRepo
 
-- pageable queries
-- search by disease
-- search by status
-- nearby reports
-- radius search
-- outbreak aggregation
+    Svc --> ProvInterface
+    ProvInterface --> FCM
+    ProvInterface --> NoOp
 
-====================================================
-REST API
-========
+    Svc --> Repo
+    Svc --> LogRepo
+    RetrySched --> Repo
 
-Base path
-
-/api/v1/disease
-
-Implement
-
-POST /reports
-
-GET /reports
-
-GET /reports/{id}
-
-GET /reports/nearby
-
-GET /outbreaks
-
-GET /outbreaks/{id}
-
-Return the project's standard ApiResponse.
-
-Document every endpoint using Swagger.
-
-====================================================
-SECURITY
-========
-
-Authenticated Farmer
-
-- View own reports
-
-Veterinarian
-
-- Create reports
-- Update reports
-- View all reports
-
-Administrator
-
-- Full access
-
-Reuse the existing JWT security architecture.
-
-====================================================
-DOMAIN EVENTS
-=============
-
-Create
-
-DiseaseReportCreatedEvent
-
-DiseaseConfirmedEvent
-
-PotentialOutbreakDetectedEvent
-
-OutbreakResolvedEvent
-
-====================================================
-VALIDATION
-==========
-
-Validate
-
-- Coordinates
-- UUIDs
-- Disease name
-- Required fields
-- Duplicate reports
-
-====================================================
-TESTING
-=======
-
-Create
-
-- Repository tests
-- Service tests
-- Controller tests
-- Spatial query tests
-
-Mock spatial data where appropriate.
-
-All tests must pass.
-
-====================================================
-DOCUMENTATION
-=============
-
-Update
-
-- Database Design
-- ERD
-- API Specification
-- Architecture Decision Log
-
-Only append Disease Surveillance documentation.
-
-Do not rewrite previous documents.
-
-====================================================
-DELIVERABLES
-============
-
-Provide
-
-1. Feature branch created
-2. Files created
-3. Files modified
-4. Flyway migration
-5. Database schema
-6. Entity relationships
-7. REST endpoints
-8. Domain events
-9. Test results
-10. Git diff summary
-
-====================================================
-SUCCESS CRITERIA
-================
-
-✔ Feature branch created
-
-✔ Disease module isolated
-
-✔ PostGIS configured
-
-✔ Disease report workflow implemented
-
-✔ Outbreak foundation implemented
-
-✔ Spatial queries working
-
-✔ Tests passing
-
-✔ Existing architecture preserved
-
-Do NOT implement notifications, analytics dashboards, or frontend integration in this stage.
-
-At completion, provide a production readiness report and confirm whether Stage 10.1 is complete and ready for Stage 10.2 (Outbreak Detection Engine).yguhu
+    Repo --> DB
+    DeviceRepo --> DB
+    PrefRepo --> DB
+    LogRepo --> DB
+```
