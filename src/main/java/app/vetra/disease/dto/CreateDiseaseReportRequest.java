@@ -1,5 +1,6 @@
 package app.vetra.disease.dto;
 
+import app.vetra.disease.entity.DiagnosisConfidenceSource;
 import app.vetra.disease.entity.DiagnosisStatus;
 import app.vetra.disease.entity.DiseaseReportSource;
 import jakarta.validation.constraints.DecimalMax;
@@ -22,6 +23,8 @@ public record CreateDiseaseReportRequest(
 
     @NotNull(message = "Report source is required")
     DiseaseReportSource reportSource,
+
+    DiagnosisConfidenceSource diagnosisConfidenceSource,
 
     @NotBlank(message = "Disease name is required")
     @Size(max = 128, message = "Disease name cannot exceed 128 characters")

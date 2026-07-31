@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,6 +37,11 @@ public class Outbreak extends BaseEntity {
   @Builder.Default
   private OutbreakStatus status = OutbreakStatus.ACTIVE;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "risk_score", nullable = false, length = 32)
+  @Builder.Default
+  private OutbreakRiskScore riskScore = OutbreakRiskScore.MEDIUM;
+
   @Column(name = "center_latitude", nullable = false)
   private Double centerLatitude;
 
@@ -49,4 +55,12 @@ public class Outbreak extends BaseEntity {
   @Column(name = "affected_reports_count", nullable = false)
   @Builder.Default
   private Integer affectedReportsCount = 0;
+
+  @Column(name = "evaluation_window_hours", nullable = false)
+  @Builder.Default
+  private Integer evaluationWindowHours = 72;
+
+  @Column(name = "last_case_reported_at")
+  @Builder.Default
+  private Instant lastCaseReportedAt = Instant.now();
 }

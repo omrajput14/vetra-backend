@@ -51,6 +51,11 @@ public class DiseaseReport extends BaseEntity {
   @Column(name = "report_source", nullable = false, length = 32)
   private DiseaseReportSource reportSource;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "diagnosis_confidence_source", nullable = false, length = 32)
+  @Builder.Default
+  private DiagnosisConfidenceSource diagnosisConfidenceSource = DiagnosisConfidenceSource.VETERINARIAN;
+
   @Column(name = "disease_name", nullable = false, length = 128)
   private String diseaseName;
 

@@ -9,14 +9,17 @@ import app.vetra.disease.dto.CreateDiseaseReportRequest;
 import app.vetra.disease.dto.DiseaseReportResponse;
 import app.vetra.disease.dto.NearbyReportResponse;
 import app.vetra.disease.dto.OutbreakResponse;
+import app.vetra.disease.dto.OutbreakStatisticsResponse;
+import app.vetra.disease.engine.OutbreakDetectionEngine;
+import app.vetra.disease.entity.DiagnosisConfidenceSource;
 import app.vetra.disease.entity.DiagnosisStatus;
 import app.vetra.disease.entity.DiseaseReport;
 import app.vetra.disease.entity.DiseaseReportSource;
 import app.vetra.disease.entity.Outbreak;
+import app.vetra.disease.entity.OutbreakRiskScore;
 import app.vetra.disease.entity.OutbreakStatus;
 import app.vetra.disease.event.DiseaseConfirmedEvent;
 import app.vetra.disease.event.DiseaseReportCreatedEvent;
-import app.vetra.disease.event.PotentialOutbreakDetectedEvent;
 import app.vetra.disease.geo.GeoUtils;
 import app.vetra.disease.repository.DiseaseReportRepository;
 import app.vetra.disease.repository.OutbreakRepository;
@@ -28,6 +31,8 @@ import app.vetra.infrastructure.persistence.entity.MedicalRecord;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.medicalrecord.repository.MedicalRecordRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -46,8 +51,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DiseaseService {
 
   private static final Logger log = LoggerFactory.getLogger(DiseaseService.class);
-  private static final int OUTBREAK_THRESHOLD = 3;
-  private static final double DEFAULT_OUTBREAK_RADIUS_KM = 15.0;
 
   private final DiseaseReportRepository diseaseReportRepository;
   private final OutbreakRepository outbreakRepository;
@@ -55,6 +58,7 @@ public class DiseaseService {
   private final UserRepository userRepository;
   private final MedicalRecordRepository medicalRecordRepository;
   private final AIScanRepository aiScanRepository;
+  private final OutbreakDetectionEngine outbreakDetectionEngine;
   private final ApplicationEventPublisher eventPublisher;
 
   /** Constructor injection. */
@@ -65,6 +69,7 @@ public class DiseaseService {
       UserRepository userRepository,
       MedicalRecordRepository medicalRecordRepository,
       AIScanRepository aiScanRepository,
+      OutbreakDetectionEngine outbreakDetectionEngine,
       ApplicationEventPublisher eventPublisher) {
     this.diseaseReportRepository = diseaseReportRepository;
     this.outbreakRepository = outbreakRepository;
@@ -72,6 +77,7 @@ public class DiseaseService {
     this.userRepository = userRepository;
     this.medicalRecordRepository = medicalRecordRepository;
     this.aiScanRepository = aiScanRepository;
+    this.outbreakDetectionEngine = outbreakDetectionEngine;
     this.eventPublisher = eventPublisher;
   }
 
@@ -109,12 +115,17 @@ public class DiseaseService {
           .orElseThrow(() -> new ResourceNotFoundException("Medical record not found", "MEDICAL_001"));
     }
 
+    DiagnosisConfidenceSource confidenceSource = request.diagnosisConfidenceSource() != null
+        ? request.diagnosisConfidenceSource()
+        : (request.reportSource() == DiseaseReportSource.AI_VERIFIED ? DiagnosisConfidenceSource.AI_VERIFIED : DiagnosisConfidenceSource.VETERINARIAN);
+
     DiseaseReport report = DiseaseReport.builder()
         .animal(animal)
         .medicalRecord(medicalRecord)
         .aiScan(aiScan)
         .reportedBy(user)
         .reportSource(request.reportSource())
+        .diagnosisConfidenceSource(confidenceSource)
         .diseaseName(request.diseaseName().trim())
         .diagnosisStatus(request.diagnosisStatus())
         .latitude(request.latitude())
@@ -124,8 +135,8 @@ public class DiseaseService {
 
     report = diseaseReportRepository.save(report);
 
-    log.info("Disease report created id={} disease='{}' status={} lat={} lng={}",
-        report.getId(), report.getDiseaseName(), report.getDiagnosisStatus(), report.getLatitude(), report.getLongitude());
+    log.info("Disease report created id={} disease='{}' status={} confidence={} lat={} lng={}",
+        report.getId(), report.getDiseaseName(), report.getDiagnosisStatus(), report.getDiagnosisConfidenceSource(), report.getLatitude(), report.getLongitude());
 
     eventPublisher.publishEvent(new DiseaseReportCreatedEvent(
         report.getId(), animal.getId(), report.getDiseaseName(), report.getDiagnosisStatus(), report.getLatitude(), report.getLongitude()));
@@ -133,7 +144,7 @@ public class DiseaseService {
     if (report.getDiagnosisStatus() == DiagnosisStatus.CONFIRMED) {
       eventPublisher.publishEvent(new DiseaseConfirmedEvent(
           report.getId(), animal.getId(), report.getDiseaseName(), report.getLatitude(), report.getLongitude()));
-      detectPotentialOutbreak(report.getDiseaseName(), report.getLatitude(), report.getLongitude());
+      outbreakDetectionEngine.evaluateReport(report);
     }
 
     return DiseaseReportResponse.fromEntity(report);
@@ -179,7 +190,6 @@ public class DiseaseService {
   public List<NearbyReportResponse> searchNearbyReports(Double latitude, Double longitude, Double radiusKm) {
     double radius = (radiusKm != null && radiusKm > 0) ? radiusKm : 25.0;
 
-    // Approximate bounding box calculations (1 deg lat ~ 111km)
     double latDelta = radius / 111.0;
     double lonDelta = radius / (111.0 * Math.cos(Math.toRadians(latitude)));
 
@@ -200,45 +210,6 @@ public class DiseaseService {
   }
 
   /**
-   * Scans confirmed reports within radius to detect and create potential outbreak clusters.
-   */
-  @Transactional
-  public void detectPotentialOutbreak(String diseaseName, Double latitude, Double longitude) {
-    List<NearbyReportResponse> nearbyConfirmed = searchNearbyReports(latitude, longitude, DEFAULT_OUTBREAK_RADIUS_KM)
-        .stream()
-        .filter(nr -> nr.report().diseaseName().equalsIgnoreCase(diseaseName))
-        .filter(nr -> nr.report().diagnosisStatus() == DiagnosisStatus.CONFIRMED)
-        .toList();
-
-    if (nearbyConfirmed.size() >= OUTBREAK_THRESHOLD) {
-      log.warn("POTENTIAL OUTBREAK DETECTED: disease='{}' clusterCount={} lat={} lng={}",
-          diseaseName, nearbyConfirmed.size(), latitude, longitude);
-
-      List<Outbreak> existingActive = outbreakRepository.findByDiseaseNameIgnoreCaseAndStatus(diseaseName, OutbreakStatus.ACTIVE);
-
-      if (existingActive.isEmpty()) {
-        Outbreak outbreak = Outbreak.builder()
-            .diseaseName(diseaseName)
-            .severity(nearbyConfirmed.size() >= 5 ? "HIGH" : "MEDIUM")
-            .status(OutbreakStatus.ACTIVE)
-            .centerLatitude(latitude)
-            .centerLongitude(longitude)
-            .radiusKm(DEFAULT_OUTBREAK_RADIUS_KM)
-            .affectedReportsCount(nearbyConfirmed.size())
-            .build();
-
-        outbreakRepository.save(outbreak);
-        eventPublisher.publishEvent(new PotentialOutbreakDetectedEvent(
-            diseaseName, latitude, longitude, nearbyConfirmed.size()));
-      } else {
-        Outbreak outbreak = existingActive.get(0);
-        outbreak.setAffectedReportsCount(nearbyConfirmed.size());
-        outbreakRepository.save(outbreak);
-      }
-    }
-  }
-
-  /**
    * Lists active or all outbreaks.
    */
   @Transactional(readOnly = true)
@@ -250,6 +221,52 @@ public class DiseaseService {
       outbreaks = outbreakRepository.findAll();
     }
     return outbreaks.stream().map(OutbreakResponse::fromEntity).toList();
+  }
+
+  /**
+   * Retrieves high-risk outbreak clusters (HIGH or CRITICAL severity).
+   */
+  @Transactional(readOnly = true)
+  public List<OutbreakResponse> getHighRiskOutbreaks() {
+    return outbreakRepository.findAll()
+        .stream()
+        .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
+        .filter(o -> o.getRiskScore() == OutbreakRiskScore.HIGH || o.getRiskScore() == OutbreakRiskScore.CRITICAL)
+        .map(OutbreakResponse::fromEntity)
+        .toList();
+  }
+
+  /**
+   * Generates summary outbreak epidemiological statistics.
+   */
+  @Transactional(readOnly = true)
+  public OutbreakStatisticsResponse getOutbreakStatistics() {
+    List<Outbreak> all = outbreakRepository.findAll();
+    long total = all.size();
+    long active = all.stream().filter(o -> o.getStatus() == OutbreakStatus.ACTIVE || o.getStatus() == OutbreakStatus.DETECTED).count();
+    long critical = all.stream().filter(o -> o.getRiskScore() == OutbreakRiskScore.CRITICAL && o.getStatus() != OutbreakStatus.RESOLVED).count();
+    long high = all.stream().filter(o -> o.getRiskScore() == OutbreakRiskScore.HIGH && o.getStatus() != OutbreakStatus.RESOLVED).count();
+    long totalAffected = all.stream().mapToLong(Outbreak::getAffectedReportsCount).sum();
+
+    return new OutbreakStatisticsResponse(total, active, critical, high, totalAffected);
+  }
+
+  /**
+   * Retrieves all disease reports contributing to a specific outbreak cluster.
+   */
+  @Transactional(readOnly = true)
+  public List<DiseaseReportResponse> getReportsForOutbreak(UUID outbreakId) {
+    Outbreak outbreak = outbreakRepository.findById(outbreakId)
+        .orElseThrow(() -> new ResourceNotFoundException("Outbreak cluster not found with ID: " + outbreakId, "DISEASE_005"));
+
+    Instant cutoff = outbreak.getCreatedAt().minus(outbreak.getEvaluationWindowHours(), ChronoUnit.HOURS);
+
+    return diseaseReportRepository.findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(outbreak.getDiseaseName(), DiagnosisStatus.CONFIRMED)
+        .stream()
+        .filter(r -> r.getCreatedAt().isAfter(cutoff))
+        .filter(r -> GeoUtils.calculateDistanceKm(outbreak.getCenterLatitude(), outbreak.getCenterLongitude(), r.getLatitude(), r.getLongitude()) <= outbreak.getRadiusKm())
+        .map(DiseaseReportResponse::fromEntity)
+        .toList();
   }
 
   /**

@@ -1,5 +1,6 @@
 package app.vetra.disease.dto;
 
+import app.vetra.disease.entity.DiagnosisConfidenceSource;
 import app.vetra.disease.entity.DiagnosisStatus;
 import app.vetra.disease.entity.DiseaseReport;
 import app.vetra.disease.entity.DiseaseReportSource;
@@ -19,6 +20,7 @@ public record DiseaseReportResponse(
     UUID reportedById,
     String reportedByName,
     DiseaseReportSource reportSource,
+    DiagnosisConfidenceSource diagnosisConfidenceSource,
     String diseaseName,
     DiagnosisStatus diagnosisStatus,
     Double latitude,
@@ -45,6 +47,7 @@ public record DiseaseReportResponse(
         report.getReportedBy().getId(),
         report.getReportedBy().getEmail(),
         report.getReportSource(),
+        report.getDiagnosisConfidenceSource(),
         report.getDiseaseName(),
         report.getDiagnosisStatus(),
         report.getLatitude(),
