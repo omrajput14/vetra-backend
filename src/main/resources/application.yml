@@ -103,7 +103,7 @@ springdoc:
 
 # ─── Application Custom Properties ───────────────────────────────────
 vetra:
-  # JWT (placeholder — implementation in auth stage)
+  # JWT
   jwt:
     secret: ${JWT_SECRET:vetra-production-grade-jwt-secret-key-must-be-at-least-256-bits-long-dev-only}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}       # 24 h default
@@ -117,7 +117,7 @@ vetra:
     allow-credentials: true
     max-age: 3600
 
-  # AWS S3 (placeholder — implementation in media stage)
+  # AWS S3
   aws:
     region: ${AWS_REGION:ap-south-1}
     s3:
@@ -126,6 +126,22 @@ vetra:
     credentials:
       access-key: ${AWS_ACCESS_KEY_ID:}
       secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+  # AI Platform Orchestration
+  ai:
+    enabled: ${AI_ENABLED:false}
+    default-provider: ${AI_DEFAULT_PROVIDER:NONE}
+    timeout: ${AI_TIMEOUT:30s}
+    retry:
+      max-attempts: ${AI_RETRY_MAX_ATTEMPTS:3}
+      backoff: ${AI_RETRY_BACKOFF:2s}
+    gemini:
+      enabled: ${GEMINI_ENABLED:false}
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-1.5-flash}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+      timeout: ${GEMINI_TIMEOUT:30s}
+      max-retries: ${GEMINI_MAX_RETRIES:3}
 
 # ─── Application Info (exposed via /actuator/info) ───────────────────
 info:

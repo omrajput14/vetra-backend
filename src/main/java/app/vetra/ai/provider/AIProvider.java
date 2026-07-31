@@ -1,29 +1,61 @@
 package app.vetra.ai.provider;
 
+import app.vetra.ai.entity.AIProviderType;
+
 /**
- * Strategy interface defining provider contract for AI visual diagnostic inference engines.
+ * Enterprise AI provider contract interface.
+ * Providers execute visual diagnostic inference without containing business logic.
  */
 public interface AIProvider {
 
   /**
-   * Analyzes a livestock diagnostic image and returns diagnostic recommendations.
+   * Checks if this provider supports the requested provider type enum.
    *
-   * @param imageUrl public or presigned S3 URL of image
-   * @return {@link AIProviderResult} containing diagnosis and confidence score
+   * @param type target provider type
+   * @return true if supported
    */
-  AIProviderResult analyzeImage(String imageUrl);
+  boolean supports(AIProviderType type);
 
   /**
-   * Checks health and availability of the remote or local AI provider service.
+   * Performs image analysis and returns standard {@link AIInferenceResult}.
    *
-   * @return true if provider is active and ready for inference requests, false otherwise
+   * @param imageUrl public or presigned S3 image URL
+   * @return {@link AIInferenceResult} payload
+   */
+  AIInferenceResult analyze(String imageUrl);
+
+  /**
+   * Performs real-time health check against the provider service endpoint.
+   *
+   * @return true if reachable and healthy
    */
   boolean health();
 
   /**
-   * Returns human-readable name or identifier of the AI provider strategy.
+   * Returns human-readable provider name.
    *
-   * @return provider name (e.g. GEMINI, OPENAI, NOOP)
+   * @return name string
    */
   String providerName();
+
+  /**
+   * Returns provider enum type.
+   *
+   * @return {@link AIProviderType}
+   */
+  AIProviderType providerType();
+
+  /**
+   * Returns current active model name or checkpoint identifier.
+   *
+   * @return model identifier string
+   */
+  String model();
+
+  /**
+   * Returns true if provider is enabled in configuration and passes health checks.
+   *
+   * @return true if ready for inference
+   */
+  boolean isAvailable();
 }

@@ -138,6 +138,7 @@ graph TB
         ApptMod["Appointment Module<br/>(Booking, State Machine)"]
         MedicalMod["Medical Record Module<br/>(Immutable EVMR Engine)"]
         DashMod["Dashboard Module<br/>(Role Metrics Aggregation)"]
+        AiMod["AI Module<br/>(AI Orchestrator, Provider Registry, Retry Policy)"]
     end
 
     subgraph Infrastructure Tier
@@ -155,12 +156,14 @@ graph TB
     Controllers --> ApptMod
     Controllers --> MedicalMod
     Controllers --> DashMod
+    Controllers --> AiMod
 
     AuthMod --> SharedInfra
     AnimalMod --> SharedInfra
     ApptMod --> SharedInfra
     MedicalMod --> SharedInfra
     DashMod --> SharedInfra
+    AiMod --> SharedInfra
 
     SharedInfra -- "JDBC HikariCP" --> Postgres
 ```
@@ -173,6 +176,7 @@ graph TB
 | **`animal`**         | Livestock animal registration, ear tag indexing, unique QR code generation, Animal Passport retrieval.                                              | `animals`                                                          |
 | **`appointment`**    | Appointment scheduling, vet allocation, state machine validation (`PENDING` → `CONFIRMED` → `COMPLETED`/`CANCELLED`), optimistic locking. | `appointments`                                                     |
 | **`medicalrecord`**  | Generation of immutable Electronic Veterinary Medical Records (EVMR), clinical history timeline queries for animals.                                | `medical_records`                                                  |
+| **`ai`**             | AI diagnostic platform orchestration, provider registry strategy lookup, retry policy backoff, latency metrics, and verification workflow.          | `ai_scans`, `ai_scan_results`                                      |
 | **`dashboard`**      | Aggregation of role-specific metrics (Farmer herd counts/upcoming appointments; Vet pending requests/daily schedule).                               | Read-only aggregator                                                 |
 | **`infrastructure`** | Cross-cutting security filters, Flyway schema migrations, global exception handling, JPA database configuration.                                    | System infrastructure                                                |
 
@@ -273,6 +277,33 @@ sequenceDiagram
 | **Persistence**               | Spring Data JPA Repository     | Executes parameterized SQL queries via Hibernate against PostgreSQL.                           |
 | **DTO Mapping**               | Service / DTO Mapper           | Maps internal JPA domain entities into immutable public response DTOs.                         |
 | **Exception Handling**        | `GlobalExceptionHandler`     | Catches uncaught exceptions and serializes standard`ApiErrorResponse` envelopes.             |
+
+### 6.3 AI Scan Review & Automatic EVMR Creation Lifecycle
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Vet as Licensed Veterinarian
+    participant Controller as AIScanController
+    participant Service as AIScanService
+    participant AIRepo as AIScanRepository
+    participant EVMRRepo as MedicalRecordRepository
+    participant Event as ApplicationEventPublisher
+
+    Vet->>Controller: POST /api/v1/ai/scans/{id}/approve
+    Controller->>Service: approveScan(vetEmail, scanId, request)
+    Service->>Service: Verify VETERINARIAN Role
+    Service->>AIRepo: findById(scanId)
+    Service->>Service: Assert Status == COMPLETED
+    
+    Service->>AIRepo: save(status=VERIFIED, verifiedBy=vet, verifiedAt=now())
+    Service->>EVMRRepo: save(MedicalRecord entity)
+    
+    Service->>Event: publishEvent(AIScanVerifiedEvent)
+    Service->>Event: publishEvent(MedicalRecordCreatedFromAIEvent)
+    Service-->>Controller: AIScanResponse (VERIFIED)
+    Controller-->>Vet: 200 OK + ApiResponse
+```
 
 ---
 
@@ -567,7 +598,48 @@ graph TB
 | ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | **Availability**    | 99.9% Monthly Uptime                | Multi-AZ RDS, stateless application instances behind ALB.                           |
 | **Performance**     | Latency < 150 ms (p95)              | Database indexing, HikariCP connection pooling, lightweight DTO projections.        |
-| **Security**        | Zero unauthorized data access       | Spring Security 6, JWT refresh rotation, explicit ownership assertions in services. |
+| **Security**        | Zero Sensitive Data Leakage         | Role-based access control (RBAC), JWT encryption, parametric SQL queries against OWASP top 10. |
+
+---
+
+## 17. Disease Surveillance & PostGIS Spatial Architecture (Stage 10.1)
+
+```mermaid
+graph TD
+    subgraph Disease Surveillance Module (app.vetra.disease)
+        DiseaseCtrl[DiseaseReportController]
+        OutbreakCtrl[OutbreakController]
+        DiseaseSvc[DiseaseService]
+        DiseaseRepo[DiseaseReportRepository]
+        OutbreakRepo[OutbreakRepository]
+        GeoUtils[GeoUtils Spatial Engine]
+    end
+
+    subgraph Database Layer
+        PostGIS[(PostgreSQL + PostGIS 15<br/>GiST Spatial Indexes)]
+    end
+
+    subgraph Event Pipeline
+        EventPub[ApplicationEventPublisher]
+        DiseaseCreatedEvent[DiseaseReportCreatedEvent]
+        DiseaseConfirmedEvent[DiseaseConfirmedEvent]
+        OutbreakDetectedEvent[PotentialOutbreakDetectedEvent]
+    end
+
+    DiseaseCtrl --> DiseaseSvc
+    OutbreakCtrl --> DiseaseSvc
+    DiseaseSvc --> DiseaseRepo
+    DiseaseSvc --> OutbreakRepo
+    DiseaseSvc --> GeoUtils
+    DiseaseRepo --> PostGIS
+    OutbreakRepo --> PostGIS
+
+    DiseaseSvc --> EventPub
+    EventPub --> DiseaseCreatedEvent
+    EventPub --> DiseaseConfirmedEvent
+    EventPub --> OutbreakDetectedEvent
+```
+
 | **Maintainability** | Clean Architecture layer compliance | Checkstyle linting, strict module package isolation rules.                          |
 | **Scalability**     | Support 500+ CCU                    | Stateless application design, future Redis caching and read replicas.               |
 | **Testability**     | ≥ 90% service line coverage        | JUnit 5 unit tests with Mockito + Testcontainers integration tests.                 |
