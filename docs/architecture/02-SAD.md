@@ -598,7 +598,48 @@ graph TB
 | ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | **Availability**    | 99.9% Monthly Uptime                | Multi-AZ RDS, stateless application instances behind ALB.                           |
 | **Performance**     | Latency < 150 ms (p95)              | Database indexing, HikariCP connection pooling, lightweight DTO projections.        |
-| **Security**        | Zero unauthorized data access       | Spring Security 6, JWT refresh rotation, explicit ownership assertions in services. |
+| **Security**        | Zero Sensitive Data Leakage         | Role-based access control (RBAC), JWT encryption, parametric SQL queries against OWASP top 10. |
+
+---
+
+## 17. Disease Surveillance & PostGIS Spatial Architecture (Stage 10.1)
+
+```mermaid
+graph TD
+    subgraph Disease Surveillance Module (app.vetra.disease)
+        DiseaseCtrl[DiseaseReportController]
+        OutbreakCtrl[OutbreakController]
+        DiseaseSvc[DiseaseService]
+        DiseaseRepo[DiseaseReportRepository]
+        OutbreakRepo[OutbreakRepository]
+        GeoUtils[GeoUtils Spatial Engine]
+    end
+
+    subgraph Database Layer
+        PostGIS[(PostgreSQL + PostGIS 15<br/>GiST Spatial Indexes)]
+    end
+
+    subgraph Event Pipeline
+        EventPub[ApplicationEventPublisher]
+        DiseaseCreatedEvent[DiseaseReportCreatedEvent]
+        DiseaseConfirmedEvent[DiseaseConfirmedEvent]
+        OutbreakDetectedEvent[PotentialOutbreakDetectedEvent]
+    end
+
+    DiseaseCtrl --> DiseaseSvc
+    OutbreakCtrl --> DiseaseSvc
+    DiseaseSvc --> DiseaseRepo
+    DiseaseSvc --> OutbreakRepo
+    DiseaseSvc --> GeoUtils
+    DiseaseRepo --> PostGIS
+    OutbreakRepo --> PostGIS
+
+    DiseaseSvc --> EventPub
+    EventPub --> DiseaseCreatedEvent
+    EventPub --> DiseaseConfirmedEvent
+    EventPub --> OutbreakDetectedEvent
+```
+
 | **Maintainability** | Clean Architecture layer compliance | Checkstyle linting, strict module package isolation rules.                          |
 | **Scalability**     | Support 500+ CCU                    | Stateless application design, future Redis caching and read replicas.               |
 | **Testability**     | ≥ 90% service line coverage        | JUnit 5 unit tests with Mockito + Testcontainers integration tests.                 |
