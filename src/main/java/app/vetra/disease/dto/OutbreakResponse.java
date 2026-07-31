@@ -1,6 +1,7 @@
 package app.vetra.disease.dto;
 
 import app.vetra.disease.entity.Outbreak;
+import app.vetra.disease.entity.OutbreakRiskScore;
 import app.vetra.disease.entity.OutbreakStatus;
 import java.time.Instant;
 import java.util.UUID;
@@ -13,10 +14,13 @@ public record OutbreakResponse(
     String diseaseName,
     String severity,
     OutbreakStatus status,
+    OutbreakRiskScore riskScore,
     Double centerLatitude,
     Double centerLongitude,
     Double radiusKm,
     Integer affectedReportsCount,
+    Integer evaluationWindowHours,
+    Instant lastCaseReportedAt,
     Instant createdAt,
     Instant updatedAt
 ) {
@@ -33,10 +37,13 @@ public record OutbreakResponse(
         outbreak.getDiseaseName(),
         outbreak.getSeverity(),
         outbreak.getStatus(),
+        outbreak.getRiskScore(),
         outbreak.getCenterLatitude(),
         outbreak.getCenterLongitude(),
         outbreak.getRadiusKm(),
         outbreak.getAffectedReportsCount(),
+        outbreak.getEvaluationWindowHours(),
+        outbreak.getLastCaseReportedAt(),
         outbreak.getCreatedAt(),
         outbreak.getUpdatedAt()
     );

@@ -57,18 +57,18 @@ The backend is designed as a **Modular Monolith** organized strictly according t
 
 ### 2.4 Technology Stack Baseline
 
-| Component                       | Standard            | Specification / Details                        |
-| ------------------------------- | ------------------- | ---------------------------------------------- |
+| Component                 | Standard            | Specification / Details                        |
+| ------------------------- | ------------------- | ---------------------------------------------- |
 | **Runtime / Language**    | Java 21 LTS         | OpenJDK 21 (Temurin)                           |
 | **Application Framework** | Spring Boot 3.x     | Spring Framework 6.x                           |
 | **Security Framework**    | Spring Security 6.x | Stateless JWT + Refresh Token Rotation         |
 | **Persistence / ORM**     | Spring Data JPA     | Hibernate 6.x                                  |
 | **Relational Database**   | PostgreSQL 15       | PostGIS enabled for spatial capabilities       |
-| **Schema Migrations**     | Flyway              | Versioned SQL scripts (`V1__...`)            |
-| **Build & Tooling**       | Apache Maven        | Wrapper`./mvnw`, Checkstyle enforcement      |
+| **Schema Migrations**     | Flyway              | Versioned SQL scripts (`V1__...`)              |
+| **Build & Tooling**       | Apache Maven        | Wrapper`./mvnw`, Checkstyle enforcement        |
 | **Containerization**      | Docker              | Multi-stage Dockerfile, Docker Compose         |
 | **API Protocol**          | REST / JSON         | HTTP/1.1 (Dev), HTTPS / TLS 1.3 (Staging/Prod) |
-| **Identifier Format**     | UUID v4             | `uuid_generate_v4()`                         |
+| **Identifier Format**     | UUID v4             | `uuid_generate_v4()`                           |
 
 ---
 
@@ -170,15 +170,15 @@ graph TB
 
 ### 4.2 Module Responsibilities
 
-| Module                       | Primary Responsibility                                                                                                                              | Key Entities Owned                                                   |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **`auth`**           | User authentication, registration (Farmer/Vet), JWT token issuance, refresh token management, veterinarian directory queries.                       | `users`, `farmer_profiles`, `vet_profiles`, `refresh_tokens` |
-| **`animal`**         | Livestock animal registration, ear tag indexing, unique QR code generation, Animal Passport retrieval.                                              | `animals`                                                          |
-| **`appointment`**    | Appointment scheduling, vet allocation, state machine validation (`PENDING` → `CONFIRMED` → `COMPLETED`/`CANCELLED`), optimistic locking. | `appointments`                                                     |
-| **`medicalrecord`**  | Generation of immutable Electronic Veterinary Medical Records (EVMR), clinical history timeline queries for animals.                                | `medical_records`                                                  |
-| **`ai`**             | AI diagnostic platform orchestration, provider registry strategy lookup, retry policy backoff, latency metrics, and verification workflow.          | `ai_scans`, `ai_scan_results`                                      |
-| **`dashboard`**      | Aggregation of role-specific metrics (Farmer herd counts/upcoming appointments; Vet pending requests/daily schedule).                               | Read-only aggregator                                                 |
-| **`infrastructure`** | Cross-cutting security filters, Flyway schema migrations, global exception handling, JPA database configuration.                                    | System infrastructure                                                |
+| Module               | Primary Responsibility                                                                                                                     | Key Entities Owned                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| **`auth`**           | User authentication, registration (Farmer/Vet), JWT token issuance, refresh token management, veterinarian directory queries.              | `users`, `farmer_profiles`, `vet_profiles`, `refresh_tokens` |
+| **`animal`**         | Livestock animal registration, ear tag indexing, unique QR code generation, Animal Passport retrieval.                                     | `animals`                                                    |
+| **`appointment`**    | Appointment scheduling, vet allocation, state machine validation (`PENDING` → `CONFIRMED` → `COMPLETED`/`CANCELLED`), optimistic locking.  | `appointments`                                               |
+| **`medicalrecord`**  | Generation of immutable Electronic Veterinary Medical Records (EVMR), clinical history timeline queries for animals.                       | `medical_records`                                            |
+| **`ai`**             | AI diagnostic platform orchestration, provider registry strategy lookup, retry policy backoff, latency metrics, and verification workflow. | `ai_scans`, `ai_scan_results`                                |
+| **`dashboard`**      | Aggregation of role-specific metrics (Farmer herd counts/upcoming appointments; Vet pending requests/daily schedule).                      | Read-only aggregator                                         |
+| **`infrastructure`** | Cross-cutting security filters, Flyway schema migrations, global exception handling, JPA database configuration.                           | System infrastructure                                        |
 
 ---
 
@@ -230,21 +230,21 @@ sequenceDiagram
     participant Handler as GlobalExceptionHandler
 
     Client->>SecFilter: POST /api/v1/medical-records (Bearer JWT)
-  
+
     alt Token Invalid / Expired
         SecFilter-->>Client: 401 Unauthorized (AUTH_002 / AUTH_003)
     else Token Valid
         SecFilter->>SecFilter: Populate SecurityContextHolder
         SecFilter->>Controller: Forward Request
         Controller->>Validator: Validate @RequestBody DTO
-      
+
         alt Validation Fails
             Validator-->>Handler: MethodArgumentNotValidException
             Handler-->>Client: 400 Bad Request (SYS_002 + field errors)
         else Validation Passes
             Controller->>Service: createRecord(request, vetUserId)
             Service->>Service: Assert Authorization & Ownership
-          
+
             alt Ownership Check Fails
                 Service-->>Handler: AccessDeniedException
                 Handler-->>Client: 403 Forbidden (MEDICAL_003)
@@ -268,15 +268,15 @@ sequenceDiagram
 
 ### 6.2 Key Execution Responsibilities
 
-| Execution Stage                     | Responsible Component          | Description                                                                                    |
-| ----------------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------- |
-| **Authentication**            | `JwtAuthFilter`              | Extracts Bearer JWT, validates signature/expiry, populates`SecurityContextHolder`.           |
+| Execution Stage               | Responsible Component        | Description                                                                                    |
+| ----------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Authentication**            | `JwtAuthFilter`              | Extracts Bearer JWT, validates signature/expiry, populates`SecurityContextHolder`.             |
 | **Input Validation**          | Spring MVC + Jakarta`@Valid` | Validates request body constraints before invoking controller logic.                           |
-| **Authorization & Ownership** | Application Service            | Verifies user roles and asserts resource ownership (e.g., authenticated Vet owns appointment). |
+| **Authorization & Ownership** | Application Service          | Verifies user roles and asserts resource ownership (e.g., authenticated Vet owns appointment). |
 | **Transaction Boundary**      | Service (`@Transactional`)   | Opens database transaction, enforces business invariants, handles optimistic locking.          |
-| **Persistence**               | Spring Data JPA Repository     | Executes parameterized SQL queries via Hibernate against PostgreSQL.                           |
-| **DTO Mapping**               | Service / DTO Mapper           | Maps internal JPA domain entities into immutable public response DTOs.                         |
-| **Exception Handling**        | `GlobalExceptionHandler`     | Catches uncaught exceptions and serializes standard`ApiErrorResponse` envelopes.             |
+| **Persistence**               | Spring Data JPA Repository   | Executes parameterized SQL queries via Hibernate against PostgreSQL.                           |
+| **DTO Mapping**               | Service / DTO Mapper         | Maps internal JPA domain entities into immutable public response DTOs.                         |
+| **Exception Handling**        | `GlobalExceptionHandler`     | Catches uncaught exceptions and serializes standard`ApiErrorResponse` envelopes.               |
 
 ### 6.3 AI Scan Review & Automatic EVMR Creation Lifecycle
 
@@ -295,10 +295,10 @@ sequenceDiagram
     Service->>Service: Verify VETERINARIAN Role
     Service->>AIRepo: findById(scanId)
     Service->>Service: Assert Status == COMPLETED
-    
+
     Service->>AIRepo: save(status=VERIFIED, verifiedBy=vet, verifiedAt=now())
     Service->>EVMRRepo: save(MedicalRecord entity)
-    
+
     Service->>Event: publishEvent(AIScanVerifiedEvent)
     Service->>Event: publishEvent(MedicalRecordCreatedFromAIEvent)
     Service-->>Controller: AIScanResponse (VERIFIED)
@@ -422,15 +422,15 @@ The `GlobalExceptionHandler` intercepts all uncaught exceptions across the appli
 
 ### 10.2 HTTP Status & Error Code Mapping
 
-| Status Code           | Primary Cause                                          | Typical Error Code                            |
-| --------------------- | ------------------------------------------------------ | --------------------------------------------- |
-| `400 Bad Request`   | Validation failure or malformed JSON                   | `SYS_002`, `SYS_003`                      |
+| Status Code         | Primary Cause                                          | Typical Error Code                      |
+| ------------------- | ------------------------------------------------------ | --------------------------------------- |
+| `400 Bad Request`   | Validation failure or malformed JSON                   | `SYS_002`, `SYS_003`                    |
 | `401 Unauthorized`  | Invalid, expired, or missing JWT                       | `AUTH_001`, `AUTH_002`, `AUTH_003`      |
 | `403 Forbidden`     | Insufficient role or resource ownership check failed   | `AUTH_006`, `ANIMAL_002`, `MEDICAL_003` |
 | `404 Not Found`     | Entity missing or resource belongs to another tenant   | `USER_004`, `ANIMAL_001`, `APPT_001`    |
 | `409 Conflict`      | Optimistic lock failure or unique constraint violation | `USER_001`, `APPT_006`, `MEDICAL_004`   |
-| `422 Unprocessable` | Invalid state transition invariant broken              | `APPT_004`, `APPT_008`                    |
-| `500 Server Error`  | Unexpected internal server error                       | `SYS_001`                                   |
+| `422 Unprocessable` | Invalid state transition invariant broken              | `APPT_004`, `APPT_008`                  |
+| `500 Server Error`  | Unexpected internal server error                       | `SYS_001`                               |
 
 ### 10.3 Standard API Error Envelope
 
@@ -486,12 +486,12 @@ The backend compiles into an alpine JRE container using a multi-stage `Dockerfil
 
 ### 12.2 Environment Configuration Profiles
 
-| Profile Name | Environment       | Target Usage                                                      |
-| ------------ | ----------------- | ----------------------------------------------------------------- |
-| `dev`      | Local Development | Host JVM + Docker Compose PostgreSQL (`docker-compose.dev.yml`) |
-| `test`     | Automated Testing | JUnit 5 + Testcontainers PostgreSQL                               |
-| `staging`  | Staging / QA      | Cloud container instance + RDS PostgreSQL                         |
-| `prod`     | Production        | AWS ECS Fargate + Multi-AZ RDS PostgreSQL                         |
+| Profile Name | Environment       | Target Usage                                                    |
+| ------------ | ----------------- | --------------------------------------------------------------- |
+| `dev`        | Local Development | Host JVM + Docker Compose PostgreSQL (`docker-compose.dev.yml`) |
+| `test`       | Automated Testing | JUnit 5 + Testcontainers PostgreSQL                             |
+| `staging`    | Staging / QA      | Cloud container instance + RDS PostgreSQL                       |
+| `prod`       | Production        | AWS ECS Fargate + Multi-AZ RDS PostgreSQL                       |
 
 ### 12.3 Health Checks & Observability
 
@@ -594,57 +594,16 @@ graph TB
 
 ## 16. Quality Attributes & Software SLAs
 
-| Attribute                 | Target Metric                       | Architectural Control                                                               |
-| ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
+| Attribute           | Target Metric                       | Architectural Control                                                               |
+| ------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | **Availability**    | 99.9% Monthly Uptime                | Multi-AZ RDS, stateless application instances behind ALB.                           |
 | **Performance**     | Latency < 150 ms (p95)              | Database indexing, HikariCP connection pooling, lightweight DTO projections.        |
-| **Security**        | Zero Sensitive Data Leakage         | Role-based access control (RBAC), JWT encryption, parametric SQL queries against OWASP top 10. |
-
----
-
-## 17. Disease Surveillance & PostGIS Spatial Architecture (Stage 10.1)
-
-```mermaid
-graph TD
-    subgraph Disease Surveillance Module (app.vetra.disease)
-        DiseaseCtrl[DiseaseReportController]
-        OutbreakCtrl[OutbreakController]
-        DiseaseSvc[DiseaseService]
-        DiseaseRepo[DiseaseReportRepository]
-        OutbreakRepo[OutbreakRepository]
-        GeoUtils[GeoUtils Spatial Engine]
-    end
-
-    subgraph Database Layer
-        PostGIS[(PostgreSQL + PostGIS 15<br/>GiST Spatial Indexes)]
-    end
-
-    subgraph Event Pipeline
-        EventPub[ApplicationEventPublisher]
-        DiseaseCreatedEvent[DiseaseReportCreatedEvent]
-        DiseaseConfirmedEvent[DiseaseConfirmedEvent]
-        OutbreakDetectedEvent[PotentialOutbreakDetectedEvent]
-    end
-
-    DiseaseCtrl --> DiseaseSvc
-    OutbreakCtrl --> DiseaseSvc
-    DiseaseSvc --> DiseaseRepo
-    DiseaseSvc --> OutbreakRepo
-    DiseaseSvc --> GeoUtils
-    DiseaseRepo --> PostGIS
-    OutbreakRepo --> PostGIS
-
-    DiseaseSvc --> EventPub
-    EventPub --> DiseaseCreatedEvent
-    EventPub --> DiseaseConfirmedEvent
-    EventPub --> OutbreakDetectedEvent
-```
-
+| **Security**        | Zero unauthorized data access       | Spring Security 6, JWT refresh rotation, explicit ownership assertions in services. |
 | **Maintainability** | Clean Architecture layer compliance | Checkstyle linting, strict module package isolation rules.                          |
 | **Scalability**     | Support 500+ CCU                    | Stateless application design, future Redis caching and read replicas.               |
-| **Testability**     | ≥ 90% service line coverage        | JUnit 5 unit tests with Mockito + Testcontainers integration tests.                 |
-| **Observability**   | 100% request trace correlation      | SLF4J MDC`traceId` propagation across all log entries.                            |
-| **Reliability**     | Zero data loss on sync              | DB unique constraints + optimistic locking (`version`).                           |
+| **Testability**     | ≥ 90% service line coverage         | JUnit 5 unit tests with Mockito + Testcontainers integration tests.                 |
+| **Observability**   | 100% request trace correlation      | SLF4J MDC`traceId` propagation across all log entries.                              |
+| **Reliability**     | Zero data loss on sync              | DB unique constraints + optimistic locking (`version`).                             |
 
 ---
 
@@ -665,3 +624,563 @@ Service extraction will only occur when a module meets **both** of the following
 
 1. The module requires independent scaling rates at least 5× greater than the rest of the application.
 2. The module is maintained by a dedicated engineering team of 3+ developers.
+
+DiseaseService
+
+Responsibilities
+
+- createReport()
+- updateReport()
+- getReport()
+- searchNearbyReports()
+- detectPotentialOutbreak()
+- listOutbreaks()
+
+Business logic only.
+
+====================================================
+REPOSITORY
+==========
+
+Create
+
+DiseaseReportRepository
+
+OutbreakRepository
+
+Support
+
+- pageable queries
+- search by disease
+- search by status
+- nearby reports
+- radius search
+- outbreak aggregation
+
+====================================================
+REST API
+========
+
+Base path
+
+/api/v1/disease
+
+Implement
+
+POST /reports
+
+GET /reports
+
+GET /reports/{id}
+
+GET /reports/nearby
+
+GET /outbreaks
+
+GET /outbreaks/{id}
+
+Return the project's standard ApiResponse.
+
+Document every endpoint using Swagger.
+
+====================================================
+SECURITY
+========
+
+Authenticated Farmer
+
+- View own reports
+
+Veterinarian
+
+- Create reports
+- Update reports
+- View all reports
+
+Administrator
+
+- Full access
+
+Reuse the existing JWT security architecture.
+
+====================================================
+DOMAIN EVENTS
+=============
+
+Create
+
+DiseaseReportCreatedEvent
+
+DiseaseConfirmedEvent
+
+PotentialOutbreakDetectedEvent
+
+OutbreakResolvedEvent
+
+====================================================
+VALIDATION
+==========
+
+Validate
+
+- Coordinates
+- UUIDs
+- Disease name
+- Required fields
+- Duplicate reports
+
+====================================================
+TESTING
+=======
+
+Create
+
+- Repository tests
+- Service tests
+- Controller tests
+- Spatial query tests
+
+Mock spatial data where appropriate.
+
+All tests must pass.
+
+====================================================
+DOCUMENTATION
+=============
+
+Update
+
+- Database Design
+- ERD
+- API Specification
+- Architecture Decision Log
+
+Only append Disease Surveillance documentation.
+
+Do not rewrite previous documents.
+
+====================================================
+DELIVERABLES
+============
+
+Provide
+
+1. Feature branch created
+2. Files created
+3. Files modified
+4. Flyway migration
+5. Database schema
+6. Entity relationships
+7. REST endpoints
+8. Domain events
+9. Test results
+10. Git diff summary
+
+====================================================
+SUCCESS CRITERIA
+================
+
+✔ Feature branch created
+
+✔ Disease module isolated
+
+✔ PostGIS configured
+
+✔ Disease report workflow implemented
+
+✔ Outbreak foundation implemented
+
+✔ Spatial queries working
+
+✔ Tests passing
+
+✔ Existing architecture preserved
+
+Do NOT implement notifications, analytics dashboards, or frontend integration in this stage.
+
+At completion, provide a production readiness report and confirm whether Stage 10.1 is complete and ready for Stage 10.2 (Outbreak Detection Engine).
+
+# Vetra Backend — Stage 10.1: Disease Surveillance Foundation
+
+You are a Principal Software Architect, Staff Backend Engineer, GIS Systems Engineer, and Spring Boot Expert.
+
+The Vetra backend has successfully completed:
+
+✅ Stage 1–8 (Core Platform)
+✅ Stage 9 (AI Diagnostic Platform)
+
+The next milestone is **Stage 10.1 — Disease Surveillance Foundation**.
+
+====================================================
+STEP 1 — CREATE FEATURE BRANCH
+===============================
+
+Before making any code changes, create a new feature branch.
+
+Branch name:
+
+git checkout -b feature/disease-surveillance
+
+Do NOT commit directly to main.
+
+All development for this stage must happen in this branch.
+
+====================================================
+OBJECTIVE
+=========
+
+Build the complete foundation for Disease Surveillance.
+
+This stage does NOT include notifications.
+
+This stage does NOT include dashboards.
+
+This stage focuses on:
+
+- Disease Reports
+- Outbreak Detection
+- Geo-spatial Infrastructure
+- PostGIS Integration
+- REST APIs
+- Domain Events
+- Clean Architecture
+
+====================================================
+ARCHITECTURE
+============
+
+Follow the existing architecture.
+
+Java 21
+
+Spring Boot 3
+
+PostgreSQL
+
+PostGIS
+
+Flyway
+
+DDD
+
+Clean Architecture
+
+SOLID
+
+Modular Monolith
+
+Create a new bounded context:
+
+app.vetra.disease
+
+====================================================
+PACKAGE STRUCTURE
+=================
+
+Create
+
+app.vetra.disease
+
+│
+├── controller
+├── service
+├── repository
+├── entity
+├── dto
+├── mapper
+├── exception
+├── validation
+├── event
+├── geo
+└── config
+
+====================================================
+DATABASE
+========
+
+Create a new Flyway migration.
+
+Example:
+
+V9\_\_create_disease_surveillance.sql
+
+Create tables
+
+disease_reports
+
+Fields
+
+- id
+- animal_id
+- medical_record_id
+- ai_scan_id (nullable)
+- reported_by
+- report_source
+- disease_name
+- diagnosis_status
+- latitude
+- longitude
+- location (PostGIS geometry(Point,4326))
+- notes
+- created_at
+- updated_at
+
+outbreaks
+
+Fields
+
+- id
+- disease_name
+- severity
+- status
+- center_location
+- radius_km
+- affected_reports
+- created_at
+- updated_at
+
+Requirements
+
+- UUID primary keys
+- Proper foreign keys
+- Spatial indexes
+- Normal indexes
+- Never modify previous Flyway migrations
+
+====================================================
+ENUMS
+=====
+
+Create
+
+DiseaseReportSource
+
+- AI_VERIFIED
+- VETERINARIAN
+- LAB_RESULT
+- MANUAL
+
+DiagnosisStatus
+
+- SUSPECTED
+- CONFIRMED
+- REJECTED
+
+OutbreakStatus
+
+- ACTIVE
+- MONITORING
+- RESOLVED
+
+====================================================
+POSTGIS
+=======
+
+Enable PostGIS if not already configured.
+
+Create spatial indexes.
+
+Implement repository methods using:
+
+- ST_DWithin
+- ST_Distance
+- ST_MakePoint
+- ST_SetSRID
+
+Keep all spatial logic inside the geo package.
+
+====================================================
+BUSINESS RULES
+==============
+
+Disease reports may originate from:
+
+- Veterinarian-confirmed AI scans
+- Manual veterinarian diagnosis
+- Laboratory confirmation
+- Manual reporting
+
+Never create disease reports directly from unverified AI predictions.
+
+Only verified diagnoses should contribute to outbreak intelligence.
+
+====================================================
+SERVICE
+=======
+
+Create
+
+DiseaseService
+
+Responsibilities
+
+- createReport()
+- updateReport()
+- getReport()
+- searchNearbyReports()
+- detectPotentialOutbreak()
+- listOutbreaks()
+
+Business logic only.
+
+====================================================
+REPOSITORY
+==========
+
+Create
+
+DiseaseReportRepository
+
+OutbreakRepository
+
+Support
+
+- pageable queries
+- search by disease
+- search by status
+- nearby reports
+- radius search
+- outbreak aggregation
+
+====================================================
+REST API
+========
+
+Base path
+
+/api/v1/disease
+
+Implement
+
+POST /reports
+
+GET /reports
+
+GET /reports/{id}
+
+GET /reports/nearby
+
+GET /outbreaks
+
+GET /outbreaks/{id}
+
+Return the project's standard ApiResponse.
+
+Document every endpoint using Swagger.
+
+====================================================
+SECURITY
+========
+
+Authenticated Farmer
+
+- View own reports
+
+Veterinarian
+
+- Create reports
+- Update reports
+- View all reports
+
+Administrator
+
+- Full access
+
+Reuse the existing JWT security architecture.
+
+====================================================
+DOMAIN EVENTS
+=============
+
+Create
+
+DiseaseReportCreatedEvent
+
+DiseaseConfirmedEvent
+
+PotentialOutbreakDetectedEvent
+
+OutbreakResolvedEvent
+
+====================================================
+VALIDATION
+==========
+
+Validate
+
+- Coordinates
+- UUIDs
+- Disease name
+- Required fields
+- Duplicate reports
+
+====================================================
+TESTING
+=======
+
+Create
+
+- Repository tests
+- Service tests
+- Controller tests
+- Spatial query tests
+
+Mock spatial data where appropriate.
+
+All tests must pass.
+
+====================================================
+DOCUMENTATION
+=============
+
+Update
+
+- Database Design
+- ERD
+- API Specification
+- Architecture Decision Log
+
+Only append Disease Surveillance documentation.
+
+Do not rewrite previous documents.
+
+====================================================
+DELIVERABLES
+============
+
+Provide
+
+1. Feature branch created
+2. Files created
+3. Files modified
+4. Flyway migration
+5. Database schema
+6. Entity relationships
+7. REST endpoints
+8. Domain events
+9. Test results
+10. Git diff summary
+
+====================================================
+SUCCESS CRITERIA
+================
+
+✔ Feature branch created
+
+✔ Disease module isolated
+
+✔ PostGIS configured
+
+✔ Disease report workflow implemented
+
+✔ Outbreak foundation implemented
+
+✔ Spatial queries working
+
+✔ Tests passing
+
+✔ Existing architecture preserved
+
+Do NOT implement notifications, analytics dashboards, or frontend integration in this stage.
+
+At completion, provide a production readiness report and confirm whether Stage 10.1 is complete and ready for Stage 10.2 (Outbreak Detection Engine).yguhu
