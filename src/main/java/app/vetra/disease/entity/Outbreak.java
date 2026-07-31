@@ -42,6 +42,11 @@ public class Outbreak extends BaseEntity {
   @Builder.Default
   private OutbreakRiskScore riskScore = OutbreakRiskScore.MEDIUM;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "trend", nullable = false, length = 32)
+  @Builder.Default
+  private OutbreakTrend trend = OutbreakTrend.STABLE;
+
   @Column(name = "center_latitude", nullable = false)
   private Double centerLatitude;
 
@@ -63,4 +68,14 @@ public class Outbreak extends BaseEntity {
   @Column(name = "last_case_reported_at")
   @Builder.Default
   private Instant lastCaseReportedAt = Instant.now();
+
+  @Column(name = "last_evaluated_at")
+  @Builder.Default
+  private Instant lastEvaluatedAt = Instant.now();
+
+  @Column(name = "resolved_at")
+  private Instant resolvedAt;
+
+  @Column(name = "resolution_reason", length = 128)
+  private String resolutionReason;
 }
