@@ -29,7 +29,7 @@
 
     <!-- Dependency versions not managed by Boot parent -->
     <jjwt.version>0.12.6</jjwt.version>
-    <springdoc.version>2.8.9</springdoc.version>
+    <springdoc.version>2.8.15</springdoc.version>
     <awssdk.version>2.31.49</awssdk.version>
     <spotless.version>2.44.5</spotless.version>
     <checkstyle.version>3.6.0</checkstyle.version>

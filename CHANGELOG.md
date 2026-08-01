@@ -4,6 +4,14 @@ All notable changes to the Vetra backend will be documented here.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-08-01 — Stage 12: Production Infrastructure & CI/CD Platform
+### Added
+- **Dockerization (Stage 12.1):** Multi-stage production `Dockerfile` (Temurin 21 JRE Alpine, non-root system user `vetra`, OCI labels) and `docker-compose.yml` with PostGIS 17 database persistence and 12-Factor `STDOUT` logging.
+- **CI/CD Platform (Stage 12.2):** GitHub Actions workflows (`ci.yml`, `codeql.yml`), Dependabot (`dependabot.yml`), Gitleaks secret scanner (`.gitleaks.toml`), CODEOWNERS, Issue templates, and PR template.
+- **SpringDoc Upgrade:** Upgraded `springdoc-openapi-starter-webmvc-ui` from `2.8.9` to `2.8.15` (LTS 2.x production line for Spring Boot 3.x).
+- **Operations Documentation:** `docs/operations/docker.md` and `docs/operations/ci-cd.md`.
+- **Infrastructure Freeze:** Baseline frozen on Java 21 LTS, Spring Boot 3.5.3, SpringDoc 2.8.15, and PostGIS 17.
+
 ## [0.7.0] — 2026-07-28 — Stage 7: Electronic Veterinary Medical Records (EVMR)
 ### Added
 - `V6__create_medical_records.sql` Flyway migration for `medical_records` table
