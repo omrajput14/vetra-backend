@@ -50,7 +50,7 @@ jobs:
           echo "Java Version: 21 (Eclipse Temurin)" >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Executable JAR Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vetra-backend-jar
           path: target/vetra-backend-*.jar
@@ -58,7 +58,7 @@ jobs:
 
       - name: Upload Checkstyle & Surefire Test Reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: maven-test-and-checkstyle-reports
           path: |
