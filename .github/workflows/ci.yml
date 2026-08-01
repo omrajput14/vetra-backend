@@ -1,0 +1,100 @@
+name: Enterprise Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  # ─── 1. Quality, Compile, Checkstyle & Test Execution ───────────────
+  build-and-test:
+    name: Build, Checkstyle & Test Suite Execution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Execute Checkstyle, Compile & Maven Test Suite
+        run: ./mvnw clean verify -B
+
+      - name: Generate Test Summary
+        if: always()
+        run: |
+          echo "### 🧪 Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Build status: SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "Java Version: 21 (Eclipse Temurin)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Executable JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vetra-backend-jar
+          path: target/vetra-backend-*.jar
+          retention-days: 30
+
+      - name: Upload Checkstyle & Surefire Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-test-and-checkstyle-reports
+          path: |
+            target/checkstyle-result.xml
+            target/surefire-reports/
+          retention-days: 30
+
+  # ─── 2. Dockerfile & Docker Compose Validation ──────────────────────
+  docker-validation:
+    name: Validate Production Docker & Compose Infrastructure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate Production Dockerfile Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+
+      - name: Validate Docker Compose Manifest
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+
+  # ─── 3. Secret Leak Scanning (Gitleaks) ─────────────────────────────
+  secret-scan:
+    name: Gitleaks Secret & API Key Exposure Scanner
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Execute Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

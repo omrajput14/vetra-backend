@@ -1,0 +1,13 @@
+# Gitleaks secret scanner configuration file
+title = "Vetra Backend Secret Scanner Rules"
+
+[allowlist]
+description = "Allowed non-secret patterns and test fixtures"
+paths = [
+  '''src/test/.*''',
+  '''\.env\.example$'''
+]
+regexes = [
+  '''test-jwt-secret-value-minimum-32-characters-long''',
+  '''vetra_password_secret'''
+]
