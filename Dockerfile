@@ -1,19 +1,26 @@
 # ─── STAGE 1: Build Image ─────────────────────────────────────────────
-FROM eclipse-temurin:21-jdk-alpine AS builder
+FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /build
 
-# Copy Maven Wrapper and POM first to leverage Docker layer caching
-COPY .mvn/ .mvn/
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+# Copy pom.xml first to leverage Docker layer caching
+COPY pom.xml ./
+RUN mvn dependency:go-offline -B
 
 # Copy Source Code and compile production executable artifact
 COPY src/ src/
-RUN ./mvnw clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B
 
 # ─── STAGE 2: Production Runtime Image ────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine AS runner
+
+# OpenContainers Initiative (OCI) Standard Image Metadata Labels
+LABEL org.opencontainers.image.title="vetra-backend" \
+      org.opencontainers.image.description="Vetra Livestock & Veterinary Healthcare Core Backend Engine" \
+      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.vendor="Vetra Healthcare Technology" \
+      org.opencontainers.image.source="https://github.com/omrajput14/vetra-backend" \
+      org.opencontainers.image.licenses="Proprietary"
 
 # Install wget for lightweight container healthcheck
 RUN apk add --no-cache wget
