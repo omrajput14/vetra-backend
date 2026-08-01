@@ -1,10 +1,10 @@
-# Vetra Backend Core — Enterprise CI/CD Pipeline Documentation
+# Vetra Backend Core — Enterprise CI/CD & Repository Governance
 
-This document outlines the architecture, workflow execution, quality gates, security scanning, and branch protection configurations for the **Vetra Backend Platform** Continuous Integration pipeline.
+This document outlines the architecture, workflow execution, quality gates, security scanning, CODEOWNERS, and branch protection configurations for the **Vetra Backend Platform** Continuous Integration pipeline.
 
 ---
 
-## 1. Pipeline Architecture Overview
+## 1. Pipeline Architecture & Workflow Modernization
 
 The CI pipeline runs automatically on every `push` to `main` or `feature/**` branches, as well as every `pull_request` targetting `main`.
 
@@ -18,12 +18,12 @@ The CI pipeline runs automatically on every `push` to `main` or `feature/**` bra
  ┌───────────────┐          ┌───────────────┐          ┌───────────────┐
  │ build-and-test│          │docker-validatn│          │ secret-scan   │
  │               │          │               │          │               │
- │ • Java 21     │          │ • Buildx      │          │ • Gitleaks    │
- │ • Maven Cache │          │ • Dockerfile  │          │ • API Keys    │
- │ • Checkstyle  │          │ • Compose Conf│          │ • Passwords   │
- │ • Unit Tests  │          └───────────────┘          └───────────────┘
- │ • Integr.Test │
- │ • Upload JAR  │
+ │ • Java 21     │          │ • Buildx GHA  │          │ • Gitleaks    │
+ │ • Maven Cache │          │   Layer Cache │          │ • API Keys    │
+ │ • Checkstyle  │          │ • Dockerfile  │          │ • Passwords   │
+ │ • Unit Tests  │          │ • Compose Conf│          │ • .gitleaks.  │
+ │ • Integr.Test │          └───────────────┘            toml          │
+ │ • Upload JAR  │                                     └───────────────┘
  └───────────────┘
          │
          ▼
@@ -35,65 +35,49 @@ The CI pipeline runs automatically on every `push` to `main` or `feature/**` bra
 
 ---
 
-## 2. GitHub Actions Workflows
+## 2. GitHub Actions Workflows & Action Versions
 
-### A. Main CI Workflow (`.github/workflows/ci.yml`)
+All workflows utilize official, actively maintained actions targeting LTS runner environments:
 
-1. **`build-and-test` Job:**
-   - JDK: Eclipse Temurin Java 21.
-   - Cache: Automated Maven dependency layer caching (`cache: 'maven'`).
-   - Command: `./mvnw clean verify -B`.
-   - Quality Verification: Fails if Checkstyle violations, compilation errors, or unit/integration test failures occur.
-   - Artifact Upload: Saves `target/vetra-backend-*.jar` and `target/surefire-reports/` with a **30-day retention period**.
-
-2. **`docker-validation` Job:**
-   - Setup Docker Buildx.
-   - Validates that canonical multi-stage `Dockerfile` builds cleanly without pushing to a registry.
-   - Validates syntax of `docker-compose.yml` via `docker compose config`.
-
-3. **`secret-scan` Job:**
-   - Runs Gitleaks (`gitleaks/gitleaks-action@v2`) across entire git commit history to prevent accidental exposure of JWT secrets, database credentials, or API keys.
+| Workflow Step | Action Component | Major Version | Optimizations |
+|---|---|---|---|
+| Repository Checkout | `actions/checkout` | `@v4` | Full fetch depth for Gitleaks scanning |
+| Java Runtime Setup | `actions/setup-java` | `@v4` | Eclipse Temurin JDK 21 with Maven caching |
+| Artifact Storage | `actions/upload-artifact` | `@v4` | 30-day retention for JARs & Surefire reports |
+| Docker Build Validation | `docker/build-push-action` | `@v6` | Docker GHA layer caching (`cache-from: type=gha`) |
+| Secret Scanning | `gitleaks/gitleaks-action` | `@v2` | Rule overrides configured in `.gitleaks.toml` |
+| CodeQL SAST Analysis | `github/codeql-action` | `@v3` | Scheduled & event-driven Java SAST analysis |
 
 ---
 
-### B. CodeQL Security SAST Workflow (`.github/workflows/codeql.yml`)
+## 3. Performance & Security Hardening
 
-- Runs static application security testing (SAST) using GitHub CodeQL for Java.
-- Detects SQL injection risk, OWASP Top 10 vulnerabilities, insecure cryptographic primitives, and resource leaks.
-
----
-
-### C. Dependabot Dependency Updates (`.github/dependabot.yml`)
-
-- Automatically checks for weekly updates to Maven dependencies and GitHub Actions.
-- Opens pull requests every Monday at 04:00 UTC.
+1. **Concurrency Control:** Each workflow specifies `concurrency: cancel-in-progress: true` to immediately terminate outdated build runs when new commits are pushed to a feature branch.
+2. **Execution Timeouts:** All jobs specify explicit `timeout-minutes` (e.g. `15m` for test execution, `20m` for CodeQL) preventing hung jobs from consuming runner minutes.
+3. **Least-Privilege Job Permissions:** Workflows define strict top-level and job-level `permissions` (`contents: read`, `checks: write`, `security-events: write`).
+4. **Node.js Runner Migration Notice:** GitHub-managed runners periodically issue transition warnings during the GitHub infrastructure rollout from Node 20 to Node 24. Action dependencies in `.github/workflows/` track the latest major versions (`@v4`, `@v6`, `@v3`) to maintain forward compatibility.
 
 ---
 
-## 3. Mandatory Quality Gates
+## 4. Repository Governance & Code Ownership
 
-A Pull Request **cannot be merged** into `main` unless all of the following quality gates pass:
-
-1. **Checkstyle Compliance:** Zero style violations under Google Java Style ruleset.
-2. **Compilation Cleanliness:** Zero Java 21 compilation errors or warnings.
-3. **Test Suite 100% Pass Rate:** All unit and integration test suites pass without failure.
-4. **Docker Validation:** Multi-stage container build executes cleanly.
-5. **Zero Secret Leaks:** Gitleaks confirms zero exposed credentials.
-6. **CodeQL Security Pass:** Zero critical SAST security alerts.
+- **CODEOWNERS (`.github/CODEOWNERS`):** Automatically assigns code review responsibility for pull requests across core architecture, documentation, Docker manifests, and bounded contexts.
+- **Issue Templates (`.github/ISSUE_TEMPLATE/`):** Structured YAML templates for Bug Reports and Feature Requests.
+- **Pull Request Template (`.github/PULL_REQUEST_TEMPLATE.md`):** Engineering compliance checklist covering Checkstyle, unit tests, OpenAPI annotations, Flyway migrations, and security assertions.
 
 ---
 
-## 4. GitHub Branch Protection Setup Guide
+## 5. Mandatory Branch Protection Configuration
 
-To enforce these quality gates in the GitHub repository settings:
+To enforce these quality gates in GitHub repository settings:
 
 1. Navigate to **Settings** → **Branches** → **Add branch protection rule**.
 2. Set **Branch name pattern** to `main`.
 3. Enable **Require a pull request before merging**.
 4. Enable **Require status checks to pass before merging**:
-   - Search and select: `Build, Checkstyle & Test Suite Execution`
-   - Search and select: `Validate Production Docker & Compose Infrastructure`
-   - Search and select: `Gitleaks Secret & API Key Exposure Scanner`
-   - Search and select: `Analyze Java Code Quality & Security (CodeQL)`
+   - `Build, Checkstyle & Test Suite Execution`
+   - `Validate Production Docker & Compose Infrastructure`
+   - `Gitleaks Secret & API Key Exposure Scanner`
+   - `Analyze Java Code Quality & Security (CodeQL)`
 5. Enable **Require branches to be up to date before merging**.
 6. Enable **Do not allow bypassing the above settings**.

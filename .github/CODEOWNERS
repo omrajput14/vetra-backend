@@ -1,0 +1,18 @@
+# ─── Global Default Owners ──────────────────────────────────────────────
+*       @omrajput14
+
+# ─── Core Architecture & Infrastructure ─────────────────────────────
+/docs/architecture/   @omrajput14
+/docs/operations/     @omrajput14
+/.github/             @omrajput14
+/Dockerfile           @omrajput14
+/docker-compose.yml   @omrajput14
+
+# ─── Bounded Contexts ────────────────────────────────────────────────
+/src/main/java/app/vetra/auth/         @omrajput14
+/src/main/java/app/vetra/animal/       @omrajput14
+/src/main/java/app/vetra/appointment/  @omrajput14
+/src/main/java/app/vetra/medicalrecord/@omrajput14
+/src/main/java/app/vetra/ai/             @omrajput14
+/src/main/java/app/vetra/disease/        @omrajput14
+/src/main/java/app/vetra/notification/   @omrajput14

@@ -1,0 +1,55 @@
+name: Bug Report
+description: Report a bug or unintended behavior in Vetra Backend
+title: "bug: [Short description]"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a issue in Vetra Backend! Please fill out the details below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug.
+      placeholder: Describe what happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Call endpoint POST /api/v1/...
+        2. With payload ...
+        3. Observe error response ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: context
+    attributes:
+      label: Impacted Bounded Context
+      options:
+        - auth
+        - animal
+        - appointment
+        - medicalrecord
+        - ai
+        - disease
+        - notification
+        - dashboard
+        - infrastructure
+    validations:
+      required: true

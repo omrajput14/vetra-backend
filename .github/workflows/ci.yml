@@ -9,17 +9,24 @@ on:
     branches:
       - main
 
+# Concurrency management: cancel outdated in-progress runs for the same ref
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
-  security-events: write
 
 jobs:
   # ─── 1. Quality, Compile, Checkstyle & Test Execution ───────────────
   build-and-test:
     name: Build, Checkstyle & Test Suite Execution
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      checks: write
 
     steps:
       - name: Checkout Repository
@@ -63,6 +70,10 @@ jobs:
   docker-validation:
     name: Validate Production Docker & Compose Infrastructure
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Repository
@@ -71,12 +82,14 @@ jobs:
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Validate Production Dockerfile Build
+      - name: Validate Production Dockerfile Build with Layer Caching
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Validate Docker Compose Manifest
         run: |
@@ -87,6 +100,10 @@ jobs:
   secret-scan:
     name: Gitleaks Secret & API Key Exposure Scanner
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Repository
