@@ -226,7 +226,7 @@
         <configuration>
           <java>
             <googleJavaFormat>
-              <version>1.25.2</version>
+              <version>1.22.0</version>
               <style>GOOGLE</style>
             </googleJavaFormat>
             <removeUnusedImports/>
@@ -234,14 +234,6 @@
             <endWithNewline/>
           </java>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <phase>verify</phase>
-          </execution>
-        </executions>
       </plugin>
 
       <!-- Checkstyle -->

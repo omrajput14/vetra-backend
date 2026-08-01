@@ -3,8 +3,8 @@ FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /build
 
-# Copy pom.xml first to leverage Docker layer caching
-COPY pom.xml ./
+# Copy pom.xml and checkstyle.xml first to leverage Docker layer caching
+COPY pom.xml checkstyle.xml ./
 RUN mvn dependency:go-offline -B
 
 # Copy Source Code and compile production executable artifact
