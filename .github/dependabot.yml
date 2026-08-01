@@ -15,6 +15,13 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    ignore:
+      # Ignore breaking major Spring Boot releases beyond 3.x
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+      # Ignore breaking major SpringDoc OpenAPI releases beyond 2.x
+      - dependency-name: "org.springdoc:*"
+        update-types: ["version-update:semver-major"]
 
   # ─── 2. GitHub Actions Workflows ────────────────────────────────────
   - package-ecosystem: "github-actions"
