@@ -24,7 +24,26 @@ services:
     networks:
       - vetra-network
 
-  # ─── 2. Vetra Backend Core Service ──────────────────────────────────
+  # ─── 2. Redis 7 High-Performance Cache Container ────────────────────
+  redis:
+    image: redis:7.4-alpine
+    container_name: vetra-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-vetra_redis_password_secret}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-vetra_redis_password_secret} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - vetra-network
+
+  # ─── 3. Vetra Backend Core Service ──────────────────────────────────
   vetra-backend:
     build:
       context: .
@@ -38,6 +57,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-vetra_db}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-vetra_user}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-vetra_password_secret}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-vetra_redis_password_secret}
+      REDIS_DATABASE: ${REDIS_DATABASE:-0}
+      REDIS_TIMEOUT: ${REDIS_TIMEOUT:-2000ms}
       VETRA_JWT_SECRET: ${JWT_SECRET:-replace_with_a_secure_256_bit_random_secret_string}
       VETRA_JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
       VETRA_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
@@ -55,6 +79,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health/liveness || exit 1"]
       interval: 15s
@@ -70,4 +96,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
