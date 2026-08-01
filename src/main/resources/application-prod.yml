@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://postgres:5432/vetra_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:vetra_user}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:vetra_password_secret}}
     hikari:
       maximum-pool-size: 30
       minimum-idle: 10
@@ -16,7 +16,7 @@ spring:
 
 vetra:
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
 
 server:
   error:
@@ -27,19 +27,19 @@ server:
 management:
   endpoint:
     health:
-      show-details: never
+      show-details: when-authorized
+      probes:
+        enabled: true
 
 logging:
   level:
-    root: WARN
+    root: INFO
     app.vetra: INFO
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
-  file:
-    name: /var/log/vetra/vetra.log
 
 springdoc:
   swagger-ui:
-    enabled: false
+    enabled: true
   api-docs:
-    enabled: false
+    enabled: true

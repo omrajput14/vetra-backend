@@ -1,60 +1,73 @@
-services:
+name: vetra-platform
 
-  # ── PostgreSQL 16 ────────────────────────────────────────────────────
+services:
+  # ─── 1. PostgreSQL 17 + PostGIS Container ───────────────────────────
   postgres:
-    image: postgis/postgis:16-3.4-alpine
+    image: postgis/postgis:17-3.5-alpine
     container_name: vetra-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-vetra_dev}
-      POSTGRES_USER: ${POSTGRES_USER:-vetra}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${DB_NAME:-vetra_db}
+      POSTGRES_USER: ${DB_USER:-vetra_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vetra_password_secret}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-postgis.sql:/docker-entrypoint-initdb.d/01-init-postgis.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vetra} -d ${POSTGRES_DB:-vetra_dev}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vetra_user} -d ${DB_NAME:-vetra_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 20s
+      start_period: 10s
     networks:
       - vetra-network
 
-  # ── Vetra Backend ────────────────────────────────────────────────────
+  # ─── 2. Vetra Backend Core Service ──────────────────────────────────
   vetra-backend:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: vetra-backend
     restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      SPRING_PROFILE: ${SPRING_PROFILE:-dev}
-      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-vetra_dev}
-      DB_USERNAME: ${POSTGRES_USER:-vetra}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-vetra_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-vetra_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-vetra_password_secret}
+      VETRA_JWT_SECRET: ${JWT_SECRET:-test-jwt-secret-value-minimum-32-characters-long}
+      VETRA_JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      VETRA_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
+      VETRA_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
+      VETRA_AWS_REGION: ${AWS_REGION:-ap-south-1}
+      VETRA_AWS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID:-test-access-key}
+      VETRA_AWS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY:-test-secret-key}
+      VETRA_AWS_S3_BUCKET: ${AWS_S3_BUCKET:-vetra-media-storage}
+      VETRA_AI_ENABLED: ${AI_ENABLED:-false}
+      VETRA_AI_DEFAULT_PROVIDER: ${AI_DEFAULT_PROVIDER:-NONE}
+      VETRA_AI_GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
+      FCM_PRIVATE_KEY: ${FCM_PRIVATE_KEY:-}
+      FCM_CLIENT_EMAIL: ${FCM_CLIENT_EMAIL:-}
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health/liveness || exit 1"]
+      interval: 15s
+      timeout: 5s
       retries: 3
-      start_period: 60s
+      start_period: 35s
     networks:
       - vetra-network
-
-volumes:
-  postgres_data:
-    driver: local
 
 networks:
   vetra-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
