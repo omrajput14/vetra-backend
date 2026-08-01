@@ -1,0 +1,25 @@
+# Version Control
+.git
+.gitignore
+.github
+
+# IDE & Editor metadata
+.idea
+.vscode
+*.iml
+.antigravityignore
+
+# Build output & dependencies
+target/
+*.log
+*.tmp
+
+# Documentation & Ops assets not needed during Maven compile
+docs/
+README.md
+*.pdf
+
+# Environment files containing local secrets
+.env
+.env.*
+!.env.example

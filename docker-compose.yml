@@ -34,17 +34,17 @@ services:
     ports:
       - "${PORT:-8080}:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-vetra_db}
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-vetra_user}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-vetra_password_secret}
-      VETRA_JWT_SECRET: ${JWT_SECRET:-test-jwt-secret-value-minimum-32-characters-long}
+      VETRA_JWT_SECRET: ${JWT_SECRET:-replace_with_a_secure_256_bit_random_secret_string}
       VETRA_JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
       VETRA_JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}
       VETRA_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080}
       VETRA_AWS_REGION: ${AWS_REGION:-ap-south-1}
-      VETRA_AWS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID:-test-access-key}
-      VETRA_AWS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY:-test-secret-key}
+      VETRA_AWS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID:-}
+      VETRA_AWS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY:-}
       VETRA_AWS_S3_BUCKET: ${AWS_S3_BUCKET:-vetra-media-storage}
       VETRA_AI_ENABLED: ${AI_ENABLED:-false}
       VETRA_AI_DEFAULT_PROVIDER: ${AI_DEFAULT_PROVIDER:-NONE}
