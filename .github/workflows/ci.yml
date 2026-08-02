@@ -28,6 +28,20 @@ jobs:
       contents: read
       checks: write
 
+    services:
+      redis:
+        image: bitnami/redis:7.4
+        ports:
+          - 6379:6379
+        env:
+          REDIS_PASSWORD: test_password
+        options: >-
+          --health-cmd "redis-cli -a test_password ping | grep PONG"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 5s
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -41,6 +55,8 @@ jobs:
 
       - name: Execute Checkstyle, Compile & Maven Test Suite
         run: ./mvnw clean verify -B
+        env:
+          REDIS_PASSWORD: test_password
 
       - name: Generate Test Summary
         if: always()
