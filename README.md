@@ -66,6 +66,8 @@ Comprehensive engineering specifications and design records are maintained under
 
 ### 🛠 Operations & Engineering Guides
 - [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md) — *Start here!*
+- [Enterprise Caching Architecture](docs/architecture/25-caching-architecture.md)
+- [Cache Performance Benchmark Report](docs/performance/cache-benchmark-report.md) — *Stage 12.3.4 empirical benchmark report*
 - [Coding Standards & Conventions (Java 21/Spring)](docs/engineering/12-coding-standards.md)
 - [Git Workflow & Branching Strategy](docs/engineering/13-git-workflow.md)
 - [Testing Strategy](docs/guides/14-testing-strategy.md)
