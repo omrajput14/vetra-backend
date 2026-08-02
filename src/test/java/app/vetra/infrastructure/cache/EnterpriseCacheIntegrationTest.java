@@ -120,4 +120,14 @@ class EnterpriseCacheIntegrationTest {
     String key = CacheKeys.medicalRecordKey(UUID.randomUUID());
     assertThat(cache.get(key)).isNull();
   }
+
+  @Test
+  @DisplayName("Should configure resilient CacheErrorHandler for graceful Redis degradation")
+  void shouldConfigureCacheErrorHandler() {
+    assertThat(((CacheConfiguration) cacheManagerConfiguration()).errorHandler()).isNotNull();
+  }
+
+  private Object cacheManagerConfiguration() {
+    return new CacheConfiguration();
+  }
 }

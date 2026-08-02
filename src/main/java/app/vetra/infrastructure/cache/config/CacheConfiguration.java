@@ -8,8 +8,13 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -23,11 +28,14 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * Enterprise Production Spring CacheManager configuration for Vetra platform caching.
  * Configures RedisCacheManager with customized TTL policies per cache region,
  * Jackson polymorphic JSON value serialization, Java 8 time module support,
- * disabling null value caching, cache statistics, and transaction awareness.
+ * disabling null value caching, cache statistics, transaction awareness,
+ * and resilient CacheErrorHandler for graceful Redis fault tolerance.
  */
 @Configuration
 @EnableCaching
-public class CacheConfiguration {
+public class CacheConfiguration implements CachingConfigurer {
+
+  private static final Logger log = LoggerFactory.getLogger(CacheConfiguration.class);
 
   /**
    * Provisions the primary {@link CacheManager} bean configured with region-specific TTLs.
@@ -91,8 +99,37 @@ public class CacheConfiguration {
   }
 
   /**
+   * Provides a resilient {@link CacheErrorHandler} ensuring graceful fallback to database
+   * when Redis is unreachable or experiences connection failures.
+   */
+  @Override
+  public CacheErrorHandler errorHandler() {
+    return new CacheErrorHandler() {
+      @Override
+      public void handleCacheGetError(RuntimeException exception, Cache cache, Object key) {
+        log.warn("Redis Cache GET failure on cache='{}' key='{}'. Falling back to DB.", cache.getName(), key, exception);
+      }
+
+      @Override
+      public void handleCachePutError(RuntimeException exception, Cache cache, Object key, Object value) {
+        log.warn("Redis Cache PUT failure on cache='{}' key='{}'. Continuing execution.", cache.getName(), key, exception);
+      }
+
+      @Override
+      public void handleCacheEvictError(RuntimeException exception, Cache cache, Object key) {
+        log.warn("Redis Cache EVICT failure on cache='{}' key='{}'. Continuing execution.", cache.getName(), key, exception);
+      }
+
+      @Override
+      public void handleCacheClearError(RuntimeException exception, Cache cache) {
+        log.warn("Redis Cache CLEAR failure on cache='{}'. Continuing execution.", cache.getName(), exception);
+      }
+    };
+  }
+
+  /**
    * Creates a {@link GenericJackson2JsonRedisSerializer} configured with JavaTimeModule
-   * for robust DTO serialization/deserialization across Spring Cache regions.
+   * and polymorphic typing for robust DTO serialization/deserialization across Spring Cache regions.
    *
    * @return configured GenericJackson2JsonRedisSerializer
    */
