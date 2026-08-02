@@ -77,6 +77,16 @@ public final class CacheKeys {
   }
 
   /**
+   * Generates a deterministic cache key for a User Profile entity by email or phone identifier.
+   *
+   * @param identifier user email or phone identifier
+   * @return formatted key string
+   */
+  public static String userProfileKey(String identifier) {
+    return String.format(USER_PROFILE_KEY_PATTERN, identifier);
+  }
+
+  /**
    * Generates a deterministic cache key for an Animal entity by ID.
    *
    * @param animalId unique animal identifier
