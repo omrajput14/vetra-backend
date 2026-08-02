@@ -4,13 +4,53 @@
 
 This document specifies the authoritative enterprise caching architecture for the **Vetra Backend Platform**.
 
-In accordance with the enterprise engineering roadmap, **Stage 12.3.2 is purely architectural**. It establishes standards, classifications, key conventions, TTL matrices, invalidation strategies, and constant definitions. Runtime Spring cache manager beans, Jackson cache serialization wiring, and `@Cacheable` service bindings are explicitly deferred to **Stage 12.3.3 (Service-Level Cache Implementation)**.
+In accordance with the enterprise engineering roadmap, **Stage 12.3.2 is purely architectural**. It establishes standards, classifications, key conventions, TTL matrices, invalidation strategies, decision trees, governance rules, and constant definitions. Runtime Spring cache manager beans, Jackson cache serialization wiring, and `@Cacheable` service bindings are explicitly deferred to **Stage 12.3.3 (Service-Level Cache Implementation)**.
 
 ---
 
-## 1. Enterprise Cache Audit & Domain Classifications
+## 1. Enterprise Cache Decision Framework
 
-Every entity, endpoint, and query pattern across the Vetra platform is audited and classified into four operational caching categories based on data volatility, read-to-write ratio, and query complexity.
+Before introducing any new cache to the Vetra platform, developers must evaluate the proposed data entity using the following standardized decision tree.
+
+```mermaid
+flowchart TD
+    Start([New Data / Endpoint Caching Proposal]) --> Q1{Is data security-sensitive?\nPassword hashes, tokens, auth credentials?}
+    Q1 -- Yes --> NeverCache[NEVER CACHE\nDirect Database Read / Write Only]
+    Q1 -- No --> Q2{Is data read frequently\nwith high read-to-write ratio?}
+    
+    Q2 -- No --> NeverCache
+    Q2 -- Yes --> Q3{Is DB query / computation\nexpensive or high latency?}
+    
+    Q3 -- No --> Q4{Does stale data create\nsignificant business risk?}
+    Q3 -- Yes --> Q5{Is deterministic invalidation\npossible on mutation?}
+    
+    Q4 -- Yes --> NeverCache
+    Q4 -- No --> Q5
+    
+    Q5 -- No --> Q6{Can domain tolerate\nshort TTL expiration?}
+    Q5 -- Yes --> Q7{How volatile is the data?}
+    
+    Q6 -- No --> NeverCache
+    Q6 -- Yes --> ShortTTL[SHORT TTL CACHE\n5 Minutes - e.g., Aggregation Dashboards]
+    
+    Q7 -- High Volatility --> ShortTTL
+    Q7 -- Moderate Volatility --> MedTTL[MEDIUM TTL CACHE\n15 to 30 Minutes - e.g., Entities, Profiles]
+    Q7 -- Low / Immutable --> LongTTL[LONG TTL CACHE\n6 to 24 Hours - e.g., AI Results, Ref Catalogs]
+```
+
+### Framework Evaluation Questions
+
+1. **Security Policy**: Is the data security-sensitive (e.g., passwords, refresh tokens, credentials)? $\rightarrow$ **Never Cache**.
+2. **Read-to-Write Ratio**: Is the data requested frequently across hot paths? $\rightarrow$ If low, **Never Cache**.
+3. **Computational Cost**: Is the SQL query complex (JOINs, GROUP BYs) or AI inference expensive? $\rightarrow$ Strong candidate.
+4. **Business Risk**: Does serving stale data cause domain inconsistency or financial risk? $\rightarrow$ Evaluate invalidation or **Never Cache**.
+5. **Volatility & Invalidation**: Can writes trigger immediate explicit eviction? $\rightarrow$ Determines TTL category (Short, Medium, or Long).
+
+---
+
+## 2. Enterprise Cache Audit & Domain Classifications
+
+Every entity, endpoint, and query pattern across the Vetra platform is audited and classified into four operational caching categories.
 
 ### Operational Classifications
 
@@ -21,7 +61,7 @@ Every entity, endpoint, and query pattern across the Vetra platform is audited a
 | **Long-lived Cache** | Immutable, slow-changing, or computationally expensive outputs (e.g., AI inference, reference catalogs). | High TTL (12-24h) + explicit manual flush | AI Diagnosis, Reference Data, Analytics |
 | **Never Cache** | Sensitive security credentials, audit trails, real-time message streams, or transactional state transitions. | N/A (Direct DB read/write only) | Passwords/Hashes, Delivery Logs, Direct Financial Trx |
 
-### Domain-by-Domain Audit Matrix
+### Domain Audit Matrix
 
 | Domain | Entity / Endpoint / Query | Classification | Justification |
 |--------|---------------------------|----------------|---------------|
@@ -45,39 +85,39 @@ Every entity, endpoint, and query pattern across the Vetra platform is audited a
 
 ---
 
-## 2. Enterprise Cache Registry
+## 3. Centralized Cache Registry & Ownership Matrix
 
-All cache regions are centrally defined via `CacheNames.java`. Hardcoded string literals in application code are strictly prohibited.
+All cache regions are centrally defined in **[CacheNames.java](file:///Users/0mrajput/vetra-backend/src/main/java/app/vetra/infrastructure/cache/CacheNames.java)**. Each cache region has a designated **Owner Service** responsible for creation, updates, invalidation, and maintenance.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────┐
-│                                CENTRAL CACHE REGISTRY                                   │
-├──────────────────┬──────────────┬─────────────────────────────────┬───────────┬─────────┤
-│ Cache Region     │ Owner        │ Operational Purpose             │ Default   │ Evict   │
-│ Name             │ Domain       │                                 │ TTL       │ Method  │
-├──────────────────┼──────────────┼─────────────────────────────────┼───────────┼─────────┤
-│ otp              │ Auth         │ SMS OTP verification codes      │ 5 minutes │ On Verify
-│ dashboard_farmer │ Dashboard    │ Farmer UI aggregated summaries  │ 5 minutes │ On Event│
-│ dashboard_vet    │ Dashboard    │ Vet UI aggregated summaries     │ 5 minutes │ On Event│
-│ dashboard_admin  │ Dashboard    │ Admin platform macro metrics    │ 5 minutes │ Scheduled
-│ animals          │ Animal       │ Animal profiles & metadata      │ 15 mins   │ On Write│
-│ appointments     │ Appointment  │ Scheduling & status data        │ 15 mins   │ On Write│
-│ medical_records  │ MedicalRecord│ EVMR clinical records           │ 30 mins   │ On Write│
-│ users            │ Auth         │ Security principal data         │ 30 mins   │ On Write│
-│ user_profiles    │ Auth         │ Extended profile metadata       │ 30 mins   │ On Write│
-│ disease_reports  │ Disease      │ Individual disease reports      │ 1 hour    │ On Write│
-│ outbreaks        │ Disease      │ Active outbreak surveillance    │ 1 hour    │ On Write│
-│ notifications    │ Notification │ Device tokens & templates       │ 1 hour    │ On Write│
-│ settings         │ Platform     │ Dynamic app configuration flags │ 6 hours   │ On Write│
-│ reference_data   │ Platform     │ Master disease & species catalog│ 12 hours  │ On Admin│
-│ ai_diagnosis     │ AI           │ SHA-256 hash inference results  │ 24 hours  │ Manual  │
-│ analytics        │ Analytics    │ Historical aggregation statistics│ 24 hours  │ Scheduled
-└──────────────────┴──────────────┴─────────────────────────────────┴───────────┴─────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                               CENTRAL CACHE REGISTRY & OWNERSHIP MATRIX                                │
+├──────────────────┬──────────────┬───────────────────────────────┬──────────────┬───────────┬───────────┤
+│ Cache Region     │ Owner        │ Responsible Service           │ Operational  │ Default   │ Evict     │
+│ Name             │ Domain       │ (Governance Owner)            │ Purpose      │ TTL       │ Method    │
+├──────────────────┼──────────────┼───────────────────────────────┼──────────────┼───────────┼───────────┤
+│ otp              │ Auth         │ AuthService                   │ SMS OTP code │ 5 minutes │ On Verify │
+│ dashboard_farmer │ Dashboard    │ DashboardAggregationService   │ Farmer DTO   │ 5 minutes │ Event/TTL │
+│ dashboard_vet    │ Dashboard    │ DashboardAggregationService   │ Vet DTO      │ 5 minutes │ Event/TTL │
+│ dashboard_admin  │ Dashboard    │ DashboardAggregationService   │ Admin DTO    │ 5 minutes │ Scheduled │
+│ animals          │ Animal       │ AnimalService                 │ Livestock    │ 15 mins   │ On Write  │
+│ appointments     │ Appointment  │ AppointmentService            │ Schedule     │ 15 mins   │ On Write  │
+│ medical_records  │ MedicalRecord│ MedicalRecordService          │ EVMR Record  │ 30 mins   │ On Write  │
+│ users            │ Auth         │ UserService                   │ Principal    │ 30 mins   │ On Write  │
+│ user_profiles    │ Auth         │ UserService                   │ Profile      │ 30 mins   │ On Write  │
+│ disease_reports  │ Disease      │ DiseaseSurveillanceService    │ Report       │ 1 hour    │ On Write  │
+│ outbreaks        │ Disease      │ OutbreakIntelligenceService   │ Cluster      │ 1 hour    │ On Write  │
+│ notifications    │ Notification │ NotificationService           │ Templates    │ 1 hour    │ On Write  │
+│ settings         │ Platform     │ SystemSettingsService         │ Feature Flags│ 6 hours   │ On Write  │
+│ reference_data   │ Platform     │ ReferenceDataService          │ Master Cat   │ 12 hours  │ On Admin  │
+│ ai_diagnosis     │ AI           │ AIOrchestratorService         │ Hash Result  │ 24 hours  │ Manual    │
+│ analytics        │ Analytics    │ DiseaseIntelligenceAutomation │ Stats        │ 24 hours  │ Scheduled │
+└──────────────────┴──────────────┴───────────────────────────────┴──────────────┴───────────┴───────────┘
 ```
 
 ---
 
-## 3. Cache Architecture Standards & Constants
+## 4. Cache Architecture Standards & Constants
 
 The constants defining cache infrastructure boundaries reside in `app.vetra.infrastructure.cache`:
 
@@ -87,9 +127,9 @@ The constants defining cache infrastructure boundaries reside in `app.vetra.infr
 
 ---
 
-## 4. Time-To-Live (TTL) Policy & Justification
+## 5. Time-To-Live (TTL) Policy Matrix
 
-### TTL Policy Matrix
+Defined as strongly typed constants in **[CacheTtl.java](file:///Users/0mrajput/vetra-backend/src/main/java/app/vetra/infrastructure/cache/CacheTtl.java)**:
 
 ```
        5 min          15 min          30 min           1 hour           6 hours          12-24 hours
@@ -103,13 +143,10 @@ The constants defining cache infrastructure boundaries reside in `app.vetra.infr
 
 ---
 
-## 5. Cache Key Strategy
+## 6. Deterministic Cache Naming Standards
 
-Keys are formatted deterministically using a standardized prefix namespace to eliminate key collisions across environments and application modules.
+Defined in **[CacheKeys.java](file:///Users/0mrajput/vetra-backend/src/main/java/app/vetra/infrastructure/cache/CacheKeys.java)** following the pattern $\text{vetra}:\langle \text{domain} \rangle:\langle \text{identifier} \rangle$:
 
-$$\text{Namespace} = \text{vetra}:\langle \text{domain} \rangle:\langle \text{identifier} \rangle$$
-
-### Key Patterns
 - `vetra:user:{id}`
 - `vetra:user_profile:{id}`
 - `vetra:animal:{id}`
@@ -122,10 +159,11 @@ $$\text{Namespace} = \text{vetra}:\langle \text{domain} \rangle:\langle \text{id
 - `vetra:dashboard:vet:{vetId}`
 - `vetra:dashboard:admin`
 - `vetra:otp:{phone}`
+- `vetra:ref:{category}`
 
 ---
 
-## 6. Cache Invalidation Strategy
+## 7. Cache Invalidation Strategy
 
 Data updates trigger explicit cache invalidation to prevent stale reads. Cascade eviction propagates invalidations down the entity dependency hierarchy.
 
@@ -142,20 +180,46 @@ Data updates trigger explicit cache invalidation to prevent stale reads. Cascade
 
 ---
 
-## 7. Metrics & Monitoring Strategy
+## 8. Monitoring & Metrics Strategy Design
 
-Spring Boot Actuator and Micrometer automatically register cache metrics when enabled.
-
-### Target Metrics
-- **Cache Hit Ratio**: Target $> 85\%$
-- **Cache Miss Rate**: Monitored for stampedes
+Designed for Spring Boot Actuator, Micrometer, Prometheus, and Grafana:
+- **Cache Hit Ratio**: $\text{hits} / (\text{hits} + \text{misses}) > 85\%$
+- **Cache Miss Rate**: Stampede detection
 - **Eviction Count**: Alerts on Redis memory pressure
-- **Command Latency**: Target $< 5\text{ ms}$ ($p_{99}$)
-- **Redis Memory Usage**: Target $< 75\%$ capacity
+- **Redis Command Latency**: Target $p_{99} < 5\text{ ms}$
+- **Redis Memory Usage**: Alert boundary at $> 85\%$ capacity
 
 ---
 
-## 8. Deferred Implementation Items (Stage 12.3.3 Roadmap)
+## 9. Performance Success Criteria (KPIs for Stage 12.3.3 & 12.3.4)
+
+| Metric / Goal | Target Benchmark | Architectural Justification |
+|---------------|------------------|-----------------------------|
+| **Cache Hit Ratio** | $> 85\%$ | High hit ratios ensure the cache actively shields PostgreSQL from repetitive read workloads. |
+| **Redis $p_{99}$ Latency** | $< 5\text{ ms}$ | Ensures cache lookups add minimal overhead to response times over the Lettuce connection pool. |
+| **Dashboard API Response Time** | $40\%\text{--}60\%$ Reduction | Aggregation endpoints perform complex SQL JOINs; caching pre-aggregated DTOs drastically cuts response latency. |
+| **Database Query Volume** | $> 40\%$ Reduction | Offloading entity reads for hot records (Users, Animals, Appointments) reduces database connection pressure. |
+| **Repeated AI Inference Volume** | $> 70\%$ Reduction | SHA-256 image hash caching prevents duplicate external LLM/Vision API calls, saving execution cost and time. |
+| **Redis Infrastructure Availability**| $99.9\%$ | High availability guarantees cache failures do not bring down backend operational services. |
+| **Memory Utilization Alert Threshold**| $80\%\text{--}85\%$ | Early alerting prevents Redis out-of-memory (OOM) evictions and unexpected LRU purges. |
+
+---
+
+## 10. Cache Governance Rules
+
+Future backend development must adhere strictly to these architectural governance rules:
+
+1. **No Hardcoded Cache Names**: Every cache region string must use constants from `CacheNames`.
+2. **No Hardcoded TTLs**: Every cache TTL duration must be referenced from `CacheTtl`.
+3. **Standardized Key Generation**: All cache keys must be generated via `CacheKeys` methods using the `vetra:<domain>:<id>` format.
+4. **Mandatory Invalidation Specification**: No service may introduce a cache without documenting its mutation invalidation flow.
+5. **Single Ownership Responsibility**: Each cache region is owned by exactly one service as defined in the Cache Ownership Matrix.
+6. **Architecture Review Required**: Introducing a new cache region requires architecture team review and inclusion in `25-caching-architecture.md`.
+7. **Prohibition of Undocumented Caches**: No business service or repository may introduce undocumented runtime caches or ad-hoc key formats.
+
+---
+
+## 11. Deferred Implementation Items (Stage 12.3.3 Roadmap)
 
 The following implementation components have been intentionally separated and deferred to **Stage 12.3.3**:
 
