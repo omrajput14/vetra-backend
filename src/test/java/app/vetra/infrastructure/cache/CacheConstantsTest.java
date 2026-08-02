@@ -1,19 +1,15 @@
 package app.vetra.infrastructure.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.cache.CacheManager;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 
-@DisplayName("Enterprise Cache Layer Infrastructure Tests")
-class CacheConfigurationTest {
+@DisplayName("Enterprise Cache Architecture Constants Tests")
+class CacheConstantsTest {
 
   @Nested
   @DisplayName("CacheNames Constants Tests")
@@ -103,23 +99,6 @@ class CacheConfigurationTest {
       assertThat(CacheTtl.AI_DIAGNOSIS).isEqualTo(Duration.ofHours(24));
       assertThat(CacheTtl.ANALYTICS).isEqualTo(Duration.ofHours(24));
       assertThat(CacheTtl.DEFAULT).isEqualTo(Duration.ofMinutes(30));
-    }
-  }
-
-  @Nested
-  @DisplayName("CacheConfiguration Bean Provisioning Tests")
-  class CacheConfigurationBeanTests {
-
-    @Test
-    @DisplayName("Should provision RedisCacheManager bean successfully")
-    void shouldProvisionRedisCacheManager() {
-      RedisConnectionFactory mockConnectionFactory = mock(RedisConnectionFactory.class);
-      CacheConfiguration cacheConfiguration = new CacheConfiguration();
-
-      CacheManager cacheManager = cacheConfiguration.cacheManager(mockConnectionFactory);
-
-      assertThat(cacheManager).isNotNull();
-      assertThat(cacheManager).isInstanceOf(RedisCacheManager.class);
     }
   }
 }

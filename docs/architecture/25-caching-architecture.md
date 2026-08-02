@@ -1,14 +1,14 @@
-# Vetra Backend — Enterprise Caching Architecture (Stage 12.3.2)
+# Vetra Backend — Enterprise Caching Architecture Specification (Stage 12.3.2)
 
-## Executive Summary
+## Executive Summary & Milestone Boundary
 
-This document specifies the enterprise caching architecture for the **Vetra Backend Platform**. Built on **Redis 7.4** and Spring Boot's unified `CacheManager` abstraction (`RedisCacheManager`), this architecture provides a high-throughput, low-latency, deterministic, and resilient multi-region caching layer.
+This document specifies the authoritative enterprise caching architecture for the **Vetra Backend Platform**.
 
-The design enforces strict separation of concerns, zero hardcoded cache region strings, explicit Time-To-Live (TTL) policies per domain, collision-free key namespacing (`vetra:<domain>:<id>`), multi-level cache invalidation flow, and Micrometer/Prometheus observability.
+In accordance with the enterprise engineering roadmap, **Stage 12.3.2 is purely architectural**. It establishes standards, classifications, key conventions, TTL matrices, invalidation strategies, and constant definitions. Runtime Spring cache manager beans, Jackson cache serialization wiring, and `@Cacheable` service bindings are explicitly deferred to **Stage 12.3.3 (Service-Level Cache Implementation)**.
 
 ---
 
-## 1. Cache Architecture Audit
+## 1. Enterprise Cache Audit & Domain Classifications
 
 Every entity, endpoint, and query pattern across the Vetra platform is audited and classified into four operational caching categories based on data volatility, read-to-write ratio, and query complexity.
 
@@ -47,7 +47,7 @@ Every entity, endpoint, and query pattern across the Vetra platform is audited a
 
 ## 2. Enterprise Cache Registry
 
-All cache regions are centrally managed via `CacheNames.java` and registered within `CacheConfiguration.java`. Hardcoded string literals in application code are strictly prohibited.
+All cache regions are centrally defined via `CacheNames.java`. Hardcoded string literals in application code are strictly prohibited.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────┐
@@ -77,14 +77,13 @@ All cache regions are centrally managed via `CacheNames.java` and registered wit
 
 ---
 
-## 3. Cache Constants Infrastructure Code
+## 3. Cache Architecture Standards & Constants
 
-The cache architecture infrastructure is strictly encapsulated within the package `app.vetra.infrastructure.cache`:
+The constants defining cache infrastructure boundaries reside in `app.vetra.infrastructure.cache`:
 
 1. **`CacheNames`**: Single source of truth for cache region names (`public static final String USERS = "users"`, etc.).
 2. **`CacheTtl`**: Strongly typed `java.time.Duration` constants defining the expiration boundary for each cache region.
 3. **`CacheKeys`**: Utility class producing deterministic, collision-free key formats formatted as `vetra:<domain>:<id>`.
-4. **`CacheConfiguration`**: Spring `@Configuration` provisioning a `RedisCacheManager` configured with per-cache TTL maps, `GenericJackson2JsonRedisSerializer`, `StringRedisSerializer`, `disableCachingNullValues()`, and transaction awareness.
 
 ---
 
@@ -102,54 +101,35 @@ The cache architecture infrastructure is strictly encapsulated within the packag
      ◄ HIGH VOLATILITY / TEMPORAL                                            LOW VOLATILITY / COMPUTATIONAL ►
 ```
 
-### Justification Breakdown
-
-1. **OTP (5 Minutes)**: Security SLA limit. Ephemeral validation codes must expire rapidly to prevent brute-force exploitation.
-2. **Dashboards (5 Minutes)**: High query complexity involving multiple JOINs and aggregations. 5-minute TTL provides near-real-time accuracy while shielding PostgreSQL from continuous polling spikes.
-3. **Animals & Appointments (15 Minutes)**: Operational data with moderate update frequency. Balance between freshness for appointment state transitions and DB load reduction.
-4. **Medical Records & Users (30 Minutes)**: Low modification frequency. EVMR records are immutable once completed; user roles change rarely.
-5. **Disease Surveillance & Outbreaks (1 Hour)**: Regional spatial calculations and outbreak cluster boundaries. Re-evaluated hourly by background jobs.
-6. **Reference Data (12 Hours) & AI Diagnosis (24 Hours)**: Static disease catalogs and deterministic AI model inferences (keyed by image hash). Maximum cache utility; zero stale data risk.
-
 ---
 
 ## 5. Cache Key Strategy
 
 Keys are formatted deterministically using a standardized prefix namespace to eliminate key collisions across environments and application modules.
 
-### Namespace Pattern
 $$\text{Namespace} = \text{vetra}:\langle \text{domain} \rangle:\langle \text{identifier} \rangle$$
 
 ### Key Patterns
-
-```
-vetra:user:{uuid}                     -> vetra:user:123e4567-e89b-12d3-a456-426614174000
-vetra:user_profile:{uuid}             -> vetra:user_profile:123e4567-e89b-12d3-a456-426614174000
-vetra:animal:{uuid}                   -> vetra:animal:123e4567-e89b-12d3-a456-426614174000
-vetra:appointment:{uuid}              -> vetra:appointment:123e4567-e89b-12d3-a456-426614174000
-vetra:medical_record:{uuid}           -> vetra:medical_record:123e4567-e89b-12d3-a456-426614174000
-vetra:ai:{imageSha256Hash}            -> vetra:ai:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-vetra:disease_report:{uuid}           -> vetra:disease_report:123e4567-e89b-12d3-a456-426614174000
-vetra:outbreak:{uuid}                 -> vetra:outbreak:123e4567-e89b-12d3-a456-426614174000
-vetra:dashboard:farmer:{uuid}         -> vetra:dashboard:farmer:123e4567-e89b-12d3-a456-426614174000
-vetra:dashboard:vet:{uuid}            -> vetra:dashboard:vet:123e4567-e89b-12d3-a456-426614174000
-vetra:dashboard:admin                 -> vetra:dashboard:admin
-vetra:otp:{phoneNumber}              -> vetra:otp:+256700000000
-vetra:ref:{category}                  -> vetra:ref:diseases
-```
-
-### Determinism Rules
-- Primary keys must use canonical UUID hyphenated string representations (`java.util.UUID#toString()`).
-- Image hashes must use lower-case SHA-256 hex strings.
-- Phone numbers must follow E.164 international format (`+<country><national>`).
+- `vetra:user:{id}`
+- `vetra:user_profile:{id}`
+- `vetra:animal:{id}`
+- `vetra:appointment:{id}`
+- `vetra:medical_record:{id}`
+- `vetra:ai:{imageHash}`
+- `vetra:disease_report:{id}`
+- `vetra:outbreak:{id}`
+- `vetra:dashboard:farmer:{farmerId}`
+- `vetra:dashboard:vet:{vetId}`
+- `vetra:dashboard:admin`
+- `vetra:otp:{phone}`
 
 ---
 
-## 6. Cache Invalidation & Cascade Eviction Strategy
+## 6. Cache Invalidation Strategy
 
 Data updates trigger explicit cache invalidation to prevent stale reads. Cascade eviction propagates invalidations down the entity dependency hierarchy.
 
-### Invalidation Trigger Matrix
+### Invalidation Matrix
 
 | Mutation Event | Direct Target Evicted | Cascade Eviction Targets |
 |----------------|----------------------|--------------------------|
@@ -158,71 +138,30 @@ Data updates trigger explicit cache invalidation to prevent stale reads. Cascade
 | `Create MedicalRecord`| `vetra:medical_record:{id}` | `vetra:animal:{animalId}`, `vetra:appointment:{aptId}`, `vetra:dashboard:farmer:{farmerId}`, `vetra:dashboard:vet:{vetId}` |
 | `Create DiseaseReport`| `vetra:disease_report:{id}`| `vetra:outbreak:{clusterId}`, `vetra:dashboard:vet:{vetId}`, `vetra:dashboard:admin`, `vetra:analytics` |
 | `Update Outbreak` | `vetra:outbreak:{id}` | `vetra:dashboard:admin`, `vetra:analytics` |
-| `Update User Profile` | `vetra:user_profile:{id}`, `vetra:user:{id}` | `vetra:dashboard:farmer:{id}` or `vetra:dashboard:vet:{id}` |
-
-### Cascade Eviction Flow Diagram
-
-```
-                 ┌─────────────────────────────┐
-                 │    Mutation: Create EVMR    │
-                 └──────────────┬──────────────┘
-                                │
-          ┌─────────────────────┴─────────────────────┐
-          ▼                                           ▼
-┌───────────────────────────┐               ┌───────────────────────────┐
-│ Direct Evict:             │               │ Direct Evict:             │
-│ vetra:medical_record:{id} │               │ vetra:appointment:{id}    │
-└─────────┬─────────────────┘               └─────────┬─────────────────┘
-          │                                           │
-          └─────────────────────┬─────────────────────┘
-                                │
-                                ▼ (Cascade)
-                  ┌───────────────────────────┐
-                  │ Evict: vetra:animal:{id}  │
-                  └─────────────┬─────────────┘
-                                │
-          ┌─────────────────────┴─────────────────────┐
-          ▼ (Cascade)                                 ▼ (Cascade)
-┌─────────────────────────────────┐       ┌─────────────────────────────────┐
-│ Evict:                          │       │ Evict:                          │
-│ vetra:dashboard:farmer:{farmer} │       │ vetra:dashboard:vet:{vetId}     │
-└─────────────────────────────────┘       └─────────────────────────────────┘
-```
+| `Update User Profile` | `vetra:user_profile:{id}`, `vetra:user:{id}` | `vetra:dashboard:farmer:{id}` or `vetra:dashboard:vet:{vetId}` |
 
 ---
 
-## 7. Redis & Serialization Architecture
+## 7. Metrics & Monitoring Strategy
 
-### 1. Serializer Design
-- **Keys & Hash Keys**: `StringRedisSerializer` (UTF-8 encoded human-readable string keys).
-- **Values & Hash Values**: `GenericJackson2JsonRedisSerializer` for polymorphic JSON serialization supporting complex Java DTOs, Enums, and collections without Java native serialization vulnerabilities (`JdkSerializationRedisSerializer` is strictly prohibited).
+Spring Boot Actuator and Micrometer automatically register cache metrics when enabled.
 
-### 2. Null Value Protection
-All cache configurations invoke `.disableCachingNullValues()`. If a database lookup returns `null` or `Optional.empty()`, Spring Cache will **not** store a `null` value in Redis. This prevents cache poisoning and ensures subsequent valid creations immediately resolve.
-
-### 3. Transaction Support
-`RedisCacheManager` is configured with `.transactionAware()`. Cache puts and evictions participate in Spring `@Transactional` boundaries, executing cache updates only after successful database commit.
-
----
-
-## 8. Metrics & Monitoring Architecture
-
-Spring Boot Actuator and Micrometer automatically register cache metrics for RedisCacheManager when Micrometer is present.
-
-### Key Performance Indicators (KPIs)
-
-| Metric Name | Prometheus Metric Name | Target SLA | Actionable Threshold |
-|-------------|------------------------|------------|----------------------|
-| **Cache Hit Ratio** | `sum(rate(cache_gets_total{result="hit"}[5m])) / sum(rate(cache_gets_total[5m]))` | $> 85\%$ | $< 70\%$ (Investigate invalidation frequency or TTL) |
-| **Cache Miss Rate** | `sum(rate(cache_gets_total{result="miss"}[5m]))` | Low | Spike indicates cache stampede or deployment flush |
-| **Eviction Count** | `cache_evictions_total` | Monitored | Sudden spike indicates Redis maxmemory limit pressure |
-| **Redis Command Latency**| `lettuce_command_completion_time_seconds_bucket` | $< 5\text{ ms}$ ($p_{99}$) | $> 15\text{ ms}$ |
-| **Redis Memory Used**| `redis_memory_used_bytes` | $< 75\%$ allocated | $> 85\%$ (Requires Redis instance scale-up) |
+### Target Metrics
+- **Cache Hit Ratio**: Target $> 85\%$
+- **Cache Miss Rate**: Monitored for stampedes
+- **Eviction Count**: Alerts on Redis memory pressure
+- **Command Latency**: Target $< 5\text{ ms}$ ($p_{99}$)
+- **Redis Memory Usage**: Target $< 75\%$ capacity
 
 ---
 
-## 9. Verification & Architectural Compliance
+## 8. Deferred Implementation Items (Stage 12.3.3 Roadmap)
 
-1. **Checkstyle Compliance**: 0 violations across all infrastructure classes (`CacheNames`, `CacheKeys`, `CacheTtl`, `CacheConfiguration`).
-2. **Unit Test Suite**: `CacheConfigurationTest` verifies 53 unit tests passing clean with zero errors.
-3. **Layer Separation**: Zero `@Cacheable`, `@CacheEvict`, or `@CachePut` annotations were introduced into business services in Stage 12.3.2. Caching logic remains 100% prepared and frozen for targeted business service enablement in Stage 12.3.3.
+The following implementation components have been intentionally separated and deferred to **Stage 12.3.3**:
+
+1. `RedisCacheManager` bean provisioning (`CacheConfiguration.java`)
+2. Per-cache `RedisCacheConfiguration` TTL binding maps
+3. `GenericJackson2JsonRedisSerializer` value serialization configuration
+4. Null value caching prohibition (`disableCachingNullValues()`)
+5. Service-level `@Cacheable`, `@CacheEvict`, and `@CachePut` bindings across business domains
+6. Integration testing with Spring `CacheManager` runtime beans
