@@ -18,9 +18,13 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.infrastructure.cache.CacheNames;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -54,6 +58,7 @@ public class AppointmentService {
 
   /** Creates a new appointment for the authenticated farmer. */
   @Transactional
+  @CacheEvict(value = {CacheNames.DASHBOARD_FARMER, CacheNames.DASHBOARD_VET}, allEntries = true)
   public AppointmentResponse createAppointment(
       String currentUserIdentifier, CreateAppointmentRequest request) {
     User user = getUserByEmail(currentUserIdentifier);
@@ -134,6 +139,9 @@ public class AppointmentService {
 
   /** Retrieves a specific appointment by ID. */
   @Transactional(readOnly = true)
+  @Cacheable(
+      value = CacheNames.APPOINTMENTS,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).appointmentKey(#id)")
   public AppointmentResponse getAppointmentById(String currentUserIdentifier, UUID id) {
     User user = getUserByEmail(currentUserIdentifier);
     Appointment appointment = appointmentRepository.findById(id)
@@ -145,6 +153,15 @@ public class AppointmentService {
 
   /** Updates appointment status according to centralized state machine rules. */
   @Transactional
+  @Caching(
+      evict = {
+          @CacheEvict(
+              value = CacheNames.APPOINTMENTS,
+              key = "T(app.vetra.infrastructure.cache.CacheKeys).appointmentKey(#id)"),
+          @CacheEvict(
+              value = {CacheNames.DASHBOARD_FARMER, CacheNames.DASHBOARD_VET},
+              allEntries = true)
+      })
   public AppointmentResponse updateStatus(
       String currentUserIdentifier, UUID id, UpdateAppointmentStatusRequest request) {
     User user = getUserByEmail(currentUserIdentifier);

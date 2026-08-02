@@ -20,6 +20,9 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.infrastructure.security.JwtUtil;
+import app.vetra.infrastructure.cache.CacheNames;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,6 +188,9 @@ public class AuthService {
 
   /** Updates active user profile and returns refreshed UserProfileDto. */
   @Transactional
+  @CacheEvict(
+      value = CacheNames.USER_PROFILES,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).userProfileKey(#currentUserIdentifier)")
   public UserProfileDto updateUserProfile(String currentUserIdentifier, UpdateProfileRequest request) {
     User user = userRepository.findByIdentifier(currentUserIdentifier)
         .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
@@ -247,6 +253,9 @@ public class AuthService {
 
   /** Retrieves user profile DTO for authenticated user. */
   @Transactional(readOnly = true)
+  @Cacheable(
+      value = CacheNames.USER_PROFILES,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).userProfileKey(#identifier)")
   public UserProfileDto getCurrentUserProfileDtoByIdentifier(String identifier) {
     User user = userRepository.findByIdentifier(identifier)
         .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));

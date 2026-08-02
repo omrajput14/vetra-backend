@@ -1,9 +1,11 @@
 package app.vetra.disease.registry;
 
+import app.vetra.infrastructure.cache.CacheNames;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,6 +33,7 @@ public class DiseaseRegistryService {
   }
 
   /** Retrieves all registered disease descriptors. */
+  @Cacheable(value = CacheNames.REFERENCE_DATA, key = "'all_diseases'")
   public List<DiseaseMetadata> getAllDiseases() {
     return List.copyOf(registry.values());
   }
