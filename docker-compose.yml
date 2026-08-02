@@ -4,6 +4,7 @@ services:
   # ─── 1. PostgreSQL 17 + PostGIS Container ───────────────────────────
   postgres:
     image: postgis/postgis:17-3.5-alpine
+    platform: linux/amd64
     container_name: vetra-postgres
     restart: unless-stopped
     environment:

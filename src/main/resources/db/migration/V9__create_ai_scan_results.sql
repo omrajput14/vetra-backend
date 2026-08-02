@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS ai_scan_results (
     request_id VARCHAR(64),
     tokens_used INT,
     warnings TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for performance and audit queries

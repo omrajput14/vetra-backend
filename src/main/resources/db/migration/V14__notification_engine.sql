@@ -1,9 +1,10 @@
 -- ─────────────────────────────────────────────────────────────────────
 -- V14__notification_engine.sql
 -- Notification & Communication Platform Schema
+-- Evolves V2 legacy notifications table and creates new platform tables
 -- ─────────────────────────────────────────────────────────────────────
 
--- 1. Notification Templates Table
+-- 1. Notification Templates Table (new table, no V2 conflict)
 CREATE TABLE IF NOT EXISTS notification_templates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     code VARCHAR(64) NOT NULL UNIQUE,
@@ -16,7 +17,7 @@ CREATE TABLE IF NOT EXISTS notification_templates (
     version BIGINT NOT NULL DEFAULT 0
 );
 
--- 2. User Notification Preferences Table
+-- 2. User Notification Preferences Table (new table, no V2 conflict)
 CREATE TABLE IF NOT EXISTS notification_preferences (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
@@ -30,7 +31,7 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
     version BIGINT NOT NULL DEFAULT 0
 );
 
--- 3. Notification Devices Table
+-- 3. Notification Devices Table (new table, no V2 conflict)
 CREATE TABLE IF NOT EXISTS notification_devices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -44,7 +45,31 @@ CREATE TABLE IF NOT EXISTS notification_devices (
     version BIGINT NOT NULL DEFAULT 0
 );
 
--- 4. Notifications Table
+-- 4. Evolve V2 notifications table: add missing columns
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS template_id UUID;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS channel VARCHAR(32) NOT NULL DEFAULT 'PUSH';
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS priority VARCHAR(32) NOT NULL DEFAULT 'NORMAL';
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS payload_json TEXT;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS status VARCHAR(32) NOT NULL DEFAULT 'PENDING';
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS read_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+
+-- 5. Backfill user_id from receiver_id if receiver_id exists and user_id is null
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'notifications' AND column_name = 'receiver_id'
+    ) THEN
+        UPDATE notifications SET user_id = receiver_id WHERE user_id IS NULL;
+    END IF;
+END $$;
+
+-- 6. Notifications Table (for fresh databases without V2)
 CREATE TABLE IF NOT EXISTS notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -67,7 +92,7 @@ CREATE TABLE IF NOT EXISTS notifications (
     CONSTRAINT chk_notification_status CHECK (status IN ('PENDING', 'QUEUED', 'SENT', 'DELIVERED', 'READ', 'FAILED'))
 );
 
--- 5. Notification Delivery Log Table
+-- 7. Notification Delivery Log Table (new table, no V2 conflict)
 CREATE TABLE IF NOT EXISTS notification_delivery_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     notification_id UUID NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
@@ -79,13 +104,13 @@ CREATE TABLE IF NOT EXISTS notification_delivery_log (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
--- 6. Performance Indexes
+-- 8. Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_status ON notifications(status);
 CREATE INDEX IF NOT EXISTS idx_notification_devices_user ON notification_devices(user_id);
 CREATE INDEX IF NOT EXISTS idx_notification_devices_token ON notification_devices(device_token);
 
--- 7. Seed Initial System Notification Templates
+-- 9. Seed Initial System Notification Templates
 INSERT INTO notification_templates (id, code, name, subject_template, body_template, default_channel)
 VALUES
     ('a0000000-0000-0000-0000-000000000001', 'APPOINTMENT_CONFIRMED', 'Appointment Confirmed', 'Appointment Confirmed for {animalName}', 'Your appointment for {animalName} with Dr. {vetName} on {date} is confirmed.', 'PUSH'),
