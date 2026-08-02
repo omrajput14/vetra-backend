@@ -5,11 +5,20 @@ WORKDIR /build
 
 # Copy pom.xml and checkstyle.xml first to leverage Docker layer caching
 COPY pom.xml checkstyle.xml ./
-RUN mvn dependency:go-offline -B
+
+# Download dependencies in a dedicated cached layer (survives source code changes)
+RUN mvn dependency:go-offline -B \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 \
+    || mvn dependency:go-offline -B \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    || true
 
 # Copy Source Code and compile production executable artifact
 COPY src/ src/
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B \
+    -Dmaven.wagon.http.retryHandler.count=5 \
+    -Dmaven.wagon.httpconnectionManager.ttlSeconds=25
 
 # ─── STAGE 2: Production Runtime Image ────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine AS runner

@@ -4,10 +4,11 @@
 [![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://www.oracle.com/java/technologies/downloads/#java21)
 [![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.5-green.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17%2BPostGIS-blue.svg)](https://www.postgresql.org/)
+[![Redis 7](https://img.shields.io/badge/Redis-7%20Alpine-red.svg)](https://redis.io/)
 [![Flyway](https://img.shields.io/badge/Flyway-Migrations-red.svg)](https://flywaydb.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Vetra Backend is the production-grade, modular monolith REST API powering **Vetra** — an enterprise Veterinary Operating System (VetOS) for livestock healthcare, practice management, and epidemiological disease surveillance. Built with Spring Boot 3, Java 21 LTS, and PostgreSQL 17 + PostGIS, it provides dual-role authentication (Farmer/Veterinarian), digital animal passports, clinical appointment state management, and immutable Electronic Veterinary Medical Records (EVMR).
+Vetra Backend is the production-grade, modular monolith REST API powering **Vetra** — an enterprise Veterinary Operating System (VetOS) for livestock healthcare, practice management, and epidemiological disease surveillance. Built with Spring Boot 3, Java 21 LTS, PostgreSQL 17 + PostGIS, and Redis 7, it provides dual-role authentication (Farmer/Veterinarian), digital animal passports, clinical appointment state management, and immutable Electronic Veterinary Medical Records (EVMR).
 
 ---
 

@@ -12,7 +12,7 @@ The containerized local production environment consists of two isolated services
                      ┌─────────────────────────────────────────┐
                      │          Host Environment               │
                      └────────────────────┬────────────────────┘
-                                          │  Port 8080 / 5432
+                                          │  Port 8080 / 5432 / 6379
                                           ▼
  ┌──────────────────────────────────────────────────────────────────────────┐
  │                         vetra-network (Bridge)                           │
@@ -21,12 +21,21 @@ The containerized local production environment consists of two isolated services
  │   │     vetra-backend      │────────────►│         postgres          │   │
  │   │  (Spring Boot JRE 21)  │  JDBC 5432  │  (PostgreSQL 17 + PostGIS)│   │
  │   │   Port: 8080           │             │   Port: 5432              │   │
- │   └────────────────────────┘             └───────────────────────────┘   │
+ │   └───────────┬────────────┘             └───────────────────────────┘   │
+ │               │                                                          │
+ │               │  Redis 6379                                              │
+ │               ▼                                                          │
+ │   ┌────────────────────────┐                                             │
+ │   │         redis          │                                             │
+ │   │   (Redis 7.4 Alpine)   │                                             │
+ │   │   Port: 6379           │                                             │
+ │   └────────────────────────┘                                             │
  └──────────────────────────────────────────────────────────────────────────┘
 ```
 
 1. **`postgres` Service:** Official `postgis/postgis:17-3.5-alpine` container running PostgreSQL 17 with PostGIS extensions. Data is persisted to named Docker volume `postgres_data`.
-2. **`vetra-backend` Service:** Production-optimized multi-stage Docker container running Eclipse Temurin JRE 21 with non-root user security enforcement.
+2. **`redis` Service:** Official `redis:7.4-alpine` high-performance in-memory cache service running with password authentication and `redis-cli ping` health checks. Data is persisted to named Docker volume `redis_data`.
+3. **`vetra-backend` Service:** Production-optimized multi-stage Docker container running Eclipse Temurin JRE 21 with non-root user security enforcement.
 
 ---
 

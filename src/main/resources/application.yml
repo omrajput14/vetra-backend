@@ -143,6 +143,14 @@ vetra:
       timeout: ${GEMINI_TIMEOUT:30s}
       max-retries: ${GEMINI_MAX_RETRIES:3}
 
+  # Redis Infrastructure Foundation
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DATABASE:0}
+    timeout: ${REDIS_TIMEOUT:2000ms}
+
 # ─── Application Info (exposed via /actuator/info) ───────────────────
 info:
   app:

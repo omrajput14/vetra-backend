@@ -3,6 +3,13 @@
 All notable changes to the Vetra backend will be documented here.
 
 ## [Unreleased]
+### Added — Stage 12.3.1: Redis Infrastructure Foundation
+- **Package Architecture:** Created `app.vetra.infrastructure.redis` (`config/`, `properties/`).
+- **Spring Boot Starters:** Added `spring-boot-starter-data-redis` and `spring-boot-starter-cache`.
+- **Redis Configuration:** `RedisConfig` with `@EnableCaching`, `LettuceConnectionFactory`, `RedisTemplate<String, Object>` (with `GenericJackson2JsonRedisSerializer`), `StringRedisTemplate`, and transaction support.
+- **Typed Configuration:** `RedisProperties` (`@ConfigurationProperties("vetra.redis")`) binding `host`, `port`, `password`, `database`, `timeout`.
+- **Docker Compose Redis Container:** Integrated `redis:7.4-alpine` service with password authentication, `redis-cli ping` healthcheck, `redis_data` volume persistence, and service dependency ordering.
+- **Actuator & Test Integration:** Exposed Redis health check via Actuator and created `RedisInfrastructureTest` integration test suite.
 
 ## [0.9.0] — 2026-08-01 — Stage 12: Production Infrastructure & CI/CD Platform
 ### Added
