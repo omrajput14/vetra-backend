@@ -96,6 +96,33 @@ services:
     networks:
       - vetra-network
 
+  # ─── 4. Prometheus Observability Scraper Container ──────────────────
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: vetra-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      vetra-backend:
+        condition: service_healthy
+    networks:
+      - vetra-network
+
 networks:
   vetra-network:
     driver: bridge
@@ -104,4 +131,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  prometheus_data:
     driver: local

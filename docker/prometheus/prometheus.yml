@@ -1,0 +1,23 @@
+# Prometheus Configuration for Vetra Platform Monitoring (Stage 12.4.1)
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+  scrape_timeout: 4s
+  external_labels:
+    environment: 'production-docker'
+    service: 'vetra-platform'
+
+scrape_configs:
+  - job_name: 'vetra-backend'
+    metrics_path: '/actuator/prometheus'
+    scheme: 'http'
+    static_configs:
+      - targets: ['vetra-backend:8080']
+        labels:
+          application: 'vetra-backend'
+          group: 'backend-microservice'
+
+  - job_name: 'prometheus'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:9090']
