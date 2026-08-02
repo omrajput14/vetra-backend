@@ -20,9 +20,12 @@ import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.medicalrecord.dto.CreateMedicalRecordRequest;
 import app.vetra.medicalrecord.dto.MedicalRecordResponse;
 import app.vetra.medicalrecord.repository.MedicalRecordRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -63,6 +66,14 @@ public class MedicalRecordService {
    * Only assigned veterinarians can issue medical records.
    */
   @Transactional
+  @CacheEvict(
+      value = {
+          CacheNames.DASHBOARD_FARMER,
+          CacheNames.DASHBOARD_VET,
+          CacheNames.ANIMALS,
+          CacheNames.ANALYTICS
+      },
+      allEntries = true)
   public MedicalRecordResponse createMedicalRecord(String userIdentifier, CreateMedicalRecordRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
     if (user.getRole() != UserRole.VETERINARIAN) {
@@ -112,6 +123,9 @@ public class MedicalRecordService {
 
   /** Retrieves a medical record by ID with authorization checks. */
   @Transactional(readOnly = true)
+  @Cacheable(
+      value = CacheNames.MEDICAL_RECORDS,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).medicalRecordKey(#recordId)")
   public MedicalRecordResponse getMedicalRecordById(String userIdentifier, UUID recordId) {
     User user = getUserByEmailOrPhone(userIdentifier);
     MedicalRecord record = medicalRecordRepository.findById(recordId)

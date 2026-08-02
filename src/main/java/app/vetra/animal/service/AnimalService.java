@@ -15,8 +15,12 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
 import app.vetra.infrastructure.persistence.enums.Species;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.infrastructure.cache.CacheNames;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,6 +48,7 @@ public class AnimalService {
 
   /** Creates a new animal record for the authenticated farmer. */
   @Transactional
+  @CacheEvict(value = {CacheNames.DASHBOARD_FARMER, CacheNames.ANALYTICS}, allEntries = true)
   public AnimalResponse createAnimal(String currentUserIdentifier, CreateAnimalRequest request) {
     User user = getUserByHeader(currentUserIdentifier);
     if (user.getRole() != UserRole.FARMER) {
@@ -79,6 +84,9 @@ public class AnimalService {
 
   /** Retrieves an animal by ID with ownership verification. */
   @Transactional(readOnly = true)
+  @Cacheable(
+      value = CacheNames.ANIMALS,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).animalKey(#animalId)")
   public AnimalResponse getAnimalById(String currentUserIdentifier, UUID animalId) {
     User user = getUserByHeader(currentUserIdentifier);
     Animal animal = animalRepository.findById(animalId)
@@ -147,6 +155,15 @@ public class AnimalService {
 
   /** Updates an existing animal record. */
   @Transactional
+  @Caching(
+      evict = {
+          @CacheEvict(
+              value = CacheNames.ANIMALS,
+              key = "T(app.vetra.infrastructure.cache.CacheKeys).animalKey(#animalId)"),
+          @CacheEvict(
+              value = {CacheNames.DASHBOARD_FARMER, CacheNames.ANALYTICS},
+              allEntries = true)
+      })
   public AnimalResponse updateAnimal(String currentUserIdentifier, UUID animalId, UpdateAnimalRequest request) {
     User user = getUserByHeader(currentUserIdentifier);
     Animal animal = animalRepository.findById(animalId)
@@ -181,6 +198,15 @@ public class AnimalService {
 
   /** Deletes an animal by ID. */
   @Transactional
+  @Caching(
+      evict = {
+          @CacheEvict(
+              value = CacheNames.ANIMALS,
+              key = "T(app.vetra.infrastructure.cache.CacheKeys).animalKey(#animalId)"),
+          @CacheEvict(
+              value = {CacheNames.DASHBOARD_FARMER, CacheNames.ANALYTICS},
+              allEntries = true)
+      })
   public void deleteAnimal(String currentUserIdentifier, UUID animalId) {
     User user = getUserByHeader(currentUserIdentifier);
     Animal animal = animalRepository.findById(animalId)

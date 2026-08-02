@@ -35,8 +35,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import app.vetra.infrastructure.cache.CacheNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -89,6 +92,14 @@ public class DiseaseService {
    * @return {@link DiseaseReportResponse}
    */
   @Transactional
+  @CacheEvict(
+      value = {
+          CacheNames.DASHBOARD_VET,
+          CacheNames.DASHBOARD_ADMIN,
+          CacheNames.OUTBREAKS,
+          CacheNames.ANALYTICS
+      },
+      allEntries = true)
   public DiseaseReportResponse createReport(String userIdentifier, CreateDiseaseReportRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
     Animal animal = animalRepository.findById(request.animalId())
@@ -154,6 +165,9 @@ public class DiseaseService {
    * Retrieves a disease report by ID with ownership assertion for farmers.
    */
   @Transactional(readOnly = true)
+  @Cacheable(
+      value = CacheNames.DISEASE_REPORTS,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).diseaseReportKey(#reportId)")
   public DiseaseReportResponse getReport(String userIdentifier, UUID reportId) {
     User user = getUserByEmailOrPhone(userIdentifier);
     DiseaseReport report = diseaseReportRepository.findById(reportId)

@@ -19,8 +19,11 @@ import app.vetra.notification.repository.NotificationRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import app.vetra.infrastructure.cache.CacheNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -128,6 +131,7 @@ public class NotificationService {
 
   /** Gets unread notification count. */
   @Transactional(readOnly = true)
+  @Cacheable(value = CacheNames.NOTIFICATIONS, key = "'unread_' + #userIdentifier")
   public UnreadCountResponse getUnreadCount(String userIdentifier) {
     User user = getUserByEmailOrPhone(userIdentifier);
     long count = notificationRepository.countByUserIdAndReadAtIsNull(user.getId());
@@ -136,6 +140,7 @@ public class NotificationService {
 
   /** Marks a notification as read. */
   @Transactional
+  @CacheEvict(value = CacheNames.NOTIFICATIONS, key = "'unread_' + #userIdentifier")
   public NotificationResponse markAsRead(String userIdentifier, UUID notificationId) {
     User user = getUserByEmailOrPhone(userIdentifier);
     Notification notification = notificationRepository.findById(notificationId)

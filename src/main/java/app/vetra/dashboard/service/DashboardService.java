@@ -12,7 +12,9 @@ import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.medicalrecord.repository.MedicalRecordRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import java.util.Optional;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,7 @@ public class DashboardService {
 
   /** Aggregates dashboard stats in a single backend call. */
   @Transactional(readOnly = true)
+  @Cacheable(value = CacheNames.DASHBOARD_FARMER, key = "#currentUserIdentifier")
   public DashboardResponse getDashboardMetrics(String currentUserIdentifier) {
     User user = userRepository.findByIdentifier(currentUserIdentifier)
         .orElseThrow(() -> new IllegalArgumentException("User not found"));

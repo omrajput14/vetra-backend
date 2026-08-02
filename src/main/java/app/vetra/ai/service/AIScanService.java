@@ -31,8 +31,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import app.vetra.infrastructure.cache.CacheNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -85,6 +87,7 @@ public class AIScanService {
    * @return {@link AIScanResponse} created record
    */
   @Transactional
+  @CacheEvict(value = {CacheNames.AI_DIAGNOSIS, CacheNames.DASHBOARD_FARMER}, allEntries = true)
   public AIScanResponse createScan(String userIdentifier, CreateAIScanRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
     Animal animal = animalRepository.findById(request.animalId())
