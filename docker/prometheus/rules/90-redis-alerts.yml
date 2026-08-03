@@ -1,0 +1,126 @@
+groups:
+  - name: vetra_redis_alerts
+    rules:
+      - alert: VetraRedisDown
+        expr: vetra:redis_up:instant == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Server Unreachable"
+          description: "Redis database server is unreachable by exporter."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisDown.md"
+
+      - alert: VetraRedisExporterDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Exporter Unreachable"
+          description: "redis_exporter container target has been unreachable for more than 1 minute."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisDown.md"
+
+
+      - alert: VetraRedisMemoryCritical
+        expr: vetra:redis_memory_usage:instant > 0.90
+        for: 5m
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Memory Usage Critically High (>90%)"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} of allocated max memory (exceeds 90% threshold for 5m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighMemory.md"
+
+      - alert: VetraRedisMemoryWarning
+        expr: vetra:redis_memory_usage:instant > 0.80
+        for: 10m
+        labels:
+          severity: warning
+          team: sre
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Memory Usage High (>80%)"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} of allocated max memory (exceeds 80% threshold for 10m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighMemory.md"
+
+      - alert: VetraRedisHighEvictionRate
+        expr: vetra:redis_eviction_rate:5m > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "High Redis Key Eviction Rate (>10 keys/s)"
+          description: "Redis key eviction rate is {{ $value | humanize }}/s (maxmemory limit pressure)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighEviction.md"
+
+      - alert: VetraRedisRejectedConnections
+        expr: vetra:redis_rejected_connections_rate:5m > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Rejected Connections Detected"
+          description: "Redis server is rejecting client connections due to maxclients limit."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighConnections.md"
+
+      - alert: VetraRedisBlockedClients
+        expr: vetra:redis_blocked_clients:instant > 2
+        for: 3m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Blocked Clients Detected (>2)"
+          description: "There are currently {{ $value }} clients blocked on Redis operations (e.g. BLPOP/BRPOP)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighConnections.md"
+
+      - alert: VetraRedisHighConnectedClients
+        expr: vetra:redis_connected_clients:instant > 200
+        for: 5m
+        labels:
+          severity: warning
+          team: sre
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "High Number of Connected Clients to Redis (>200)"
+          description: "Redis connected client count is {{ $value }} (exceeds threshold of 200 for 5m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighConnections.md"
+
+      - alert: VetraRedisCacheHitRatioLow
+        expr: |
+          vetra:redis_cache_hit_ratio:5m < 0.70
+          and (
+            sum(rate(redis_keyspace_hits_total{application="vetra-redis"}[5m]))
+            +
+            sum(rate(redis_keyspace_misses_total{application="vetra-redis"}[5m]))
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-redis
+          component: redis
+        annotations:
+          summary: "Redis Server Keyspace Hit Ratio Low (<70%)"
+          description: "Redis server keyspace hit ratio dropped to {{ $value | humanizePercentage }} (below 70% target for 10m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/RedisHighEviction.md"

@@ -180,6 +180,28 @@ services:
     networks:
       - vetra-network
 
+  # ─── 7. Redis Infrastructure Metrics Exporter Container ──────────────
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.67.0-alpine
+    container_name: vetra-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-vetra_redis_password_secret}"
+    ports:
+      - "${REDIS_EXPORTER_PORT:-9121}:9121"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:9121/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - vetra-network
+
 networks:
   vetra-network:
     driver: bridge
@@ -195,4 +217,5 @@ volumes:
     driver: local
   alertmanager_data:
     driver: local
+
 
