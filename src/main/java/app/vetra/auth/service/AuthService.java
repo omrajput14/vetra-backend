@@ -11,16 +11,17 @@ import app.vetra.auth.dto.VetRegisterRequest;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.ConflictException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
+import app.vetra.infrastructure.metrics.VetraMetrics;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.RefreshToken;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.infrastructure.security.JwtUtil;
-import app.vetra.infrastructure.cache.CacheNames;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,7 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
   private final RefreshTokenService refreshTokenService;
+  private final VetraMetrics vetraMetrics;
 
   /** Constructor injection. */
   public AuthService(
@@ -47,13 +49,15 @@ public class AuthService {
       VetProfileRepository vetProfileRepository,
       PasswordEncoder passwordEncoder,
       JwtUtil jwtUtil,
-      RefreshTokenService refreshTokenService) {
+      RefreshTokenService refreshTokenService,
+      VetraMetrics vetraMetrics) {
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
     this.passwordEncoder = passwordEncoder;
     this.jwtUtil = jwtUtil;
     this.refreshTokenService = refreshTokenService;
+    this.vetraMetrics = vetraMetrics;
   }
 
   /** Registers a farmer user and profile. */
@@ -89,7 +93,7 @@ public class AuthService {
         .build();
 
     farmerProfileRepository.save(profile);
-
+    vetraMetrics.recordFarmerRegistration();
     return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
   }
 
@@ -130,26 +134,38 @@ public class AuthService {
         .build();
 
     vetProfileRepository.save(profile);
-
+    vetraMetrics.recordVetRegistration();
     return createAuthResponse(user, mapVetProfileToDto(user, profile));
   }
 
   /** Authenticates farmer user login. */
   @Transactional
   public AuthResponse loginFarmer(LoginRequest request) {
-    User user = authenticateUser(request, UserRole.FARMER);
-    FarmerProfile profile = farmerProfileRepository.findByUser(user)
-        .orElseThrow(() -> new ResourceNotFoundException("Farmer profile missing for user", "USER_004"));
-    return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
+    try {
+      User user = authenticateUser(request, UserRole.FARMER);
+      FarmerProfile profile = farmerProfileRepository.findByUser(user)
+          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile missing for user", "USER_004"));
+      vetraMetrics.recordFarmerLoginSuccess();
+      return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
+    } catch (UnauthorizedResourceAccessException ex) {
+      vetraMetrics.recordFarmerLoginFailure();
+      throw ex;
+    }
   }
 
   /** Authenticates veterinarian user login. */
   @Transactional
   public AuthResponse loginVet(LoginRequest request) {
-    User user = authenticateUser(request, UserRole.VETERINARIAN);
-    VetProfile profile = vetProfileRepository.findByUser(user)
-        .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile missing for user", "USER_004"));
-    return createAuthResponse(user, mapVetProfileToDto(user, profile));
+    try {
+      User user = authenticateUser(request, UserRole.VETERINARIAN);
+      VetProfile profile = vetProfileRepository.findByUser(user)
+          .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile missing for user", "USER_004"));
+      vetraMetrics.recordVetLoginSuccess();
+      return createAuthResponse(user, mapVetProfileToDto(user, profile));
+    } catch (UnauthorizedResourceAccessException ex) {
+      vetraMetrics.recordVetLoginFailure();
+      throw ex;
+    }
   }
 
   /** Refreshes access token and rotates refresh token using raw token string. */

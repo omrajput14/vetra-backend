@@ -1,0 +1,14 @@
+# Grafana Dashboard Provider Provisioning — Vetra Platform (Stage 12.4.2)
+# Scans /var/lib/grafana/dashboards for JSON dashboard files and imports them automatically.
+apiVersion: 1
+
+providers:
+  - name: Vetra Dashboards
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

@@ -18,9 +18,11 @@ import app.vetra.ai.repository.AIScanResultRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
+import app.vetra.infrastructure.metrics.VetraMetrics;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.MedicalRecord;
 import app.vetra.infrastructure.persistence.entity.User;
@@ -31,9 +33,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import app.vetra.infrastructure.cache.CacheNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -59,7 +61,10 @@ public class AIScanService {
   private final AIOrchestrator aiOrchestrator;
   private final ApplicationEventPublisher eventPublisher;
 
-  /** Constructor injection with 8 parameters to satisfy Checkstyle constraints. */
+  // Cross-cutting infra concern — setter injected to keep constructor within 8-param Checkstyle limit
+  private VetraMetrics vetraMetrics;
+
+  /** Constructor injection with 8 parameters (Checkstyle max). */
   public AIScanService(
       AIScanRepository aiScanRepository,
       AIScanResultRepository aiScanResultRepository,
@@ -77,6 +82,12 @@ public class AIScanService {
     this.medicalRecordRepository = medicalRecordRepository;
     this.aiOrchestrator = aiOrchestrator;
     this.eventPublisher = eventPublisher;
+  }
+
+  /** Setter injection for VetraMetrics to preserve constructor parameter count. */
+  @Autowired
+  public void setVetraMetrics(VetraMetrics vetraMetrics) {
+    this.vetraMetrics = vetraMetrics;
   }
 
   /**
@@ -110,6 +121,7 @@ public class AIScanService {
 
     scan = aiScanRepository.save(scan);
     eventPublisher.publishEvent(new AIScanCreatedEvent(scan.getId(), animal.getId(), scan.getImageUrl(), user.getId()));
+    vetraMetrics.recordAiDiagnosisRequest();
 
     if (aiOrchestrator.isAiEnabled()) {
       try {

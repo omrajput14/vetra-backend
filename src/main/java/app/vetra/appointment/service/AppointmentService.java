@@ -8,9 +8,11 @@ import app.vetra.appointment.repository.AppointmentRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
+import app.vetra.infrastructure.metrics.VetraMetrics;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.Appointment;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
@@ -18,7 +20,6 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
-import app.vetra.infrastructure.cache.CacheNames;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +42,7 @@ public class AppointmentService {
   private final FarmerProfileRepository farmerProfileRepository;
   private final VetProfileRepository vetProfileRepository;
   private final AnimalRepository animalRepository;
+  private final VetraMetrics vetraMetrics;
 
   /** Constructor injection. */
   public AppointmentService(
@@ -48,12 +50,14 @@ public class AppointmentService {
       UserRepository userRepository,
       FarmerProfileRepository farmerProfileRepository,
       VetProfileRepository vetProfileRepository,
-      AnimalRepository animalRepository) {
+      AnimalRepository animalRepository,
+      VetraMetrics vetraMetrics) {
     this.appointmentRepository = appointmentRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
     this.animalRepository = animalRepository;
+    this.vetraMetrics = vetraMetrics;
   }
 
   /** Creates a new appointment for the authenticated farmer. */
@@ -95,6 +99,7 @@ public class AppointmentService {
         .build();
 
     Appointment saved = appointmentRepository.save(appointment);
+    vetraMetrics.recordAppointmentCreated();
     return AppointmentResponse.fromEntity(saved);
   }
 
@@ -221,6 +226,18 @@ public class AppointmentService {
     }
     if (cancellationReason != null && !cancellationReason.isBlank()) {
       appointment.setCancellationReason(cancellationReason);
+    }
+
+    recordStatusTransition(targetStatus);
+  }
+
+  private void recordStatusTransition(AppointmentStatus status) {
+    switch (status) {
+      case CONFIRMED -> vetraMetrics.recordAppointmentConfirmed();
+      case COMPLETED -> vetraMetrics.recordAppointmentCompleted();
+      case CANCELLED -> vetraMetrics.recordAppointmentCancelled();
+      case REJECTED -> vetraMetrics.recordAppointmentRejected();
+      default -> { /* PENDING not a transition target */ }
     }
   }
 

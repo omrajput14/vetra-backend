@@ -38,10 +38,11 @@ public class SecurityConfig {
     "/swagger-ui.html",
     "/v3/api-docs/**",
     "/v3/api-docs.yaml",
-    // Actuator health / liveness / readiness only
+    // Actuator health / liveness / readiness & Prometheus metrics
     "/actuator/health",
     "/actuator/health/**",
     "/actuator/info",
+    "/actuator/prometheus",
     "/readiness",
     "/liveness",
   };
