@@ -1,0 +1,54 @@
+groups:
+  - name: vetra_jvm_alerts
+    rules:
+      - alert: VetraJvmHeapCritical
+        expr: vetra:jvm_heap_usage:instant > 0.90
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+          service: vetra-backend
+          component: jvm
+        annotations:
+          summary: "JVM Heap Memory Usage Critically High (>90%)"
+          description: "JVM Heap memory usage is currently {{ $value | humanizePercentage }} (exceeds 90% threshold for 5m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighHeapUsage.md"
+
+      - alert: VetraJvmHeapWarning
+        expr: vetra:jvm_heap_usage:instant > 0.80
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: jvm
+        annotations:
+          summary: "JVM Heap Memory Usage High (>80%)"
+          description: "JVM Heap memory usage is currently {{ $value | humanizePercentage }} (exceeds 80% threshold for 10m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighHeapUsage.md"
+
+      - alert: VetraJvmGcPauseHigh
+        expr: avg without (action, cause, gc) (vetra:jvm_gc_pause_avg_seconds:5m) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: jvm
+        annotations:
+          summary: "High JVM Garbage Collection Pause Duration (>500ms)"
+          description: "Average JVM GC pause duration is {{ $value | humanizeDuration }} over 5 minutes."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighHeapUsage.md"
+
+      - alert: VetraJvmThreadExplosion
+        expr: jvm_threads_live_threads{application="vetra-backend"} > 250
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: jvm
+        annotations:
+          summary: "High Live Thread Count (>250 Threads)"
+          description: "Live JVM thread count is currently {{ $value }} (exceeds threshold of 250)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"

@@ -1,0 +1,28 @@
+groups:
+  - name: vetra_slo_alerts
+    rules:
+      - alert: VetraSloBurnRateCritical
+        expr: vetra:http_request_success_rate:5m < 0.99 and vetra:http_total_rate:5m > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-backend
+          component: slo
+        annotations:
+          summary: "SLO Fast Error Budget Burn (>1% error rate)"
+          description: "Vetra backend success rate dropped to {{ $value | humanizePercentage }}, consuming error budget rapidly."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"
+
+      - alert: VetraSloBurnRateWarning
+        expr: vetra:http_request_success_rate:5m < 0.995 and vetra:http_total_rate:5m > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          team: sre
+          service: vetra-backend
+          component: slo
+        annotations:
+          summary: "SLO Slow Error Budget Burn (>0.5% error rate)"
+          description: "Vetra backend success rate is {{ $value | humanizePercentage }}, burning error budget over 15m window."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"

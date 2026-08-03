@@ -1,0 +1,36 @@
+groups:
+  - name: vetra_recording_rules
+    interval: 5s
+    rules:
+      - record: vetra:backend_up:instant
+        expr: up{job="vetra-backend"}
+
+      - record: vetra:http_5xx_rate:5m
+        expr: sum(rate(http_server_requests_seconds_count{application="vetra-backend", outcome="SERVER_ERROR"}[5m])) or vector(0)
+
+      - record: vetra:http_total_rate:5m
+        expr: sum(rate(http_server_requests_seconds_count{application="vetra-backend"}[5m])) or vector(0)
+
+      - record: vetra:http_request_success_rate:5m
+        expr: 1 - (vetra:http_5xx_rate:5m / vetra:http_total_rate:5m)
+
+      - record: vetra:http_latency_p95:5m
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{application="vetra-backend"}[5m])))
+
+      - record: vetra:jvm_heap_usage:instant
+        expr: sum(jvm_memory_used_bytes{application="vetra-backend", area="heap"}) / sum(jvm_memory_max_bytes{application="vetra-backend", area="heap"} > 0)
+
+      - record: vetra:jvm_gc_pause_avg_seconds:5m
+        expr: rate(jvm_gc_pause_seconds_sum{application="vetra-backend"}[5m]) / rate(jvm_gc_pause_seconds_count{application="vetra-backend"}[5m])
+
+      - record: vetra:db_connection_usage:instant
+        expr: hikaricp_connections_active{application="vetra-backend"} / hikaricp_connections_max{application="vetra-backend"}
+
+      - record: vetra:db_connection_timeout_rate:5m
+        expr: rate(hikaricp_connections_timeout_total{application="vetra-backend"}[5m])
+
+      - record: vetra:cache_hit_ratio:5m
+        expr: sum(rate(cache_gets_total{application="vetra-backend", result="hit"}[5m])) / (sum(rate(cache_gets_total{application="vetra-backend", result="hit"}[5m])) + sum(rate(cache_gets_total{application="vetra-backend", result="miss"}[5m])))
+
+      - record: vetra:login_failure_rate:5m
+        expr: sum(rate(vetra_auth_login_total{application="vetra-backend", result="failure"}[5m]))

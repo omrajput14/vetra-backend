@@ -1,4 +1,4 @@
-# Prometheus Configuration for Vetra Platform Monitoring (Stage 12.4.1)
+# Prometheus Configuration for Vetra Platform Monitoring (Stage 12.4.3)
 global:
   scrape_interval: 5s
   evaluation_interval: 5s
@@ -6,6 +6,16 @@ global:
   external_labels:
     environment: 'production-docker'
     service: 'vetra-platform'
+
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      timeout: 5s
+      static_configs:
+        - targets: ['alertmanager:9093']
 
 scrape_configs:
   - job_name: 'vetra-backend'
