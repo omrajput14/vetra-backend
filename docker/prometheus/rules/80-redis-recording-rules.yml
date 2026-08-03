@@ -1,0 +1,43 @@
+groups:
+  - name: vetra_redis_recording_rules
+    interval: 5s
+    rules:
+      - record: vetra:redis_up:instant
+        expr: redis_up{job="redis-exporter"}
+
+
+      - record: vetra:redis_memory_usage:instant
+        expr: redis_memory_used_bytes{application="vetra-redis"} / (redis_memory_max_bytes{application="vetra-redis"} > 0)
+
+      - record: vetra:redis_memory_used_bytes:instant
+        expr: redis_memory_used_bytes{application="vetra-redis"}
+
+      - record: vetra:redis_mem_fragmentation_ratio:instant
+        expr: redis_mem_fragmentation_ratio{application="vetra-redis"}
+
+      - record: vetra:redis_cache_hit_ratio:5m
+        expr: sum(rate(redis_keyspace_hits_total{application="vetra-redis"}[5m])) / (sum(rate(redis_keyspace_hits_total{application="vetra-redis"}[5m])) + sum(rate(redis_keyspace_misses_total{application="vetra-redis"}[5m])))
+
+      - record: vetra:redis_ops_rate:5m
+        expr: sum(rate(redis_commands_processed_total{application="vetra-redis"}[5m]))
+
+      - record: vetra:redis_eviction_rate:5m
+        expr: sum(rate(redis_evicted_keys_total{application="vetra-redis"}[5m]))
+
+      - record: vetra:redis_expiration_rate:5m
+        expr: sum(rate(redis_expired_keys_total{application="vetra-redis"}[5m]))
+
+      - record: vetra:redis_connected_clients:instant
+        expr: redis_connected_clients{application="vetra-redis"}
+
+      - record: vetra:redis_blocked_clients:instant
+        expr: redis_blocked_clients{application="vetra-redis"}
+
+      - record: vetra:redis_rejected_connections_rate:5m
+        expr: sum(rate(redis_rejected_connections_total{application="vetra-redis"}[5m]))
+
+      - record: vetra:redis_net_input_rate_bytes:5m
+        expr: sum(rate(redis_net_input_bytes_total{application="vetra-redis"}[5m]))
+
+      - record: vetra:redis_net_output_rate_bytes:5m
+        expr: sum(rate(redis_net_output_bytes_total{application="vetra-redis"}[5m]))

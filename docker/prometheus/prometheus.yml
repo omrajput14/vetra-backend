@@ -31,3 +31,13 @@ scrape_configs:
     metrics_path: '/metrics'
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'redis-exporter'
+    metrics_path: '/metrics'
+    scheme: 'http'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          application: 'vetra-redis'
+          group: 'infrastructure'
+

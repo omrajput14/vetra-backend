@@ -1,0 +1,374 @@
+{
+  "__inputs": [],
+  "__requires": [
+    { "type": "grafana", "id": "grafana", "name": "Grafana", "version": "11.4.0" },
+    { "type": "datasource", "id": "prometheus", "name": "Prometheus", "version": "1.0.0" },
+    { "type": "panel", "id": "timeseries", "name": "Time series", "version": "" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" },
+    { "type": "panel", "id": "gauge", "name": "Gauge", "version": "" }
+  ],
+  "annotations": { "list": [] },
+  "description": "Redis Infrastructure & Server Telemetry — Memory, clients, throughput, keyspace, and persistence metrics collected via redis_exporter.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Redis Availability",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_up:instant",
+          "legendFormat": "up",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Uptime",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "redis_uptime_in_seconds{application=\"vetra-redis\"}",
+          "legendFormat": "uptime",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Connected Clients",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_connected_clients:instant",
+          "legendFormat": "clients",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Blocked Clients",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_blocked_clients:instant",
+          "legendFormat": "blocked",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "id": 5,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Operations / sec",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_ops_rate:5m",
+          "legendFormat": "ops/s",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "unit": "percentunit",
+          "max": 1,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "id": 6,
+      "options": { "minVizHeight": 75, "minVizWidth": 75, "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "title": "Keyspace Hit Ratio",
+      "type": "gauge",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_cache_hit_ratio:5m",
+          "legendFormat": "hit ratio",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 7,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Memory Usage vs Max Allocated",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_memory_used_bytes:instant",
+          "legendFormat": "used memory",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "redis_memory_max_bytes{application=\"vetra-redis\"}",
+          "legendFormat": "max memory",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "redis_memory_used_peak_bytes{application=\"vetra-redis\"}",
+          "legendFormat": "peak memory",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 8,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Memory Fragmentation Ratio",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_mem_fragmentation_ratio:instant",
+          "legendFormat": "fragmentation ratio",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 9,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Keyspace Hits vs Misses Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "rate(redis_keyspace_hits_total{application=\"vetra-redis\"}[$__rate_interval])",
+          "legendFormat": "hits/s",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "rate(redis_keyspace_misses_total{application=\"vetra-redis\"}[$__rate_interval])",
+          "legendFormat": "misses/s",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 10,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Key Eviction vs Expiration Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_eviction_rate:5m",
+          "legendFormat": "evictions/s",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_expiration_rate:5m",
+          "legendFormat": "expirations/s",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 11,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Network Bandwidth (In / Out)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_net_input_rate_bytes:5m",
+          "legendFormat": "input B/s",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "vetra:redis_net_output_rate_bytes:5m",
+          "legendFormat": "output B/s",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 12,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "title": "Total Keys per DB & RDB Changes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "redis_db_keys{application=\"vetra-redis\"}",
+          "legendFormat": "{{db}} keys",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "vetra-prometheus" },
+          "expr": "redis_rdb_changes_since_last_save{application=\"vetra-redis\"}",
+          "legendFormat": "unsaved RDB changes",
+          "refId": "B"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["vetra", "redis", "infrastructure"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Vetra — Redis Infrastructure",
+  "uid": "vetra-redis-infra",
+  "version": 1
+}
