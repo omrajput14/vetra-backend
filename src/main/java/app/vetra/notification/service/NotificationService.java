@@ -1,8 +1,10 @@
 package app.vetra.notification.service;
 
 import app.vetra.auth.repository.UserRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
+import app.vetra.infrastructure.metrics.VetraMetrics;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.notification.dto.NotificationResponse;
 import app.vetra.notification.dto.UnreadCountResponse;
@@ -19,7 +21,6 @@ import app.vetra.notification.repository.NotificationRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import app.vetra.infrastructure.cache.CacheNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
@@ -43,6 +44,7 @@ public class NotificationService {
   private final UserRepository userRepository;
   private final DeviceManagementService deviceService;
   private final List<NotificationProvider> notificationProviders;
+  private final VetraMetrics vetraMetrics;
 
   /** Constructor injection. */
   public NotificationService(
@@ -50,12 +52,14 @@ public class NotificationService {
       NotificationDeliveryLogRepository logRepository,
       UserRepository userRepository,
       DeviceManagementService deviceService,
-      List<NotificationProvider> notificationProviders) {
+      List<NotificationProvider> notificationProviders,
+      VetraMetrics vetraMetrics) {
     this.notificationRepository = notificationRepository;
     this.logRepository = logRepository;
     this.userRepository = userRepository;
     this.deviceService = deviceService;
     this.notificationProviders = notificationProviders;
+    this.vetraMetrics = vetraMetrics;
   }
 
   /**
@@ -88,6 +92,7 @@ public class NotificationService {
       log.info("No active registered push device tokens for user id={}. Message stored in inbox.", userId);
       notification.setStatus(NotificationStatus.QUEUED);
       notification = notificationRepository.save(notification);
+      vetraMetrics.recordNotificationQueued();
     } else {
       boolean anyDelivered = false;
       for (NotificationDevice device : activeDevices) {
@@ -112,8 +117,10 @@ public class NotificationService {
       if (anyDelivered) {
         notification.setStatus(NotificationStatus.DELIVERED);
         notification.setDeliveredAt(Instant.now());
+        vetraMetrics.recordNotificationSuccess();
       } else {
         notification.setStatus(NotificationStatus.FAILED);
+        vetraMetrics.recordNotificationFailure();
       }
       notification = notificationRepository.save(notification);
     }

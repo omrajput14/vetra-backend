@@ -6,16 +6,17 @@ import app.vetra.animal.dto.UpdateAnimalRequest;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
+import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.ConflictException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
+import app.vetra.infrastructure.metrics.VetraMetrics;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
 import app.vetra.infrastructure.persistence.enums.Species;
 import app.vetra.infrastructure.persistence.enums.UserRole;
-import app.vetra.infrastructure.cache.CacheNames;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
@@ -35,15 +36,18 @@ public class AnimalService {
   private final AnimalRepository animalRepository;
   private final UserRepository userRepository;
   private final FarmerProfileRepository farmerProfileRepository;
+  private final VetraMetrics vetraMetrics;
 
   /** Constructor injection. */
   public AnimalService(
       AnimalRepository animalRepository,
       UserRepository userRepository,
-      FarmerProfileRepository farmerProfileRepository) {
+      FarmerProfileRepository farmerProfileRepository,
+      VetraMetrics vetraMetrics) {
     this.animalRepository = animalRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
+    this.vetraMetrics = vetraMetrics;
   }
 
   /** Creates a new animal record for the authenticated farmer. */
@@ -79,6 +83,7 @@ public class AnimalService {
         .build();
 
     animal = animalRepository.save(animal);
+    vetraMetrics.recordAnimalRegistration();
     return mapToResponse(animal);
   }
 
