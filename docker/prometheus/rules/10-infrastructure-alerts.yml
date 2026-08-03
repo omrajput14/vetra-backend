@@ -1,0 +1,40 @@
+groups:
+  - name: vetra_infrastructure_alerts
+    rules:
+      - alert: Watchdog
+        expr: vector(1)
+        labels:
+          severity: info
+          team: sre
+          service: vetra-backend
+          component: infrastructure
+        annotations:
+          summary: "Watchdog Canary Alert (Pipeline Verification)"
+          description: "This is an alert meant to ensure that the entire alerting pipeline is functional. It is always firing."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/BackendDown.md"
+
+      - alert: VetraBackendDown
+        expr: up{job="vetra-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-backend
+          component: infrastructure
+        annotations:
+          summary: "Vetra Backend Core Service Down"
+          description: "Vetra backend target has been unreachable for more than 1 minute."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/BackendDown.md"
+
+      - alert: VetraPrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: sre
+          service: vetra-backend
+          component: infrastructure
+        annotations:
+          summary: "Prometheus Monitoring Service Unreachable"
+          description: "Prometheus self-monitoring target is unreachable."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/BackendDown.md"

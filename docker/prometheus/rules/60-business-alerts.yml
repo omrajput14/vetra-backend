@@ -1,0 +1,15 @@
+groups:
+  - name: vetra_business_alerts
+    rules:
+      - alert: VetraHighLoginFailureRate
+        expr: vetra:login_failure_rate:5m > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: business
+        annotations:
+          summary: "Elevated User Login Failure Rate (>0.2/s)"
+          description: "Login failure rate is currently {{ $value | humanize }}/s (exceeds threshold for 5m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLoginFailureRate.md"

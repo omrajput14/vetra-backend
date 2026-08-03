@@ -1,0 +1,21 @@
+groups:
+  - name: vetra_cache_alerts
+    rules:
+      - alert: VetraCacheHitRatioLow
+        expr: |
+          vetra:cache_hit_ratio:5m < 0.70
+          and (
+            sum(rate(cache_gets_total{application="vetra-backend", result="hit"}[5m]))
+            +
+            sum(rate(cache_gets_total{application="vetra-backend", result="miss"}[5m]))
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: cache
+        annotations:
+          summary: "Cache Layer Hit Ratio Below Threshold (<70%)"
+          description: "Overall cache hit ratio dropped to {{ $value | humanizePercentage }} (below 70% target for 10m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/DatabaseConnectionsExhausted.md"

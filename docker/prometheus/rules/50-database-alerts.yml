@@ -1,0 +1,41 @@
+groups:
+  - name: vetra_database_alerts
+    rules:
+      - alert: VetraDbConnectionPoolExhausted
+        expr: hikaricp_connections_pending{application="vetra-backend"} > 5
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: vetra-backend
+          component: database
+        annotations:
+          summary: "HikariCP Connection Pool Pending Threads High (>5)"
+          description: "There are currently {{ $value }} threads blocked waiting for a database connection."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/DatabaseConnectionsExhausted.md"
+
+      - alert: VetraDbConnectionTimeout
+        expr: vetra:db_connection_timeout_rate:5m > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+          service: vetra-backend
+          component: database
+        annotations:
+          summary: "HikariCP Database Connection Timeouts Detected"
+          description: "Connection pool is experiencing connection timeouts (rate is {{ $value | humanize }}/s)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/DatabaseConnectionsExhausted.md"
+
+      - alert: VetraDbHighConnectionUsage
+        expr: vetra:db_connection_usage:instant > 0.80
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: database
+        annotations:
+          summary: "HikariCP Database Connection Pool Usage High (>80%)"
+          description: "Active connections represent {{ $value | humanizePercentage }} of maximum pool size (30)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/DatabaseConnectionsExhausted.md"

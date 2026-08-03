@@ -1,0 +1,54 @@
+groups:
+  - name: vetra_http_alerts
+    rules:
+      - alert: VetraHighErrorRateCritical
+        expr: vetra:http_request_success_rate:5m < 0.95 and vetra:http_total_rate:5m > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+          service: vetra-backend
+          component: http
+        annotations:
+          summary: "HTTP Request Error Rate Critically High (>5% 5xx)"
+          description: "HTTP request success rate dropped to {{ $value | humanizePercentage }} (error rate >5% for 5m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"
+
+      - alert: VetraHighErrorRateWarning
+        expr: vetra:http_request_success_rate:5m < 0.99 and vetra:http_total_rate:5m > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: http
+        annotations:
+          summary: "HTTP Request Error Rate Elevated (>1% 5xx)"
+          description: "HTTP request success rate is {{ $value | humanizePercentage }} (error rate >1% for 5m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"
+
+      - alert: VetraHighLatencyWarning
+        expr: vetra:http_latency_p95:5m > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          service: vetra-backend
+          component: http
+        annotations:
+          summary: "HTTP p95 Response Latency Elevated (>1.0s)"
+          description: "HTTP 95th percentile response latency is {{ $value | humanizeDuration }} (exceeds 1s threshold)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"
+
+      - alert: VetraHighLatencyCritical
+        expr: vetra:http_latency_p95:5m > 3.0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+          service: vetra-backend
+          component: http
+        annotations:
+          summary: "HTTP p95 Response Latency Critically High (>3.0s)"
+          description: "HTTP 95th percentile response latency is {{ $value | humanizeDuration }} (exceeds 3s threshold for 2m)."
+          runbook_url: "https://github.com/omrajput14/vetra-backend/blob/main/docs/operations/runbooks/HighLatency.md"

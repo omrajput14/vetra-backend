@@ -1,0 +1,62 @@
+# Alertmanager Configuration — Vetra Platform (Stage 12.4.3)
+# Production-ready Alertmanager v0.27.0 configuration with severity-based routing,
+# inhibition rules, Watchdog dead-man switch, and environment-configurable receivers.
+
+global:
+  resolve_timeout: 5m
+
+# Default routing tree
+route:
+  group_by: ['alertname', 'service', 'component']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+  receiver: 'dev-null'
+
+  routes:
+    # 1. Watchdog (Dead-Man Switch) route — constantly firing canary alert
+    - match:
+        alertname: Watchdog
+      receiver: 'watchdog-receiver'
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 1h
+
+    # 2. Critical alerts route
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+
+    # 3. Warning alerts route
+    - match:
+        severity: warning
+      receiver: 'warning-receiver'
+
+# Inhibition rules — prevent notification noise when root cause infrastructure is down
+inhibit_rules:
+  # Suppress all dependent alerts if VetraBackendDown is firing for the service
+  - source_matchers:
+      - alertname = "VetraBackendDown"
+    target_matchers:
+      - severity =~ "warning|critical"
+    equal: ['service']
+
+  # Suppress warning level alerts if critical alert is firing for the same component
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['service', 'component']
+
+receivers:
+  # Development default receiver (drops alerts silently after routing validation)
+  - name: 'dev-null'
+
+  # Watchdog receiver for external heartbeats (e.g. Dead Man's Snitch / Healthchecks.io)
+  - name: 'watchdog-receiver'
+
+  # Critical receiver placeholder (configured via Slack / PagerDuty in production)
+  - name: 'critical-receiver'
+
+  # Warning receiver placeholder
+  - name: 'warning-receiver'
