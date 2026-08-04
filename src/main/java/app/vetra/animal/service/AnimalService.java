@@ -17,6 +17,7 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
 import app.vetra.infrastructure.persistence.enums.Species;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import io.micrometer.tracing.Tracer;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,17 +38,20 @@ public class AnimalService {
   private final UserRepository userRepository;
   private final FarmerProfileRepository farmerProfileRepository;
   private final VetraMetrics vetraMetrics;
+  private final Tracer tracer;
 
   /** Constructor injection. */
   public AnimalService(
       AnimalRepository animalRepository,
       UserRepository userRepository,
       FarmerProfileRepository farmerProfileRepository,
-      VetraMetrics vetraMetrics) {
+      VetraMetrics vetraMetrics,
+      Tracer tracer) {
     this.animalRepository = animalRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetraMetrics = vetraMetrics;
+    this.tracer = tracer;
   }
 
   /** Creates a new animal record for the authenticated farmer. */
@@ -84,6 +88,13 @@ public class AnimalService {
 
     animal = animalRepository.save(animal);
     vetraMetrics.recordAnimalRegistration();
+
+    // Add low-cardinality business context to the active span.
+    // species is an enum value — safe, bounded set, no PII.
+    if (tracer.currentSpan() != null && request.species() != null) {
+      tracer.currentSpan().tag("animal.species", request.species().name());
+    }
+
     return mapToResponse(animal);
   }
 

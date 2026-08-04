@@ -1,0 +1,65 @@
+# Grafana Datasource Provisioning — Vetra Platform (Stage 12.5.0)
+# Auto-provisions Prometheus and Tempo datasources.
+# No manual datasource configuration required.
+apiVersion: 1
+
+datasources:
+  # ─── Prometheus — Metrics ────────────────────────────────────────────────
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    uid: vetra-prometheus
+    isDefault: true
+    jsonData:
+      httpMethod: POST
+      timeInterval: "5s"
+      queryTimeout: "30s"
+      # Exemplar configuration: links Prometheus exemplars → Tempo traces.
+      # When a metric panel has an exemplar, clicking it opens the trace in Tempo.
+      exemplarTraceIdDestinations:
+        - name: traceId
+          datasourceUid: vetra-tempo
+          urlDisplayLabel: "View Trace in Tempo"
+    editable: false
+
+  # ─── Grafana Tempo — Distributed Tracing ─────────────────────────────────
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    uid: vetra-tempo
+    isDefault: false
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: vetra-prometheus
+      # Trace → Logs correlation: clicking a trace opens logs filtered by traceId.
+      # Requires a Loki datasource (future stage). Field is defined now for readiness.
+      tracesToLogsV2:
+        datasourceUid: ""
+        filterByTraceID: true
+        filterBySpanID: false
+        spanStartTimeShift: "-1m"
+        spanEndTimeShift: "1m"
+      # Trace → Metrics correlation: links spans to Prometheus metric panels.
+      tracesToMetrics:
+        datasourceUid: vetra-prometheus
+        tags:
+          - key: "service.name"
+            value: "application"
+        queries:
+          - name: "Request Rate"
+            query: "rate(http_server_requests_seconds_count{application=\"$${__tags.application}\"}[5m])"
+          - name: "Error Rate"
+            query: "rate(http_server_requests_seconds_count{application=\"$${__tags.application}\",outcome=\"SERVER_ERROR\"}[5m])"
+      nodeGraph:
+        enabled: true
+      lokiSearch:
+        datasourceUid: ""
+      # Tempo search configuration
+      search:
+        hide: false
+      spanBar:
+        type: "duration"
+    editable: false

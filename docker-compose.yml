@@ -82,10 +82,22 @@ services:
       FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
       FCM_PRIVATE_KEY: ${FCM_PRIVATE_KEY:-}
       FCM_CLIENT_EMAIL: ${FCM_CLIENT_EMAIL:-}
+      # ─── Stage 12.5.0: Distributed Tracing ───────────────────────
+      # OTLP/HTTP endpoint: Tempo OTLP receiver on vetra-network.
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      # Standard OTel resource attributes for service identity in Tempo.
+      OTEL_SERVICE_NAME: vetra-backend
+      OTEL_SERVICE_NAMESPACE: vetra
+      OTEL_SERVICE_VERSION: ${SERVICE_VERSION:-0.12.5.0}
+      OTEL_SERVICE_INSTANCE_ID: vetra-backend-01
+      # Sampling: 100% in dev; override with MANAGEMENT_TRACING_SAMPLING_PROBABILITY in prod.
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLE_RATE:-1.0}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      tempo:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health/liveness || exit 1"]
@@ -96,7 +108,29 @@ services:
     networks:
       - vetra-network
 
-  # ─── 4. Prometheus Observability Scraper Container ──────────────────
+  # ─── 4. Grafana Tempo Distributed Tracing Backend ─────────────────────
+  tempo:
+    image: grafana/tempo:2.7.2
+    container_name: vetra-tempo
+    restart: unless-stopped
+    command:
+      - '-config.file=/etc/tempo/tempo.yml'
+    ports:
+      - "${TEMPO_OTLP_PORT:-4318}:4318"    # OTLP/HTTP receiver (spans from backend)
+      - "${TEMPO_HTTP_PORT:-3200}:3200"    # HTTP query API (Grafana datasource)
+    volumes:
+      - ./docker/tempo/tempo.yml:/etc/tempo/tempo.yml:ro
+      - tempo_data:/var/tempo
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3200/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - vetra-network
+
+  # ─── 5. Prometheus Observability Scraper Container ──────────────────
   prometheus:
     image: prom/prometheus:v3.2.1
     container_name: vetra-prometheus
@@ -151,6 +185,8 @@ services:
       start_period: 15s
     depends_on:
       prometheus:
+        condition: service_healthy
+      tempo:
         condition: service_healthy
     networks:
       - vetra-network
@@ -217,5 +253,5 @@ volumes:
     driver: local
   alertmanager_data:
     driver: local
-
-
+  tempo_data:
+    driver: local

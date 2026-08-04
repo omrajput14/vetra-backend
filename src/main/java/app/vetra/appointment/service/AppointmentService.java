@@ -20,6 +20,7 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import io.micrometer.tracing.Tracer;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -43,6 +44,7 @@ public class AppointmentService {
   private final VetProfileRepository vetProfileRepository;
   private final AnimalRepository animalRepository;
   private final VetraMetrics vetraMetrics;
+  private final Tracer tracer;
 
   /** Constructor injection. */
   public AppointmentService(
@@ -51,13 +53,15 @@ public class AppointmentService {
       FarmerProfileRepository farmerProfileRepository,
       VetProfileRepository vetProfileRepository,
       AnimalRepository animalRepository,
-      VetraMetrics vetraMetrics) {
+      VetraMetrics vetraMetrics,
+      Tracer tracer) {
     this.appointmentRepository = appointmentRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
     this.animalRepository = animalRepository;
     this.vetraMetrics = vetraMetrics;
+    this.tracer = tracer;
   }
 
   /** Creates a new appointment for the authenticated farmer. */
@@ -100,6 +104,12 @@ public class AppointmentService {
 
     Appointment saved = appointmentRepository.save(appointment);
     vetraMetrics.recordAppointmentCreated();
+
+    // Tag span with appointment visit type — enum value, bounded cardinality, no PII.
+    if (tracer.currentSpan() != null && request.visitType() != null) {
+      tracer.currentSpan().tag("appointment.visit_type", request.visitType().name());
+    }
+
     return AppointmentResponse.fromEntity(saved);
   }
 

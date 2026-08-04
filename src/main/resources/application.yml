@@ -89,6 +89,32 @@ management:
     metrics:
       export:
         enabled: true
+
+  # ─── Distributed Tracing — Micrometer + OpenTelemetry Bridge ─────────
+  # sampler.probability=1.0 means 100% of requests are traced (suitable for dev).
+  # In production, override via MANAGEMENT_TRACING_SAMPLING_PROBABILITY=0.1
+  tracing:
+    sampling:
+      probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY:1.0}
+
+  # OTLP exporter: sends spans via OTLP/HTTP (port 4318) to Grafana Tempo.
+  # In Docker: tempo is the service name on vetra-network.
+  # In local dev: override via OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
+
+  # Standard OTel semantic conventions for service identity.
+  # Uses Spring Boot 3.x auto-configuration (management.opentelemetry.*) — not otel.* agent format.
+  # These attributes appear on every span and allow Grafana to group traces by service/env.
+  opentelemetry:
+    resource-attributes:
+      "service.name": ${OTEL_SERVICE_NAME:vetra-backend}
+      "service.namespace": ${OTEL_SERVICE_NAMESPACE:vetra}
+      "service.version": ${OTEL_SERVICE_VERSION:0.12.5.0}
+      "service.instance.id": ${OTEL_SERVICE_INSTANCE_ID:vetra-backend-01}
+      "deployment.environment": ${SPRING_PROFILES_ACTIVE:dev}
+
   metrics:
     tags:
       application: vetra-backend
@@ -183,8 +209,10 @@ info:
 # ─── Logging ─────────────────────────────────────────────────────────
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] [%X{userId}] %-5level %logger{36} - %msg%n"
+    # traceId and spanId are populated by Micrometer Tracing bridge automatically.
+    # requestId is populated by RequestIdFilter (preserved from previous stages).
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [traceId=%X{traceId}] [spanId=%X{spanId}] [%X{requestId}] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [traceId=%X{traceId}] [spanId=%X{spanId}] [%X{requestId}] [%X{userId}] %-5level %logger{36} - %msg%n"
   file:
     name: logs/vetra.log
     max-size: 50MB
@@ -195,3 +223,5 @@ logging:
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
     org.flywaydb: INFO
+    # datasource-micrometer observation logging
+    net.ttddyy.observation: WARN

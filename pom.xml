@@ -33,6 +33,8 @@
     <awssdk.version>2.31.49</awssdk.version>
     <spotless.version>2.44.5</spotless.version>
     <checkstyle.version>3.6.0</checkstyle.version>
+    <!-- datasource-micrometer: JDBC/HikariCP tracing via Micrometer Observation -->
+    <datasource-micrometer.version>1.0.6</datasource-micrometer.version>
   </properties>
 
   <!-- ─── Dependency Management (BOM imports) ─────────────────────── -->
@@ -101,6 +103,38 @@
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- ─── Distributed Tracing (Stage 12.5.0) ───────────────────────── -->
+    <!--
+      micrometer-tracing-bridge-otel: bridges Micrometer Observation spans into
+      OpenTelemetry SDK spans. Managed by Spring Boot 3.5.x parent BOM — no
+      version required. This is the idiomatic Spring Boot 3.x tracing approach;
+      no -javaagent injection or Dockerfile modification required.
+    -->
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-tracing-bridge-otel</artifactId>
+    </dependency>
+    <!--
+      opentelemetry-exporter-otlp: exports spans via OTLP/HTTP to Grafana Tempo.
+      Uses HTTP (port 4318) rather than gRPC (port 4317) to avoid adding
+      grpc-netty-shaded to the classpath. Managed by Boot parent BOM.
+    -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
+    </dependency>
+    <!--
+      datasource-micrometer-spring-boot: instruments the HikariCP DataSource with
+      Micrometer Observation, producing SQL query spans and connection spans inside
+      every trace. Compatible with Spring Boot 3.5.x + Micrometer Tracing 1.5.x.
+      Not managed by Boot parent — explicit version required.
+    -->
+    <dependency>
+      <groupId>net.ttddyy.observation</groupId>
+      <artifactId>datasource-micrometer-spring-boot</artifactId>
+      <version>${datasource-micrometer.version}</version>
     </dependency>
 
     <!-- PostgreSQL driver -->
