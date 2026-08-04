@@ -1,0 +1,56 @@
+# Grafana Tempo Configuration — Vetra Platform (Stage 12.5.0)
+# Production-ready Tempo configuration for local filesystem backend.
+# OTLP/HTTP receiver on port 4318, HTTP query API on port 3200.
+# Retention: 168h (7 days). Search enabled.
+
+stream_over_http_enabled: true
+
+server:
+  http_listen_port: 3200
+  log_level: warn
+
+# ─── Distributor ──────────────────────────────────────────────────────
+# Receives spans from OTLP/HTTP (port 4318).
+# No gRPC receiver configured — OTLP/HTTP is sufficient for this stack
+# and avoids the grpc-netty-shaded classpath dependency in the backend.
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+
+# ─── Ingester ─────────────────────────────────────────────────────────
+ingester:
+  max_block_duration: 5m
+  trace_idle_period: 10s
+  max_block_bytes: 1_000_000
+
+# ─── Compactor ────────────────────────────────────────────────────────
+compactor:
+  compaction:
+    block_retention: 168h  # 7 days
+
+# ─── Storage ──────────────────────────────────────────────────────────
+# Local filesystem backend — no object storage required.
+# Suitable for development and single-node deployments.
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /var/tempo/wal
+    local:
+      path: /var/tempo/blocks
+
+# ─── Query Frontend ───────────────────────────────────────────────────
+query_frontend:
+  search:
+    duration_slo: 5s
+    throughput_bytes_slo: 1.073741824e+09
+  trace_by_id:
+    duration_slo: 5s
+
+# ─── Querier ──────────────────────────────────────────────────────────
+querier:
+  frontend_worker:
+    frontend_address: localhost:9095

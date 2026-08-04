@@ -22,6 +22,7 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.infrastructure.security.JwtUtil;
+import io.micrometer.tracing.Tracer;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -41,6 +42,7 @@ public class AuthService {
   private final JwtUtil jwtUtil;
   private final RefreshTokenService refreshTokenService;
   private final VetraMetrics vetraMetrics;
+  private final Tracer tracer;
 
   /** Constructor injection. */
   public AuthService(
@@ -50,7 +52,8 @@ public class AuthService {
       PasswordEncoder passwordEncoder,
       JwtUtil jwtUtil,
       RefreshTokenService refreshTokenService,
-      VetraMetrics vetraMetrics) {
+      VetraMetrics vetraMetrics,
+      Tracer tracer) {
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
@@ -58,6 +61,7 @@ public class AuthService {
     this.jwtUtil = jwtUtil;
     this.refreshTokenService = refreshTokenService;
     this.vetraMetrics = vetraMetrics;
+    this.tracer = tracer;
   }
 
   /** Registers a farmer user and profile. */
@@ -94,6 +98,8 @@ public class AuthService {
 
     farmerProfileRepository.save(profile);
     vetraMetrics.recordFarmerRegistration();
+    // Tag span with user.role — enum value, safe, bounded cardinality.
+    tagSpanWithRole(UserRole.FARMER);
     return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
   }
 
@@ -135,6 +141,8 @@ public class AuthService {
 
     vetProfileRepository.save(profile);
     vetraMetrics.recordVetRegistration();
+    // Tag span with user.role — enum value, safe, bounded cardinality.
+    tagSpanWithRole(UserRole.VETERINARIAN);
     return createAuthResponse(user, mapVetProfileToDto(user, profile));
   }
 
@@ -146,6 +154,7 @@ public class AuthService {
       FarmerProfile profile = farmerProfileRepository.findByUser(user)
           .orElseThrow(() -> new ResourceNotFoundException("Farmer profile missing for user", "USER_004"));
       vetraMetrics.recordFarmerLoginSuccess();
+      tagSpanWithRole(UserRole.FARMER);
       return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
     } catch (UnauthorizedResourceAccessException ex) {
       vetraMetrics.recordFarmerLoginFailure();
@@ -161,6 +170,7 @@ public class AuthService {
       VetProfile profile = vetProfileRepository.findByUser(user)
           .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile missing for user", "USER_004"));
       vetraMetrics.recordVetLoginSuccess();
+      tagSpanWithRole(UserRole.VETERINARIAN);
       return createAuthResponse(user, mapVetProfileToDto(user, profile));
     } catch (UnauthorizedResourceAccessException ex) {
       vetraMetrics.recordVetLoginFailure();
@@ -363,5 +373,20 @@ public class AuthService {
         v != null ? v.getYearsExperience() : null,
         v != null ? v.isAvailable() : null
     );
+  }
+
+  /**
+   * Tags the current Micrometer trace span with the authenticated user role.
+   *
+   * <p>{@code user.role} is a bounded enum value (FARMER | VETERINARIAN). It is safe to include as
+   * a span tag \u2014 not PII, not high-cardinality, and directly useful for filtering traces by user
+   * type in Grafana Tempo.
+   *
+   * @param role the authenticated user's role
+   */
+  private void tagSpanWithRole(UserRole role) {
+    if (tracer.currentSpan() != null) {
+      tracer.currentSpan().tag("user.role", role.name());
+    }
   }
 }
