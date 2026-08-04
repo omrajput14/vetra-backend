@@ -1,29 +1,29 @@
 package app.vetra.ai.exception;
 
-import app.vetra.infrastructure.exception.BaseDomainException;
-import org.springframework.http.HttpStatus;
-
 /**
- * Thrown when a requested AI provider is offline, disabled, or unconfigured.
+ * Thrown when a requested AI provider is offline, unreachable, or returns a 5xx server error.
+ * The FailoverManager applies a fixed delay and retries before routing to the secondary provider.
  */
-public class AIProviderUnavailableException extends BaseDomainException {
+public class AIProviderUnavailableException extends AIException {
 
   /**
-   * Constructs an AIProviderUnavailableException with custom message and code.
+   * Constructs a new AIProviderUnavailableException.
    *
-   * @param message exception message
-   * @param errorCode error code string
+   * @param message the detail message
+   * @param provider the provider name
    */
-  public AIProviderUnavailableException(String message, String errorCode) {
-    super(message, errorCode, HttpStatus.SERVICE_UNAVAILABLE);
+  public AIProviderUnavailableException(String message, String provider) {
+    super(message, provider);
   }
 
   /**
-   * Constructs an AIProviderUnavailableException with default message and code AI_003.
+   * Constructs a new AIProviderUnavailableException with a cause.
    *
-   * @param message exception message
+   * @param message the detail message
+   * @param provider the provider name
+   * @param cause the underlying cause
    */
-  public AIProviderUnavailableException(String message) {
-    super(message, "AI_003", HttpStatus.SERVICE_UNAVAILABLE);
+  public AIProviderUnavailableException(String message, String provider, Throwable cause) {
+    super(message, provider, cause);
   }
 }
