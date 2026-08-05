@@ -19,16 +19,13 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(classes = {
-    CacheConfiguration.class,
-    app.vetra.infrastructure.redis.config.RedisConfig.class
-})
+@SpringBootTest(
+    classes = {CacheConfiguration.class, app.vetra.infrastructure.redis.config.RedisConfig.class})
 @ActiveProfiles("test")
 @DisplayName("Enterprise Cache Layer Integration & Serialization Tests")
 class EnterpriseCacheIntegrationTest {
 
-  @Autowired
-  private CacheManager cacheManager;
+  @Autowired private CacheManager cacheManager;
 
   @Test
   @DisplayName("Should initialize RedisCacheManager bean with statistics enabled")
@@ -47,21 +44,21 @@ class EnterpriseCacheIntegrationTest {
     UUID farmerId = UUID.randomUUID();
     String cacheKey = CacheKeys.animalKey(animalId);
 
-    AnimalResponse originalResponse = new AnimalResponse(
-        animalId,
-        farmerId,
-        "John Farmer",
-        "Bessie",
-        "TAG-9988",
-        "QR-9988",
-        Species.CATTLE,
-        "Holstein",
-        AnimalGender.FEMALE,
-        LocalDate.of(2021, 5, 10),
-        "https://storage.vetra.app/animals/bessie.jpg",
-        Instant.now(),
-        Instant.now()
-    );
+    AnimalResponse originalResponse =
+        new AnimalResponse(
+            animalId,
+            farmerId,
+            "John Farmer",
+            "Bessie",
+            "TAG-9988",
+            "QR-9988",
+            Species.CATTLE,
+            "Holstein",
+            AnimalGender.FEMALE,
+            LocalDate.of(2021, 5, 10),
+            "https://storage.vetra.app/animals/bessie.jpg",
+            Instant.now(),
+            Instant.now());
 
     cache.put(cacheKey, originalResponse);
 
@@ -79,7 +76,8 @@ class EnterpriseCacheIntegrationTest {
   }
 
   @Test
-  @DisplayName("Should store and retrieve serialized DashboardResponse DTO from farmer dashboard region")
+  @DisplayName(
+      "Should store and retrieve serialized DashboardResponse DTO from farmer dashboard region")
   void shouldCacheAndRetrieveDashboardResponse() {
     Cache cache = cacheManager.getCache(CacheNames.DASHBOARD_FARMER);
     assertThat(cache).isNotNull();
@@ -87,15 +85,8 @@ class EnterpriseCacheIntegrationTest {
     UUID farmerId = UUID.randomUUID();
     String cacheKey = CacheKeys.farmerDashboardKey(farmerId);
 
-    DashboardResponse originalDashboard = new DashboardResponse(
-        25L,
-        3L,
-        1L,
-        12L,
-        "John Farmer",
-        "Green Valley Dairy",
-        "FARMER"
-    );
+    DashboardResponse originalDashboard =
+        new DashboardResponse(25L, 3L, 1L, 12L, "John Farmer", "Green Valley Dairy", "FARMER");
 
     cache.put(cacheKey, originalDashboard);
 

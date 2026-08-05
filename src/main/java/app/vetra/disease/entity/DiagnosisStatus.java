@@ -1,8 +1,6 @@
 package app.vetra.disease.entity;
 
-/**
- * Diagnostic status of a disease report.
- */
+/** Diagnostic status of a disease report. */
 public enum DiagnosisStatus {
   /** Initial clinical suspicion awaiting full confirmation. */
   SUSPECTED,

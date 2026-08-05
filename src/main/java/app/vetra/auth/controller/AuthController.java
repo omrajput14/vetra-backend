@@ -23,11 +23,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Authentication REST Controller exposing Farmer and Vet sign-in/registration, session refresh, logout, password change, and current user profile endpoints.
+ * Authentication REST Controller exposing Farmer and Vet sign-in/registration, session refresh,
+ * logout, password change, and current user profile endpoints.
  */
 @RestController
 @RequestMapping("/api/v1/auth")
-@Tag(name = "Authentication Module", description = "Farmer & Vet registration, login, refresh, and profile endpoints")
+@Tag(
+    name = "Authentication Module",
+    description = "Farmer & Vet registration, login, refresh, and profile endpoints")
 public class AuthController {
 
   private final AuthService authService;
@@ -40,8 +43,11 @@ public class AuthController {
   /** Registers a new farmer account. */
   @PostMapping("/farmer/register")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Register Farmer Account", description = "Creates User and FarmerProfile, returning JWT access and refresh tokens")
-  public ApiResponse<AuthResponse> registerFarmer(@Valid @RequestBody FarmerRegisterRequest request) {
+  @Operation(
+      summary = "Register Farmer Account",
+      description = "Creates User and FarmerProfile, returning JWT access and refresh tokens")
+  public ApiResponse<AuthResponse> registerFarmer(
+      @Valid @RequestBody FarmerRegisterRequest request) {
     AuthResponse response = authService.registerFarmer(request);
     return ApiResponse.created("Farmer registered successfully", response);
   }
@@ -49,7 +55,9 @@ public class AuthController {
   /** Registers a new veterinarian account. */
   @PostMapping("/vet/register")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Register Veterinarian Account", description = "Creates User and VetProfile, returning JWT access and refresh tokens")
+  @Operation(
+      summary = "Register Veterinarian Account",
+      description = "Creates User and VetProfile, returning JWT access and refresh tokens")
   public ApiResponse<AuthResponse> registerVet(@Valid @RequestBody VetRegisterRequest request) {
     AuthResponse response = authService.registerVet(request);
     return ApiResponse.created("Veterinarian registered successfully", response);
@@ -57,7 +65,9 @@ public class AuthController {
 
   /** Authenticates farmer credentials. */
   @PostMapping("/farmer/login")
-  @Operation(summary = "Farmer Login", description = "Authenticates farmer credentials and returns JWT tokens")
+  @Operation(
+      summary = "Farmer Login",
+      description = "Authenticates farmer credentials and returns JWT tokens")
   public ApiResponse<AuthResponse> loginFarmer(@Valid @RequestBody LoginRequest request) {
     AuthResponse response = authService.loginFarmer(request);
     return ApiResponse.ok("Farmer login successful", response);
@@ -65,7 +75,9 @@ public class AuthController {
 
   /** Authenticates veterinarian credentials. */
   @PostMapping("/vet/login")
-  @Operation(summary = "Veterinarian Login", description = "Authenticates veterinarian credentials and returns JWT tokens")
+  @Operation(
+      summary = "Veterinarian Login",
+      description = "Authenticates veterinarian credentials and returns JWT tokens")
   public ApiResponse<AuthResponse> loginVet(@Valid @RequestBody LoginRequest request) {
     AuthResponse response = authService.loginVet(request);
     return ApiResponse.ok("Veterinarian login successful", response);
@@ -73,7 +85,9 @@ public class AuthController {
 
   /** Refreshes JWT access token using valid refresh token. */
   @PostMapping("/refresh")
-  @Operation(summary = "Refresh Access Token", description = "Generates new JWT access and refresh tokens using valid refresh token")
+  @Operation(
+      summary = "Refresh Access Token",
+      description = "Generates new JWT access and refresh tokens using valid refresh token")
   public ApiResponse<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
     AuthResponse response = authService.refreshToken(request);
     return ApiResponse.ok("Token refreshed successfully", response);
@@ -90,14 +104,17 @@ public class AuthController {
   /** Changes password for current authenticated user. */
   @PostMapping("/change-password")
   @Operation(summary = "Change Password", description = "Updates password for authenticated user")
-  public ApiResponse<Void> changePassword(Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
+  public ApiResponse<Void> changePassword(
+      Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
     authService.changePassword(principal.getName(), request);
     return ApiResponse.ok("Password changed successfully", null);
   }
 
   /** Returns current authenticated user profile. */
   @GetMapping("/me")
-  @Operation(summary = "Get Current Authenticated User Profile", description = "Returns active user profile and role details")
+  @Operation(
+      summary = "Get Current Authenticated User Profile",
+      description = "Returns active user profile and role details")
   public ApiResponse<UserProfileDto> getCurrentUser(Principal principal) {
     UserProfileDto response = authService.getCurrentUserProfileDtoByIdentifier(principal.getName());
     return ApiResponse.ok("User profile retrieved successfully", response);
@@ -114,7 +131,9 @@ public class AuthController {
 
   /** Lists all registered veterinarians. */
   @GetMapping("/vets")
-  @Operation(summary = "List Veterinarians", description = "Returns directory of all registered veterinarians")
+  @Operation(
+      summary = "List Veterinarians",
+      description = "Returns directory of all registered veterinarians")
   public ApiResponse<java.util.List<app.vetra.auth.dto.VetSummaryDto>> listVets() {
     java.util.List<app.vetra.auth.dto.VetSummaryDto> response = authService.listVeterinarians();
     return ApiResponse.ok("Veterinarians retrieved successfully", response);

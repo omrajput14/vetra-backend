@@ -13,9 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Core system user entity.
- */
+/** Core system user entity. */
 @Getter
 @Setter
 @NoArgsConstructor

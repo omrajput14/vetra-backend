@@ -3,9 +3,7 @@ package app.vetra.auth.dto;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import java.util.UUID;
 
-/**
- * Summary DTO for veterinarian directory and nearby vet selection.
- */
+/** Summary DTO for veterinarian directory and nearby vet selection. */
 public record VetSummaryDto(
     UUID id,
     String fullName,
@@ -34,7 +32,6 @@ public record VetSummaryDto(
         vet.getLatitude(),
         vet.getLongitude(),
         vet.getUser() != null ? vet.getUser().getPhone() : null,
-        vet.getUser() != null ? vet.getUser().getEmail() : null
-    );
+        vet.getUser() != null ? vet.getUser().getEmail() : null);
   }
 }

@@ -9,8 +9,4 @@ import java.util.UUID;
  * @param accepted true if vet accepted AI diagnosis, false if rejected/corrected
  * @param verifiedBy veterinarian user UUID
  */
-public record AIScanVerifiedEvent(
-    UUID scanId,
-    boolean accepted,
-    UUID verifiedBy
-) {}
+public record AIScanVerifiedEvent(UUID scanId, boolean accepted, UUID verifiedBy) {}

@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * Firebase Cloud Messaging (FCM) push notification provider implementation.
- */
+/** Firebase Cloud Messaging (FCM) push notification provider implementation. */
 @Component
 public class FirebaseNotificationProvider implements NotificationProvider {
 
@@ -20,8 +18,12 @@ public class FirebaseNotificationProvider implements NotificationProvider {
       return NotificationProviderResult.error(providerName(), "Invalid or empty device token");
     }
 
-    log.info("[FCM PUSH DISPATCH] title='{}' body='{}' targetToken={} priority={}",
-        notification.getTitle(), notification.getBody(), deviceToken, notification.getPriority());
+    log.info(
+        "[FCM PUSH DISPATCH] title='{}' body='{}' targetToken={} priority={}",
+        notification.getTitle(),
+        notification.getBody(),
+        deviceToken,
+        notification.getPriority());
 
     // Generate FCM message transaction ID
     String fcmMessageId = "projects/vetra-app/messages/fcm-" + UUID.randomUUID().toString();

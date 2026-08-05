@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST controller providing inbox query, read status updates, and template lookup endpoints.
- */
+/** REST controller providing inbox query, read status updates, and template lookup endpoints. */
 @RestController
 @RequestMapping("/api/v1/notifications")
-@Tag(name = "Notification Inbox & Delivery Platform", description = "Endpoints for viewing user inbox notifications, unread counts, and templates")
+@Tag(
+    name = "Notification Inbox & Delivery Platform",
+    description = "Endpoints for viewing user inbox notifications, unread counts, and templates")
 @SecurityRequirement(name = "bearerAuth")
 public class NotificationController {
 
@@ -36,25 +36,30 @@ public class NotificationController {
 
   /** Constructor injection. */
   public NotificationController(
-      NotificationService notificationService,
-      NotificationTemplateRepository templateRepository) {
+      NotificationService notificationService, NotificationTemplateRepository templateRepository) {
     this.notificationService = notificationService;
     this.templateRepository = templateRepository;
   }
 
   /** Lists user notifications with pagination. */
   @GetMapping
-  @Operation(summary = "List User Notifications", description = "Retrieves paginated inbox notifications for the authenticated user.")
+  @Operation(
+      summary = "List User Notifications",
+      description = "Retrieves paginated inbox notifications for the authenticated user.")
   public ApiResponse<Page<NotificationResponse>> listNotifications(
       Principal principal,
-      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    Page<NotificationResponse> response = notificationService.listUserNotifications(principal.getName(), pageable);
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    Page<NotificationResponse> response =
+        notificationService.listUserNotifications(principal.getName(), pageable);
     return ApiResponse.ok("Notifications retrieved successfully", response);
   }
 
   /** Gets unread notification count. */
   @GetMapping("/unread")
-  @Operation(summary = "Get Unread Notification Count", description = "Returns total count of unread notifications for the authenticated user.")
+  @Operation(
+      summary = "Get Unread Notification Count",
+      description = "Returns total count of unread notifications for the authenticated user.")
   public ApiResponse<UnreadCountResponse> getUnreadCount(Principal principal) {
     UnreadCountResponse response = notificationService.getUnreadCount(principal.getName());
     return ApiResponse.ok("Unread notification count retrieved successfully", response);
@@ -62,7 +67,9 @@ public class NotificationController {
 
   /** Marks a notification as read. */
   @PatchMapping("/{id}/read")
-  @Operation(summary = "Mark Notification as Read", description = "Marks a specific notification as read by UUID.")
+  @Operation(
+      summary = "Mark Notification as Read",
+      description = "Marks a specific notification as read by UUID.")
   public ApiResponse<NotificationResponse> markAsRead(
       Principal principal, @PathVariable("id") UUID id) {
     NotificationResponse response = notificationService.markAsRead(principal.getName(), id);
@@ -71,7 +78,9 @@ public class NotificationController {
 
   /** Lists system notification templates. */
   @GetMapping("/templates")
-  @Operation(summary = "List System Notification Templates", description = "Retrieves available system notification templates.")
+  @Operation(
+      summary = "List System Notification Templates",
+      description = "Retrieves available system notification templates.")
   public ApiResponse<List<NotificationTemplate>> listTemplates() {
     List<NotificationTemplate> response = templateRepository.findAll();
     return ApiResponse.ok("Notification templates retrieved successfully", response);

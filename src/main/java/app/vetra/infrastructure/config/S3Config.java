@@ -15,8 +15,8 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  * AWS SDK v2 configuration.
  *
  * <p>Provides an {@link S3Client} and {@link S3Presigner} bean. When {@code
- * vetra.aws.credentials.access-key} is blank (local dev or IAM role on EC2/ECS), the SDK falls
- * back to the {@link DefaultCredentialsProvider} chain automatically.
+ * vetra.aws.credentials.access-key} is blank (local dev or IAM role on EC2/ECS), the SDK falls back
+ * to the {@link DefaultCredentialsProvider} chain automatically.
  */
 @Configuration
 public class S3Config {
@@ -40,8 +40,7 @@ public class S3Config {
     String secretKey = awsProperties.credentials().secretKey();
 
     if (StringUtils.hasText(accessKey) && StringUtils.hasText(secretKey)) {
-      return StaticCredentialsProvider.create(
-          AwsBasicCredentials.create(accessKey, secretKey));
+      return StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey));
     }
     return DefaultCredentialsProvider.create();
   }

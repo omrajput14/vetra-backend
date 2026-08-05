@@ -20,9 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Scheduled consultation or checkup appointment.
- */
+/** Scheduled consultation or checkup appointment. */
 @Getter
 @Setter
 @NoArgsConstructor

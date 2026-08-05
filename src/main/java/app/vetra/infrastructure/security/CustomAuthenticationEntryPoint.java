@@ -15,7 +15,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 /**
- * Custom AuthenticationEntryPoint serializing standardized Error Catalogue envelopes for unauthenticated / expired JWT requests.
+ * Custom AuthenticationEntryPoint serializing standardized Error Catalogue envelopes for
+ * unauthenticated / expired JWT requests.
  */
 @Component
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {

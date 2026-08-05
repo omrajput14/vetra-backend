@@ -1,8 +1,6 @@
 package app.vetra.infrastructure.persistence.enums;
 
-/**
- * Type of veterinary visit.
- */
+/** Type of veterinary visit. */
 public enum VisitType {
   GENERAL_CHECKUP,
   VACCINATION,

@@ -3,7 +3,8 @@ package app.vetra.notification.provider;
 import app.vetra.notification.entity.Notification;
 
 /**
- * Provider interface abstraction for notification delivery channels (FCM Push, Email, SMS, Webhook).
+ * Provider interface abstraction for notification delivery channels (FCM Push, Email, SMS,
+ * Webhook).
  */
 public interface NotificationProvider {
 

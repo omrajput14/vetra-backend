@@ -13,16 +13,12 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties(prefix = "vetra.aws")
-public record AwsProperties(
-    @NotBlank String region,
-    Credentials credentials,
-    S3Properties s3) {
+public record AwsProperties(@NotBlank String region, Credentials credentials, S3Properties s3) {
 
   /** AWS IAM credential pair. */
   public record Credentials(String accessKey, String secretKey) {}
 
   /** S3 bucket configuration. */
   public record S3Properties(
-      @NotBlank String bucketName,
-      @Positive int presignedUrlExpiryMinutes) {}
+      @NotBlank String bucketName, @Positive int presignedUrlExpiryMinutes) {}
 }

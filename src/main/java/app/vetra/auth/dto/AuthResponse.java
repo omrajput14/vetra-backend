@@ -1,8 +1,6 @@
 package app.vetra.auth.dto;
 
-/**
- * Standard authentication token response.
- */
+/** Standard authentication token response. */
 public record AuthResponse(
     String accessToken,
     String refreshToken,

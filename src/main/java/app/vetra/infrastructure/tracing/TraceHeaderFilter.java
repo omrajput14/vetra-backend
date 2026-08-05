@@ -18,8 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Micrometer trace span exists. These headers allow production support engineers to locate a
  * specific request in Grafana Tempo without requiring access to server logs.
  *
- * <p>Ordering: runs after {@code RequestIdFilter} (Order 1) and {@code LoggingFilter} (Order 2),
- * so it does not interfere with existing MDC or access-log instrumentation.
+ * <p>Ordering: runs after {@code RequestIdFilter} (Order 1) and {@code LoggingFilter} (Order 2), so
+ * it does not interfere with existing MDC or access-log instrumentation.
  *
  * <p>Design constraints:
  *

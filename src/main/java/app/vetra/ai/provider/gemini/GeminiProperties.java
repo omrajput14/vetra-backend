@@ -6,9 +6,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Externalized configuration properties for Gemini Vision AI Provider integration.
- */
+/** Externalized configuration properties for Gemini Vision AI Provider integration. */
 @Getter
 @Setter
 @Configuration

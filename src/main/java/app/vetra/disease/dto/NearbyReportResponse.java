@@ -8,13 +8,11 @@ import app.vetra.disease.entity.DiseaseReport;
  * @param report disease report DTO
  * @param distanceKm distance in kilometers from search center
  */
-public record NearbyReportResponse(
-    DiseaseReportResponse report,
-    double distanceKm
-) {
+public record NearbyReportResponse(DiseaseReportResponse report, double distanceKm) {
 
   /**
-   * Factory method mapping DiseaseReport entity and calculated distance to NearbyReportResponse DTO.
+   * Factory method mapping DiseaseReport entity and calculated distance to NearbyReportResponse
+   * DTO.
    *
    * @param report entity instance
    * @param distanceKm calculated distance in kilometers

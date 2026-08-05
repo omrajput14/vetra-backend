@@ -8,9 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-/**
- * Response DTO representing appointment details.
- */
+/** Response DTO representing appointment details. */
 public record AppointmentResponse(
     UUID id,
     UUID farmerId,
@@ -36,9 +34,10 @@ public record AppointmentResponse(
 
   /** Factory method to convert an entity to response DTO. */
   public static AppointmentResponse fromEntity(Appointment appointment) {
-    String farmerPhone = appointment.getFarmer() != null && appointment.getFarmer().getUser() != null
-        ? appointment.getFarmer().getUser().getPhone()
-        : null;
+    String farmerPhone =
+        appointment.getFarmer() != null && appointment.getFarmer().getUser() != null
+            ? appointment.getFarmer().getUser().getPhone()
+            : null;
 
     return new AppointmentResponse(
         appointment.getId(),
@@ -47,7 +46,9 @@ public record AppointmentResponse(
         farmerPhone,
         appointment.getVeterinarian() != null ? appointment.getVeterinarian().getId() : null,
         appointment.getVeterinarian() != null ? appointment.getVeterinarian().getFullName() : null,
-        appointment.getVeterinarian() != null ? appointment.getVeterinarian().getClinicName() : null,
+        appointment.getVeterinarian() != null
+            ? appointment.getVeterinarian().getClinicName()
+            : null,
         appointment.getAnimal() != null ? appointment.getAnimal().getId() : null,
         appointment.getAnimal() != null ? appointment.getAnimal().getAnimalName() : null,
         appointment.getAnimal() != null ? appointment.getAnimal().getTagNumber() : null,
@@ -63,7 +64,6 @@ public record AppointmentResponse(
         appointment.getCancellationReason(),
         appointment.getVersion(),
         appointment.getCreatedAt(),
-        appointment.getUpdatedAt()
-    );
+        appointment.getUpdatedAt());
   }
 }

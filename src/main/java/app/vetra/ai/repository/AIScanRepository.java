@@ -11,9 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-/**
- * Spring Data JPA repository for AIScan entities.
- */
+/** Spring Data JPA repository for AIScan entities. */
 @Repository
 public interface AIScanRepository extends JpaRepository<AIScan, UUID> {
 

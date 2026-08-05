@@ -17,9 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing an individual notification instance dispatched to a user.
- */
+/** Entity representing an individual notification instance dispatched to a user. */
 @Entity
 @Table(name = "notifications")
 @Getter

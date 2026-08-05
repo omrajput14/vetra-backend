@@ -10,8 +10,4 @@ import java.util.UUID;
  * @param errorMessage error message
  * @param provider attempted provider type
  */
-public record AIInferenceFailedEvent(
-    UUID scanId,
-    String errorMessage,
-    AIProviderType provider
-) {}
+public record AIInferenceFailedEvent(UUID scanId, String errorMessage, AIProviderType provider) {}

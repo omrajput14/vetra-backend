@@ -7,9 +7,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Externalized configuration properties for AI platform orchestration.
- */
+/** Externalized configuration properties for AI platform orchestration. */
 @Getter
 @Setter
 @Configuration

@@ -1,8 +1,6 @@
 package app.vetra.notification.entity;
 
-/**
- * Priority levels for notification delivery scheduling and override rules.
- */
+/** Priority levels for notification delivery scheduling and override rules. */
 public enum NotificationPriority {
   /** Low priority background info. */
   LOW,

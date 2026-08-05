@@ -25,8 +25,8 @@ import org.springframework.web.servlet.NoHandlerFoundException;
  * Global exception handler enforcing standard ApiResponse envelope and Error Catalogue mapping.
  *
  * <p>Each handler also records tracing information on the active span when an exception occurs:
- * span status is set to ERROR and an exception event is attached. This ensures that failed
- * requests surface correctly in Grafana Tempo without relying solely on HTTP 5xx status codes.
+ * span status is set to ERROR and an exception event is attached. This ensures that failed requests
+ * surface correctly in Grafana Tempo without relying solely on HTTP 5xx status codes.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,13 +40,19 @@ public class GlobalExceptionHandler {
     this.tracer = tracer;
   }
 
-  /** Handles custom typed domain exceptions (ResourceNotFoundException, ConflictException, etc.). */
+  /**
+   * Handles custom typed domain exceptions (ResourceNotFoundException, ConflictException, etc.).
+   */
   @ExceptionHandler(BaseDomainException.class)
   public ResponseEntity<ApiResponse<Void>> handleBaseDomainException(
       BaseDomainException ex, HttpServletRequest request) {
 
-    log.warn("Domain exception on {} {} [{}]: {}",
-        request.getMethod(), request.getRequestURI(), ex.getErrorCode(), ex.getMessage());
+    log.warn(
+        "Domain exception on {} {} [{}]: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getErrorCode(),
+        ex.getMessage());
 
     // Mark span as error for 5xx domain exceptions; 4xx domain exceptions are client errors
     // and do not indicate a service failure, so we record them as warnings only.
@@ -71,8 +77,11 @@ public class GlobalExceptionHandler {
             .map(fe -> new FieldError(fe.getField(), fe.getDefaultMessage()))
             .toList();
 
-    log.warn("Validation failed on {} {}: {} error(s)",
-        request.getMethod(), request.getRequestURI(), fieldErrors.size());
+    log.warn(
+        "Validation failed on {} {}: {} error(s)",
+        request.getMethod(),
+        request.getRequestURI(),
+        fieldErrors.size());
 
     return ResponseEntity.badRequest()
         .body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Request validation failed", fieldErrors));
@@ -83,25 +92,36 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(
       IllegalArgumentException ex, HttpServletRequest request) {
 
-    log.warn("Illegal argument on {} {}: {}",
-        request.getMethod(), request.getRequestURI(), ex.getMessage());
+    log.warn(
+        "Illegal argument on {} {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
 
     return ResponseEntity.badRequest()
         .body(ApiResponse.error(HttpStatus.BAD_REQUEST, ex.getMessage()));
   }
 
   /** Handles optimistic locking conflicts (HTTP 409 CONFLICT - APPT_006). */
-  @ExceptionHandler({ObjectOptimisticLockingFailureException.class, jakarta.persistence.OptimisticLockException.class})
+  @ExceptionHandler({
+    ObjectOptimisticLockingFailureException.class,
+    jakarta.persistence.OptimisticLockException.class
+  })
   public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailure(
       Exception ex, HttpServletRequest request) {
 
-    log.warn("Optimistic locking conflict on {} {}: {}",
-        request.getMethod(), request.getRequestURI(), ex.getMessage());
+    log.warn(
+        "Optimistic locking conflict on {} {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
     recordSpanError(ex, false);
 
     return ResponseEntity.status(HttpStatus.CONFLICT)
-        .body(ApiResponse.error(HttpStatus.CONFLICT,
-            "This record was modified by another request. Please refresh and try again."));
+        .body(
+            ApiResponse.error(
+                HttpStatus.CONFLICT,
+                "This record was modified by another request. Please refresh and try again."));
   }
 
   /** Handles DataIntegrityViolationException for database constraint failures. */
@@ -109,13 +129,18 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(
       DataIntegrityViolationException ex, HttpServletRequest request) {
 
-    log.warn("Database constraint violation on {} {}: {}",
-        request.getMethod(), request.getRequestURI(), ex.getMessage());
+    log.warn(
+        "Database constraint violation on {} {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
     recordSpanError(ex, false);
 
     return ResponseEntity.status(HttpStatus.CONFLICT)
-        .body(ApiResponse.error(HttpStatus.CONFLICT,
-            "A database constraint error occurred or a record with these details already exists."));
+        .body(
+            ApiResponse.error(
+                HttpStatus.CONFLICT,
+                "A database constraint error occurred or a record with these details already exists."));
   }
 
   /** Handles malformed JSON request bodies. */
@@ -123,8 +148,11 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleMessageNotReadable(
       HttpMessageNotReadableException ex, HttpServletRequest request) {
 
-    log.warn("Unreadable request body on {} {}: {}", request.getMethod(),
-        request.getRequestURI(), ex.getMessage());
+    log.warn(
+        "Unreadable request body on {} {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
 
     return ResponseEntity.badRequest()
         .body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Request body is missing or malformed"));
@@ -138,8 +166,10 @@ public class GlobalExceptionHandler {
     log.info("Route not found: {} {}", request.getMethod(), request.getRequestURI());
 
     return ResponseEntity.status(HttpStatus.NOT_FOUND)
-        .body(ApiResponse.error(HttpStatus.NOT_FOUND,
-            "Route " + request.getMethod() + " " + request.getRequestURI() + " not found"));
+        .body(
+            ApiResponse.error(
+                HttpStatus.NOT_FOUND,
+                "Route " + request.getMethod() + " " + request.getRequestURI() + " not found"));
   }
 
   /** Handles Spring Security authentication failures. */
@@ -147,8 +177,11 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(
       AuthenticationException ex, HttpServletRequest request) {
 
-    log.warn("Authentication failure on {} {}: {}", request.getMethod(),
-        request.getRequestURI(), ex.getMessage());
+    log.warn(
+        "Authentication failure on {} {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
 
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(ApiResponse.error(HttpStatus.UNAUTHORIZED, "Authentication required"));
@@ -159,8 +192,11 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
       AccessDeniedException ex, HttpServletRequest request) {
 
-    log.warn("Access denied on {} {}: {}", request.getMethod(),
-        request.getRequestURI(), ex.getMessage());
+    log.warn(
+        "Access denied on {} {}: {}",
+        request.getMethod(),
+        request.getRequestURI(),
+        ex.getMessage());
 
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(ApiResponse.error(HttpStatus.FORBIDDEN, "Access denied"));
@@ -171,13 +207,15 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleRuntimeException(
       RuntimeException ex, HttpServletRequest request) {
 
-    log.error("Unhandled RuntimeException on {} {}", request.getMethod(),
-        request.getRequestURI(), ex);
+    log.error(
+        "Unhandled RuntimeException on {} {}", request.getMethod(), request.getRequestURI(), ex);
     recordSpanError(ex, true);
 
     return ResponseEntity.internalServerError()
-        .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
-            "An unexpected error occurred. Please try again."));
+        .body(
+            ApiResponse.error(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred. Please try again."));
   }
 
   /** Final catch-all for any Exception. */
@@ -185,21 +223,22 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleException(
       Exception ex, HttpServletRequest request) {
 
-    log.error("Unhandled Exception on {} {}", request.getMethod(),
-        request.getRequestURI(), ex);
+    log.error("Unhandled Exception on {} {}", request.getMethod(), request.getRequestURI(), ex);
     recordSpanError(ex, true);
 
     return ResponseEntity.internalServerError()
-        .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR,
-            "An unexpected error occurred. Please try again."));
+        .body(
+            ApiResponse.error(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected error occurred. Please try again."));
   }
 
   /**
    * Records exception information on the current Micrometer trace span.
    *
    * <p>When {@code markAsError} is true, the span status is set to ERROR, which surfaces the span
-   * in red in Grafana Tempo. When false, only an exception event is recorded (suitable for
-   * expected 4xx client errors that do not indicate a service failure).
+   * in red in Grafana Tempo. When false, only an exception event is recorded (suitable for expected
+   * 4xx client errors that do not indicate a service failure).
    *
    * <p>Span attributes: only the exception class name and a safe message fragment are recorded.
    * Stack traces, user data, emails, tokens, and IDs are never included.

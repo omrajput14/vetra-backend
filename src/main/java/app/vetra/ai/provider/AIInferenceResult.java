@@ -29,5 +29,4 @@ public record AIInferenceResult(
     long latencyMs,
     Integer tokensUsed,
     List<String> warnings,
-    Instant createdAt
-) {}
+    Instant createdAt) {}

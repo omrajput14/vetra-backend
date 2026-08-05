@@ -26,8 +26,7 @@ public class HealthController {
   @GetMapping("/readiness")
   public ApiResponse<Map<String, Object>> readiness() {
     return ApiResponse.ok(
-        "Application is ready",
-        Map.of("status", "READY", "timestamp", Instant.now().toString()));
+        "Application is ready", Map.of("status", "READY", "timestamp", Instant.now().toString()));
   }
 
   /**
@@ -40,7 +39,6 @@ public class HealthController {
   @GetMapping("/liveness")
   public ApiResponse<Map<String, Object>> liveness() {
     return ApiResponse.ok(
-        "Application is alive",
-        Map.of("status", "ALIVE", "timestamp", Instant.now().toString()));
+        "Application is alive", Map.of("status", "ALIVE", "timestamp", Instant.now().toString()));
   }
 }

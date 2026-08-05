@@ -24,12 +24,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST Controller exposing Electronic Veterinary Medical Record endpoints.
- * Enforces strict immutability—no PUT or DELETE endpoints exist.
+ * REST Controller exposing Electronic Veterinary Medical Record endpoints. Enforces strict
+ * immutability—no PUT or DELETE endpoints exist.
  */
 @RestController
 @RequestMapping("/api/v1")
-@Tag(name = "Medical Records Module", description = "Electronic Veterinary Medical Record (EVMR) management")
+@Tag(
+    name = "Medical Records Module",
+    description = "Electronic Veterinary Medical Record (EVMR) management")
 public class MedicalRecordController {
 
   private final MedicalRecordService medicalRecordService;
@@ -42,54 +44,74 @@ public class MedicalRecordController {
   /** Creates a medical record for a completed appointment (Veterinarians only). */
   @PostMapping("/medical-records")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Create Medical Record", description = "Creates a permanent medical record for a COMPLETED appointment")
+  @Operation(
+      summary = "Create Medical Record",
+      description = "Creates a permanent medical record for a COMPLETED appointment")
   public ApiResponse<MedicalRecordResponse> createMedicalRecord(
       Principal principal, @Valid @RequestBody CreateMedicalRecordRequest request) {
-    MedicalRecordResponse response = medicalRecordService.createMedicalRecord(principal.getName(), request);
+    MedicalRecordResponse response =
+        medicalRecordService.createMedicalRecord(principal.getName(), request);
     return ApiResponse.created("Medical record created successfully", response);
   }
 
   /** Retrieves all medical records relevant to current authenticated user (non-paginated). */
   @GetMapping("/medical-records")
-  @Operation(summary = "List Medical Records", description = "Lists medical records for active Farmer or Veterinarian")
+  @Operation(
+      summary = "List Medical Records",
+      description = "Lists medical records for active Farmer or Veterinarian")
   public ApiResponse<List<MedicalRecordResponse>> listMedicalRecords(Principal principal) {
-    List<MedicalRecordResponse> response = medicalRecordService.listMedicalRecords(principal.getName());
+    List<MedicalRecordResponse> response =
+        medicalRecordService.listMedicalRecords(principal.getName());
     return ApiResponse.ok("Medical records retrieved successfully", response);
   }
 
   /** Retrieves paginated medical records for current authenticated user. */
   @GetMapping("/medical-records/page")
-  @Operation(summary = "Paginated List of Medical Records", description = "Lists medical records with page, size, sort support")
+  @Operation(
+      summary = "Paginated List of Medical Records",
+      description = "Lists medical records with page, size, sort support")
   public ApiResponse<Page<MedicalRecordResponse>> listMedicalRecordsPaginated(
       Principal principal,
-      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    Page<MedicalRecordResponse> response = medicalRecordService.listMedicalRecords(principal.getName(), pageable);
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    Page<MedicalRecordResponse> response =
+        medicalRecordService.listMedicalRecords(principal.getName(), pageable);
     return ApiResponse.ok("Paginated medical records retrieved successfully", response);
   }
 
   /** Retrieves a specific medical record by ID. */
   @GetMapping("/medical-records/{id}")
-  @Operation(summary = "Get Medical Record by ID", description = "Returns a single medical record by ID")
-  public ApiResponse<MedicalRecordResponse> getMedicalRecordById(Principal principal, @PathVariable UUID id) {
-    MedicalRecordResponse response = medicalRecordService.getMedicalRecordById(principal.getName(), id);
+  @Operation(
+      summary = "Get Medical Record by ID",
+      description = "Returns a single medical record by ID")
+  public ApiResponse<MedicalRecordResponse> getMedicalRecordById(
+      Principal principal, @PathVariable UUID id) {
+    MedicalRecordResponse response =
+        medicalRecordService.getMedicalRecordById(principal.getName(), id);
     return ApiResponse.ok("Medical record retrieved successfully", response);
   }
 
   /** Retrieves complete medical history for a specific livestock animal. */
   @GetMapping("/animals/{animalId}/medical-history")
-  @Operation(summary = "Get Animal Clinical History", description = "Returns medical records timeline for an animal")
+  @Operation(
+      summary = "Get Animal Clinical History",
+      description = "Returns medical records timeline for an animal")
   public ApiResponse<List<MedicalRecordResponse>> getAnimalMedicalHistory(
       Principal principal, @PathVariable UUID animalId) {
-    List<MedicalRecordResponse> response = medicalRecordService.getAnimalMedicalHistory(principal.getName(), animalId);
+    List<MedicalRecordResponse> response =
+        medicalRecordService.getAnimalMedicalHistory(principal.getName(), animalId);
     return ApiResponse.ok("Animal medical history retrieved successfully", response);
   }
 
   /** Retrieves the medical record associated with an appointment ID. */
   @GetMapping("/appointments/{appointmentId}/medical-record")
-  @Operation(summary = "Get Medical Record by Appointment ID", description = "Returns medical record linked to appointment")
+  @Operation(
+      summary = "Get Medical Record by Appointment ID",
+      description = "Returns medical record linked to appointment")
   public ApiResponse<MedicalRecordResponse> getMedicalRecordByAppointmentId(
       Principal principal, @PathVariable UUID appointmentId) {
-    MedicalRecordResponse response = medicalRecordService.getMedicalRecordByAppointmentId(principal.getName(), appointmentId);
+    MedicalRecordResponse response =
+        medicalRecordService.getMedicalRecordByAppointmentId(principal.getName(), appointmentId);
     return ApiResponse.ok("Appointment medical record retrieved successfully", response);
   }
 }

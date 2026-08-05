@@ -31,8 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Core notification dispatch service handling pipeline execution, provider invocation,
- * delivery logging, and inbox query management.
+ * Core notification dispatch service handling pipeline execution, provider invocation, delivery
+ * logging, and inbox query management.
  */
 @Service
 public class NotificationService {
@@ -62,25 +62,33 @@ public class NotificationService {
     this.vetraMetrics = vetraMetrics;
   }
 
-  /**
-   * Dispatches a notification to a specific target user.
-   */
+  /** Dispatches a notification to a specific target user. */
   @Transactional
   public NotificationResponse sendNotification(
-      UUID userId, String title, String body, String payloadJson, NotificationChannel channel, NotificationPriority priority) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId, "USER_004"));
+      UUID userId,
+      String title,
+      String body,
+      String payloadJson,
+      NotificationChannel channel,
+      NotificationPriority priority) {
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException("User not found with ID: " + userId, "USER_004"));
 
-    Notification notification = Notification.builder()
-        .user(user)
-        .channel(channel != null ? channel : NotificationChannel.PUSH)
-        .priority(priority != null ? priority : NotificationPriority.NORMAL)
-        .title(title)
-        .body(body)
-        .payloadJson(payloadJson)
-        .status(NotificationStatus.PENDING)
-        .scheduledAt(Instant.now())
-        .build();
+    Notification notification =
+        Notification.builder()
+            .user(user)
+            .channel(channel != null ? channel : NotificationChannel.PUSH)
+            .priority(priority != null ? priority : NotificationPriority.NORMAL)
+            .title(title)
+            .body(body)
+            .payloadJson(payloadJson)
+            .status(NotificationStatus.PENDING)
+            .scheduledAt(Instant.now())
+            .build();
 
     notification = notificationRepository.save(notification);
 
@@ -89,7 +97,9 @@ public class NotificationService {
     NotificationProvider provider = resolveProvider(channel);
 
     if (activeDevices.isEmpty()) {
-      log.info("No active registered push device tokens for user id={}. Message stored in inbox.", userId);
+      log.info(
+          "No active registered push device tokens for user id={}. Message stored in inbox.",
+          userId);
       notification.setStatus(NotificationStatus.QUEUED);
       notification = notificationRepository.save(notification);
       vetraMetrics.recordNotificationQueued();
@@ -98,14 +108,15 @@ public class NotificationService {
       for (NotificationDevice device : activeDevices) {
         NotificationProviderResult result = provider.send(notification, device.getDeviceToken());
 
-        NotificationDeliveryLog deliveryLog = NotificationDeliveryLog.builder()
-            .notification(notification)
-            .provider(result.providerName())
-            .status(result.success() ? "SUCCESS" : "FAILED")
-            .responsePayload(result.messageId())
-            .errorMessage(result.errorMessage())
-            .attemptNumber(1)
-            .build();
+        NotificationDeliveryLog deliveryLog =
+            NotificationDeliveryLog.builder()
+                .notification(notification)
+                .provider(result.providerName())
+                .status(result.success() ? "SUCCESS" : "FAILED")
+                .responsePayload(result.messageId())
+                .errorMessage(result.errorMessage())
+                .attemptNumber(1)
+                .build();
 
         logRepository.save(deliveryLog);
 
@@ -130,9 +141,11 @@ public class NotificationService {
 
   /** Lists user notifications with pagination. */
   @Transactional(readOnly = true)
-  public Page<NotificationResponse> listUserNotifications(String userIdentifier, Pageable pageable) {
+  public Page<NotificationResponse> listUserNotifications(
+      String userIdentifier, Pageable pageable) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    return notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), pageable)
+    return notificationRepository
+        .findByUserIdOrderByCreatedAtDesc(user.getId(), pageable)
         .map(NotificationResponse::fromEntity);
   }
 
@@ -150,11 +163,17 @@ public class NotificationService {
   @CacheEvict(value = CacheNames.NOTIFICATIONS, key = "'unread_' + #userIdentifier")
   public NotificationResponse markAsRead(String userIdentifier, UUID notificationId) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    Notification notification = notificationRepository.findById(notificationId)
-        .orElseThrow(() -> new ResourceNotFoundException("Notification not found with ID: " + notificationId, "NOTIFICATION_002"));
+    Notification notification =
+        notificationRepository
+            .findById(notificationId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Notification not found with ID: " + notificationId, "NOTIFICATION_002"));
 
     if (!notification.getUser().getId().equals(user.getId())) {
-      throw new UnauthorizedResourceAccessException("Users can only access their own notifications", "NOTIFICATION_003");
+      throw new UnauthorizedResourceAccessException(
+          "Users can only access their own notifications", "NOTIFICATION_003");
     }
 
     if (notification.getReadAt() == null) {
@@ -174,8 +193,10 @@ public class NotificationService {
   }
 
   private User getUserByEmailOrPhone(String identifier) {
-    return userRepository.findByEmail(identifier)
+    return userRepository
+        .findByEmail(identifier)
         .or(() -> userRepository.findByPhone(identifier))
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
+        .orElseThrow(
+            () -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
   }
 }

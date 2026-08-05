@@ -27,12 +27,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST controller managing disease surveillance reporting and spatial proximity queries.
- */
+/** REST controller managing disease surveillance reporting and spatial proximity queries. */
 @RestController
 @RequestMapping("/api/v1/disease/reports")
-@Tag(name = "Disease Surveillance Module", description = "Endpoints for disease report submission, spatial search, and outbreak intelligence")
+@Tag(
+    name = "Disease Surveillance Module",
+    description =
+        "Endpoints for disease report submission, spatial search, and outbreak intelligence")
 @SecurityRequirement(name = "bearerAuth")
 public class DiseaseReportController {
 
@@ -47,7 +48,9 @@ public class DiseaseReportController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @PreAuthorize("hasAnyRole('VETERINARIAN', 'ADMIN')")
-  @Operation(summary = "Create Disease Report", description = "Submits a new verified or suspected disease report for an animal.")
+  @Operation(
+      summary = "Create Disease Report",
+      description = "Submits a new verified or suspected disease report for an animal.")
   public ApiResponse<DiseaseReportResponse> createReport(
       Principal principal, @Valid @RequestBody CreateDiseaseReportRequest request) {
     DiseaseReportResponse response = diseaseService.createReport(principal.getName(), request);
@@ -56,7 +59,9 @@ public class DiseaseReportController {
 
   /** Retrieves a disease report by ID. */
   @GetMapping("/{id}")
-  @Operation(summary = "Get Disease Report by ID", description = "Fetches a disease report by UUID.")
+  @Operation(
+      summary = "Get Disease Report by ID",
+      description = "Fetches a disease report by UUID.")
   public ApiResponse<DiseaseReportResponse> getReportById(
       Principal principal, @PathVariable("id") UUID id) {
     DiseaseReportResponse response = diseaseService.getReport(principal.getName(), id);
@@ -65,22 +70,29 @@ public class DiseaseReportController {
 
   /** Lists disease reports with pagination. */
   @GetMapping
-  @Operation(summary = "List Disease Reports", description = "Retrieves paginated list of disease reports.")
+  @Operation(
+      summary = "List Disease Reports",
+      description = "Retrieves paginated list of disease reports.")
   public ApiResponse<Page<DiseaseReportResponse>> listReports(
       Principal principal,
-      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    Page<DiseaseReportResponse> response = diseaseService.listReports(principal.getName(), pageable);
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    Page<DiseaseReportResponse> response =
+        diseaseService.listReports(principal.getName(), pageable);
     return ApiResponse.ok("Disease reports retrieved successfully", response);
   }
 
   /** Searches nearby disease reports within geographic radius. */
   @GetMapping("/nearby")
-  @Operation(summary = "Search Nearby Disease Reports", description = "Searches for disease reports within geographic radius in kilometers.")
+  @Operation(
+      summary = "Search Nearby Disease Reports",
+      description = "Searches for disease reports within geographic radius in kilometers.")
   public ApiResponse<List<NearbyReportResponse>> searchNearbyReports(
       @RequestParam("latitude") Double latitude,
       @RequestParam("longitude") Double longitude,
       @RequestParam(value = "radiusKm", required = false, defaultValue = "25.0") Double radiusKm) {
-    List<NearbyReportResponse> response = diseaseService.searchNearbyReports(latitude, longitude, radiusKm);
+    List<NearbyReportResponse> response =
+        diseaseService.searchNearbyReports(latitude, longitude, radiusKm);
     return ApiResponse.ok("Nearby disease reports retrieved successfully", response);
   }
 }

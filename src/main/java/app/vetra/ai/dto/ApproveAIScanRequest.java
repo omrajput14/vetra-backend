@@ -10,12 +10,8 @@ import jakarta.validation.constraints.Size;
  * @param treatmentNotes optional recommended treatment plan
  */
 public record ApproveAIScanRequest(
-    @Size(max = 5000, message = "Notes cannot exceed 5000 characters")
-    String notes,
-
+    @Size(max = 5000, message = "Notes cannot exceed 5000 characters") String notes,
     @Size(max = 255, message = "Custom diagnosis cannot exceed 255 characters")
-    String customDiagnosis,
-
+        String customDiagnosis,
     @Size(max = 5000, message = "Treatment notes cannot exceed 5000 characters")
-    String treatmentNotes
-) {}
+        String treatmentNotes) {}

@@ -7,9 +7,7 @@ import app.vetra.notification.entity.NotificationStatus;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Public DTO representing a notification payload.
- */
+/** Public DTO representing a notification payload. */
 public record NotificationResponse(
     UUID id,
     UUID userId,
@@ -22,8 +20,7 @@ public record NotificationResponse(
     Instant scheduledAt,
     Instant deliveredAt,
     Instant readAt,
-    Instant createdAt
-) {
+    Instant createdAt) {
 
   /**
    * Factory method mapping Notification entity to NotificationResponse DTO.
@@ -44,7 +41,6 @@ public record NotificationResponse(
         notification.getScheduledAt(),
         notification.getDeliveredAt(),
         notification.getReadAt(),
-        notification.getCreatedAt()
-    );
+        notification.getCreatedAt());
   }
 }

@@ -3,13 +3,8 @@ package app.vetra.disease.geo;
 import java.util.List;
 import java.util.Map;
 
-/**
- * RFC 7946 compliant GeoJSON FeatureCollection wrapper.
- */
-public record GeoJsonFeatureCollection(
-    String type,
-    List<GeoJsonFeature> features
-) {
+/** RFC 7946 compliant GeoJSON FeatureCollection wrapper. */
+public record GeoJsonFeatureCollection(String type, List<GeoJsonFeature> features) {
 
   /**
    * Factory method creating a GeoJSON FeatureCollection from a list of features.
@@ -21,14 +16,9 @@ public record GeoJsonFeatureCollection(
     return new GeoJsonFeatureCollection("FeatureCollection", features);
   }
 
-  /**
-   * RFC 7946 compliant GeoJSON Feature.
-   */
+  /** RFC 7946 compliant GeoJSON Feature. */
   public record GeoJsonFeature(
-      String type,
-      GeoJsonGeometry geometry,
-      Map<String, Object> properties
-  ) {
+      String type, GeoJsonGeometry geometry, Map<String, Object> properties) {
 
     /**
      * Factory method creating a Point feature.
@@ -38,16 +28,13 @@ public record GeoJsonFeatureCollection(
      * @param properties feature metadata properties map
      * @return {@link GeoJsonFeature}
      */
-    public static GeoJsonFeature point(double longitude, double latitude, Map<String, Object> properties) {
-      return new GeoJsonFeature("Feature", new GeoJsonGeometry("Point", List.of(longitude, latitude)), properties);
+    public static GeoJsonFeature point(
+        double longitude, double latitude, Map<String, Object> properties) {
+      return new GeoJsonFeature(
+          "Feature", new GeoJsonGeometry("Point", List.of(longitude, latitude)), properties);
     }
   }
 
-  /**
-   * RFC 7946 compliant GeoJSON Geometry.
-   */
-  public record GeoJsonGeometry(
-      String type,
-      List<Double> coordinates
-  ) {}
+  /** RFC 7946 compliant GeoJSON Geometry. */
+  public record GeoJsonGeometry(String type, List<Double> coordinates) {}
 }

@@ -12,9 +12,4 @@ import java.util.UUID;
  * @param longitude longitude coordinate
  */
 public record DiseaseConfirmedEvent(
-    UUID reportId,
-    UUID animalId,
-    String diseaseName,
-    Double latitude,
-    Double longitude
-) {}
+    UUID reportId, UUID animalId, String diseaseName, Double latitude, Double longitude) {}

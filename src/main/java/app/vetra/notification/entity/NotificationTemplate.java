@@ -12,9 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Reusable notification template with placeholder support.
- */
+/** Reusable notification template with placeholder support. */
 @Entity
 @Table(name = "notification_templates")
 @Getter

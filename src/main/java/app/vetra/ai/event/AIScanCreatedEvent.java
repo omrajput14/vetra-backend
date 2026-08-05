@@ -10,9 +10,4 @@ import java.util.UUID;
  * @param imageUrl image URL to analyze
  * @param uploadedBy uploader user UUID
  */
-public record AIScanCreatedEvent(
-    UUID scanId,
-    UUID animalId,
-    String imageUrl,
-    UUID uploadedBy
-) {}
+public record AIScanCreatedEvent(UUID scanId, UUID animalId, String imageUrl, UUID uploadedBy) {}

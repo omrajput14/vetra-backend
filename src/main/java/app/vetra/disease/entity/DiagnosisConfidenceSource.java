@@ -1,8 +1,6 @@
 package app.vetra.disease.entity;
 
-/**
- * Diagnostic confidence source for epidemiological disease surveillance analytics.
- */
+/** Diagnostic confidence source for epidemiological disease surveillance analytics. */
 public enum DiagnosisConfidenceSource {
   /** Confirmed via veterinarian-approved AI diagnostic scan. */
   AI_VERIFIED,

@@ -29,9 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Core authentication service handling registration, login, token refresh, and profile updates.
- */
+/** Core authentication service handling registration, login, token refresh, and profile updates. */
 @Service
 public class AuthService {
 
@@ -74,27 +72,29 @@ public class AuthService {
       throw new ConflictException("Phone number is already registered", "USER_002");
     }
 
-    User user = User.builder()
-        .email(request.email())
-        .phone(request.phone())
-        .passwordHash(passwordEncoder.encode(request.password()))
-        .role(UserRole.FARMER)
-        .isActive(true)
-        .build();
+    User user =
+        User.builder()
+            .email(request.email())
+            .phone(request.phone())
+            .passwordHash(passwordEncoder.encode(request.password()))
+            .role(UserRole.FARMER)
+            .isActive(true)
+            .build();
 
     user = userRepository.save(user);
 
-    FarmerProfile profile = FarmerProfile.builder()
-        .user(user)
-        .fullName(request.fullName())
-        .farmName(request.farmName())
-        .village(request.village())
-        .district(request.district())
-        .state(request.state())
-        .latitude(request.latitude())
-        .longitude(request.longitude())
-        .animalCount(request.animalCount())
-        .build();
+    FarmerProfile profile =
+        FarmerProfile.builder()
+            .user(user)
+            .fullName(request.fullName())
+            .farmName(request.farmName())
+            .village(request.village())
+            .district(request.district())
+            .state(request.state())
+            .latitude(request.latitude())
+            .longitude(request.longitude())
+            .animalCount(request.animalCount())
+            .build();
 
     farmerProfileRepository.save(profile);
     vetraMetrics.recordFarmerRegistration();
@@ -109,35 +109,39 @@ public class AuthService {
     if (userRepository.existsByEmail(request.email())) {
       throw new ConflictException("Email is already registered", "USER_001");
     }
-    if (request.phone() != null && !request.phone().isBlank() && userRepository.existsByPhone(request.phone())) {
+    if (request.phone() != null
+        && !request.phone().isBlank()
+        && userRepository.existsByPhone(request.phone())) {
       throw new ConflictException("Phone number is already registered", "USER_002");
     }
     if (vetProfileRepository.existsByRegistrationNumber(request.registrationNumber())) {
       throw new ConflictException("Registration number is already registered", "USER_003");
     }
 
-    User user = User.builder()
-        .email(request.email())
-        .phone(request.phone())
-        .passwordHash(passwordEncoder.encode(request.password()))
-        .role(UserRole.VETERINARIAN)
-        .isActive(true)
-        .build();
+    User user =
+        User.builder()
+            .email(request.email())
+            .phone(request.phone())
+            .passwordHash(passwordEncoder.encode(request.password()))
+            .role(UserRole.VETERINARIAN)
+            .isActive(true)
+            .build();
 
     user = userRepository.save(user);
 
-    VetProfile profile = VetProfile.builder()
-        .user(user)
-        .fullName(request.fullName())
-        .registrationNumber(request.registrationNumber())
-        .qualification(request.qualification())
-        .specialization(request.specialization())
-        .clinicName(request.clinicName())
-        .yearsExperience(request.yearsExperience())
-        .latitude(request.latitude())
-        .longitude(request.longitude())
-        .isAvailable(true)
-        .build();
+    VetProfile profile =
+        VetProfile.builder()
+            .user(user)
+            .fullName(request.fullName())
+            .registrationNumber(request.registrationNumber())
+            .qualification(request.qualification())
+            .specialization(request.specialization())
+            .clinicName(request.clinicName())
+            .yearsExperience(request.yearsExperience())
+            .latitude(request.latitude())
+            .longitude(request.longitude())
+            .isAvailable(true)
+            .build();
 
     vetProfileRepository.save(profile);
     vetraMetrics.recordVetRegistration();
@@ -151,8 +155,12 @@ public class AuthService {
   public AuthResponse loginFarmer(LoginRequest request) {
     try {
       User user = authenticateUser(request, UserRole.FARMER);
-      FarmerProfile profile = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile missing for user", "USER_004"));
+      FarmerProfile profile =
+          farmerProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundException("Farmer profile missing for user", "USER_004"));
       vetraMetrics.recordFarmerLoginSuccess();
       tagSpanWithRole(UserRole.FARMER);
       return createAuthResponse(user, mapFarmerProfileToDto(user, profile));
@@ -167,8 +175,13 @@ public class AuthService {
   public AuthResponse loginVet(LoginRequest request) {
     try {
       User user = authenticateUser(request, UserRole.VETERINARIAN);
-      VetProfile profile = vetProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile missing for user", "USER_004"));
+      VetProfile profile =
+          vetProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () ->
+                      new ResourceNotFoundException(
+                          "Veterinarian profile missing for user", "USER_004"));
       vetraMetrics.recordVetLoginSuccess();
       tagSpanWithRole(UserRole.VETERINARIAN);
       return createAuthResponse(user, mapVetProfileToDto(user, profile));
@@ -181,9 +194,14 @@ public class AuthService {
   /** Refreshes access token and rotates refresh token using raw token string. */
   @Transactional
   public AuthResponse refreshToken(RefreshTokenRequest request) {
-    RefreshToken refreshToken = refreshTokenService.findByRawToken(request.refreshToken())
-        .map(refreshTokenService::verifyExpiration)
-        .orElseThrow(() -> new UnauthorizedResourceAccessException("Invalid or expired refresh token", "AUTH_004"));
+    RefreshToken refreshToken =
+        refreshTokenService
+            .findByRawToken(request.refreshToken())
+            .map(refreshTokenService::verifyExpiration)
+            .orElseThrow(
+                () ->
+                    new UnauthorizedResourceAccessException(
+                        "Invalid or expired refresh token", "AUTH_004"));
 
     User user = refreshToken.getUser();
     UserProfileDto profileDto = getCurrentUserProfileDto(user);
@@ -199,8 +217,10 @@ public class AuthService {
   /** Changes password for user and revokes all active sessions across all devices. */
   @Transactional
   public void changePassword(String identifier, ChangePasswordRequest request) {
-    User user = userRepository.findByIdentifier(identifier)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
+    User user =
+        userRepository
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
 
     if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
       throw new UnauthorizedResourceAccessException("Current password does not match", "AUTH_001");
@@ -217,11 +237,16 @@ public class AuthService {
   @CacheEvict(
       value = CacheNames.USER_PROFILES,
       key = "T(app.vetra.infrastructure.cache.CacheKeys).userProfileKey(#currentUserIdentifier)")
-  public UserProfileDto updateUserProfile(String currentUserIdentifier, UpdateProfileRequest request) {
-    User user = userRepository.findByIdentifier(currentUserIdentifier)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
+  public UserProfileDto updateUserProfile(
+      String currentUserIdentifier, UpdateProfileRequest request) {
+    User user =
+        userRepository
+            .findByIdentifier(currentUserIdentifier)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
 
-    if (request.phone() != null && !request.phone().isBlank() && !request.phone().equals(user.getPhone())) {
+    if (request.phone() != null
+        && !request.phone().isBlank()
+        && !request.phone().equals(user.getPhone())) {
       user.setPhone(request.phone());
     }
 
@@ -236,8 +261,10 @@ public class AuthService {
   }
 
   private void updateFarmerProfile(User user, UpdateProfileRequest request) {
-    FarmerProfile profile = farmerProfileRepository.findByUser(user)
-        .orElseGet(() -> FarmerProfile.builder().user(user).build());
+    FarmerProfile profile =
+        farmerProfileRepository
+            .findByUser(user)
+            .orElseGet(() -> FarmerProfile.builder().user(user).build());
     if (request.fullName() != null && !request.fullName().isBlank()) {
       profile.setFullName(request.fullName());
     }
@@ -257,8 +284,15 @@ public class AuthService {
   }
 
   private void updateVetProfile(User user, UpdateProfileRequest request) {
-    VetProfile profile = vetProfileRepository.findByUser(user)
-        .orElseGet(() -> VetProfile.builder().user(user).registrationNumber("VET-" + System.currentTimeMillis()).build());
+    VetProfile profile =
+        vetProfileRepository
+            .findByUser(user)
+            .orElseGet(
+                () ->
+                    VetProfile.builder()
+                        .user(user)
+                        .registrationNumber("VET-" + System.currentTimeMillis())
+                        .build());
     if (request.fullName() != null && !request.fullName().isBlank()) {
       profile.setFullName(request.fullName());
     }
@@ -283,17 +317,23 @@ public class AuthService {
       value = CacheNames.USER_PROFILES,
       key = "T(app.vetra.infrastructure.cache.CacheKeys).userProfileKey(#identifier)")
   public UserProfileDto getCurrentUserProfileDtoByIdentifier(String identifier) {
-    User user = userRepository.findByIdentifier(identifier)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
+    User user =
+        userRepository
+            .findByIdentifier(identifier)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
     return getCurrentUserProfileDto(user);
   }
 
   private User authenticateUser(LoginRequest request, UserRole expectedRole) {
-    User user = userRepository.findByIdentifier(request.identifier())
-        .orElseThrow(() -> new UnauthorizedResourceAccessException("Invalid credentials", "AUTH_001"));
+    User user =
+        userRepository
+            .findByIdentifier(request.identifier())
+            .orElseThrow(
+                () -> new UnauthorizedResourceAccessException("Invalid credentials", "AUTH_001"));
 
     if (user.getRole() != expectedRole) {
-      throw new UnauthorizedResourceAccessException("Access denied for role: " + user.getRole(), "AUTH_006");
+      throw new UnauthorizedResourceAccessException(
+          "Access denied for role: " + user.getRole(), "AUTH_006");
     }
 
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
@@ -304,35 +344,44 @@ public class AuthService {
   }
 
   private AuthResponse createAuthResponse(User user, UserProfileDto profileDto) {
-    String accessToken = jwtUtil.generateAccessToken(
-        user.getEmail() != null ? user.getEmail() : user.getPhone(),
-        user.getRole().name());
+    String accessToken =
+        jwtUtil.generateAccessToken(
+            user.getEmail() != null ? user.getEmail() : user.getPhone(), user.getRole().name());
     String rawRefreshToken = refreshTokenService.createRefreshToken(user);
 
     return new AuthResponse(
-        accessToken,
-        rawRefreshToken,
-        "Bearer",
-        jwtUtil.getExpirationMs() / 1000,
-        profileDto
-    );
+        accessToken, rawRefreshToken, "Bearer", jwtUtil.getExpirationMs() / 1000, profileDto);
   }
 
   /** Retrieves user profile DTO from user entity based on role. */
   public UserProfileDto getCurrentUserProfileDto(User user) {
     if (user.getRole() == UserRole.FARMER) {
-      FarmerProfile profile = farmerProfileRepository.findByUser(user)
-          .orElse(null);
+      FarmerProfile profile = farmerProfileRepository.findByUser(user).orElse(null);
       return mapFarmerProfileToDto(user, profile);
     } else if (user.getRole() == UserRole.VETERINARIAN) {
-      VetProfile profile = vetProfileRepository.findByUser(user)
-          .orElse(null);
+      VetProfile profile = vetProfileRepository.findByUser(user).orElse(null);
       return mapVetProfileToDto(user, profile);
     }
     return new UserProfileDto(
-        user.getId(), user.getEmail(), user.getPhone(), user.getRole(), user.isActive(),
-        null, null, null, null, null, null, null, null, null, null, null, null, null, null
-    );
+        user.getId(),
+        user.getEmail(),
+        user.getPhone(),
+        user.getRole(),
+        user.isActive(),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 
   /** Retrieves list of all registered veterinarians for directory and booking pickers. */
@@ -345,7 +394,11 @@ public class AuthService {
 
   private UserProfileDto mapFarmerProfileToDto(User user, FarmerProfile p) {
     return new UserProfileDto(
-        user.getId(), user.getEmail(), user.getPhone(), user.getRole(), user.isActive(),
+        user.getId(),
+        user.getEmail(),
+        user.getPhone(),
+        user.getRole(),
+        user.isActive(),
         p != null ? p.getFullName() : null,
         p != null ? p.getFarmName() : null,
         p != null ? p.getVillage() : null,
@@ -354,15 +407,26 @@ public class AuthService {
         p != null ? p.getLatitude() : null,
         p != null ? p.getLongitude() : null,
         p != null ? p.getAnimalCount() : null,
-        null, null, null, null, null, null
-    );
+        null,
+        null,
+        null,
+        null,
+        null,
+        null);
   }
 
   private UserProfileDto mapVetProfileToDto(User user, VetProfile v) {
     return new UserProfileDto(
-        user.getId(), user.getEmail(), user.getPhone(), user.getRole(), user.isActive(),
+        user.getId(),
+        user.getEmail(),
+        user.getPhone(),
+        user.getRole(),
+        user.isActive(),
         v != null ? v.getFullName() : null,
-        null, null, null, null,
+        null,
+        null,
+        null,
+        null,
         v != null ? v.getLatitude() : null,
         v != null ? v.getLongitude() : null,
         null,
@@ -371,16 +435,15 @@ public class AuthService {
         v != null ? v.getSpecialization() : null,
         v != null ? v.getClinicName() : null,
         v != null ? v.getYearsExperience() : null,
-        v != null ? v.isAvailable() : null
-    );
+        v != null ? v.isAvailable() : null);
   }
 
   /**
    * Tags the current Micrometer trace span with the authenticated user role.
    *
    * <p>{@code user.role} is a bounded enum value (FARMER | VETERINARIAN). It is safe to include as
-   * a span tag \u2014 not PII, not high-cardinality, and directly useful for filtering traces by user
-   * type in Grafana Tempo.
+   * a span tag \u2014 not PII, not high-cardinality, and directly useful for filtering traces by
+   * user type in Grafana Tempo.
    *
    * @param role the authenticated user's role
    */

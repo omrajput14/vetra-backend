@@ -13,9 +13,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-/**
- * Event-driven notification listener consuming domain events across bounded contexts.
- */
+/** Event-driven notification listener consuming domain events across bounded contexts. */
 @Component
 public class NotificationEventListener {
 
@@ -32,7 +30,8 @@ public class NotificationEventListener {
   @Async
   @EventListener
   public void handleAppointmentBooked(AppointmentBookedEvent event) {
-    log.info("NotificationListener: handleAppointmentBooked appointmentId={}", event.appointmentId());
+    log.info(
+        "NotificationListener: handleAppointmentBooked appointmentId={}", event.appointmentId());
   }
 
   /** Consumes AIInferenceCompletedEvent. */
@@ -53,20 +52,29 @@ public class NotificationEventListener {
   @Async
   @EventListener
   public void handleDiseaseReportCreated(DiseaseReportCreatedEvent event) {
-    log.info("NotificationListener: handleDiseaseReportCreated reportId={} disease='{}'", event.reportId(), event.diseaseName());
+    log.info(
+        "NotificationListener: handleDiseaseReportCreated reportId={} disease='{}'",
+        event.reportId(),
+        event.diseaseName());
   }
 
   /** Consumes PotentialOutbreakDetectedEvent. */
   @Async
   @EventListener
   public void handleOutbreakDetected(PotentialOutbreakDetectedEvent event) {
-    log.warn("NotificationListener: handleOutbreakDetected disease='{}' clusterSize={}", event.diseaseName(), event.reportCount());
+    log.warn(
+        "NotificationListener: handleOutbreakDetected disease='{}' clusterSize={}",
+        event.diseaseName(),
+        event.reportCount());
   }
 
   /** Consumes OutbreakResolvedAutomaticallyEvent. */
   @Async
   @EventListener
   public void handleOutbreakResolved(OutbreakResolvedAutomaticallyEvent event) {
-    log.info("NotificationListener: handleOutbreakResolved outbreakId={} disease='{}'", event.outbreakId(), event.diseaseName());
+    log.info(
+        "NotificationListener: handleOutbreakResolved outbreakId={} disease='{}'",
+        event.outbreakId(),
+        event.diseaseName());
   }
 }

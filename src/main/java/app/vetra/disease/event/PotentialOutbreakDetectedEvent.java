@@ -1,7 +1,8 @@
 package app.vetra.disease.event;
 
 /**
- * Event published when a geographic cluster of confirmed disease reports triggers potential outbreak detection.
+ * Event published when a geographic cluster of confirmed disease reports triggers potential
+ * outbreak detection.
  *
  * @param diseaseName disease name
  * @param centerLatitude centroid latitude
@@ -9,8 +10,4 @@ package app.vetra.disease.event;
  * @param reportCount number of affected reports in cluster
  */
 public record PotentialOutbreakDetectedEvent(
-    String diseaseName,
-    Double centerLatitude,
-    Double centerLongitude,
-    int reportCount
-) {}
+    String diseaseName, Double centerLatitude, Double centerLongitude, int reportCount) {}

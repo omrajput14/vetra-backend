@@ -6,9 +6,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Response payload representing an Electronic Veterinary Medical Record.
- */
+/** Response payload representing an Electronic Veterinary Medical Record. */
 public record MedicalRecordResponse(
     UUID id,
     UUID appointmentId,
@@ -31,8 +29,7 @@ public record MedicalRecordResponse(
     String notes,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt,
-    Long version
-) {
+    Long version) {
   /** Converts a MedicalRecord entity into MedicalRecordResponse DTO. */
   public static MedicalRecordResponse fromEntity(MedicalRecord record) {
     return new MedicalRecordResponse(
@@ -41,7 +38,9 @@ public record MedicalRecordResponse(
         record.getAnimal() != null ? record.getAnimal().getId() : null,
         record.getAnimal() != null ? record.getAnimal().getAnimalName() : null,
         record.getAnimal() != null ? record.getAnimal().getTagNumber() : null,
-        record.getAnimal() != null && record.getAnimal().getSpecies() != null ? record.getAnimal().getSpecies().name() : null,
+        record.getAnimal() != null && record.getAnimal().getSpecies() != null
+            ? record.getAnimal().getSpecies().name()
+            : null,
         record.getFarmer() != null ? record.getFarmer().getId() : null,
         record.getFarmer() != null ? record.getFarmer().getFullName() : null,
         record.getVeterinarian() != null ? record.getVeterinarian().getId() : null,
@@ -57,7 +56,6 @@ public record MedicalRecordResponse(
         record.getNotes(),
         record.getCreatedAt(),
         record.getUpdatedAt(),
-        record.getVersion()
-    );
+        record.getVersion());
   }
 }

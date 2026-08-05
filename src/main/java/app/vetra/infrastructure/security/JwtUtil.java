@@ -9,9 +9,7 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Component;
 
-/**
- * Utility for issuing, parsing, and validating JWT access tokens.
- */
+/** Utility for issuing, parsing, and validating JWT access tokens. */
 @Component
 public class JwtUtil {
 
@@ -56,23 +54,17 @@ public class JwtUtil {
     return subject.equalsIgnoreCase(userEmail) && !isTokenExpired(token);
   }
 
-  /**
-   * Extracts subject email from token.
-   */
+  /** Extracts subject email from token. */
   public String extractSubject(String token) {
     return extractAllClaims(token).getSubject();
   }
 
-  /**
-   * Extracts role claim from token.
-   */
+  /** Extracts role claim from token. */
   public String extractRole(String token) {
     return extractAllClaims(token).get("role", String.class);
   }
 
-  /**
-   * Extracts expiration date from token.
-   */
+  /** Extracts expiration date from token. */
   public Date extractExpiration(String token) {
     return extractAllClaims(token).getExpiration();
   }
@@ -86,10 +78,6 @@ public class JwtUtil {
   }
 
   private Claims extractAllClaims(String token) {
-    return Jwts.parser()
-        .verifyWith(secretKey)
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
   }
 }

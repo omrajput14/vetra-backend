@@ -1,8 +1,6 @@
 package app.vetra.infrastructure.persistence.enums;
 
-/**
- * Status lifecycle of a veterinary appointment.
- */
+/** Status lifecycle of a veterinary appointment. */
 public enum AppointmentStatus {
   PENDING,
   CONFIRMED,

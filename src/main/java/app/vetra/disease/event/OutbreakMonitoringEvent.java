@@ -11,7 +11,4 @@ import java.util.UUID;
  * @param transitionedAt timestamp of transition
  */
 public record OutbreakMonitoringEvent(
-    UUID outbreakId,
-    String diseaseName,
-    Instant transitionedAt
-) {}
+    UUID outbreakId, String diseaseName, Instant transitionedAt) {}

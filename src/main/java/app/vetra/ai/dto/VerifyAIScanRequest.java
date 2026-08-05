@@ -10,10 +10,6 @@ import jakarta.validation.constraints.NotNull;
  * @param correctedDiagnosis human-corrected diagnosis if AI recommendation was inaccurate
  */
 public record VerifyAIScanRequest(
-    @NotNull(message = "Verification decision is required")
-    Boolean acceptDiagnosis,
-
+    @NotNull(message = "Verification decision is required") Boolean acceptDiagnosis,
     String veterinarianNotes,
-
-    String correctedDiagnosis
-) {}
+    String correctedDiagnosis) {}

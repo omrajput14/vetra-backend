@@ -2,9 +2,7 @@ package app.vetra.infrastructure.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Base domain exception carrying machine-readable error code and HTTP status mapping.
- */
+/** Base domain exception carrying machine-readable error code and HTTP status mapping. */
 public abstract class BaseDomainException extends RuntimeException {
 
   private final String errorCode;

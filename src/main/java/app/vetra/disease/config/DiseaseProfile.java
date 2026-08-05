@@ -16,8 +16,7 @@ public record DiseaseProfile(
     int minimumConfirmedCases,
     int evaluationWindowHours,
     double severityWeight,
-    String reportPriority
-) {
+    String reportPriority) {
 
   /**
    * Factory method creating a default profile for unconfigured diseases.
@@ -29,10 +28,9 @@ public record DiseaseProfile(
     return new DiseaseProfile(
         diseaseName,
         15.0, // Default 15km
-        3,    // Default 3 cases
-        72,   // Default 72h (3 days)
-        1.0,  // Standard weight
-        "MEDIUM"
-    );
+        3, // Default 3 cases
+        72, // Default 72h (3 days)
+        1.0, // Standard weight
+        "MEDIUM");
   }
 }

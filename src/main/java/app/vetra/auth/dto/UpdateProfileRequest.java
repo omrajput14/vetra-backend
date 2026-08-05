@@ -1,8 +1,6 @@
 package app.vetra.auth.dto;
 
-/**
- * Request payload for updating active user profile information.
- */
+/** Request payload for updating active user profile information. */
 public record UpdateProfileRequest(
     String fullName,
     String phone,

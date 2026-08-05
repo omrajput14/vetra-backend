@@ -14,9 +14,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * JWT Authentication Filter intercepting inbound HTTP requests to validate Bearer token.
- */
+/** JWT Authentication Filter intercepting inbound HTTP requests to validate Bearer token. */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

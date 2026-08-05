@@ -6,9 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/**
- * Data access repository for VetProfile entity.
- */
+/** Data access repository for VetProfile entity. */
 public interface VetProfileRepository extends JpaRepository<VetProfile, UUID> {
 
   /** Finds vet profile by user entity. */

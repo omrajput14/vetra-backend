@@ -14,9 +14,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Base abstract entity with UUID primary key and JPA auditing timestamps.
- */
+/** Base abstract entity with UUID primary key and JPA auditing timestamps. */
 @Getter
 @Setter
 @MappedSuperclass

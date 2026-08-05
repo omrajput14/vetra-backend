@@ -4,8 +4,8 @@ import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Strongly typed configuration properties for Vetra Redis infrastructure.
- * Bound to prefix {@code vetra.redis}.
+ * Strongly typed configuration properties for Vetra Redis infrastructure. Bound to prefix {@code
+ * vetra.redis}.
  */
 @ConfigurationProperties(prefix = "vetra.redis")
 public class RedisProperties {

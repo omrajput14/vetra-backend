@@ -9,11 +9,7 @@ package app.vetra.notification.provider;
  * @param errorMessage error message if transmission failed
  */
 public record NotificationProviderResult(
-    boolean success,
-    String providerName,
-    String messageId,
-    String errorMessage
-) {
+    boolean success, String providerName, String messageId, String errorMessage) {
 
   /**
    * Factory method for successful transmission result.

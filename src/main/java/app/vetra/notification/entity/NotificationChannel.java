@@ -1,8 +1,6 @@
 package app.vetra.notification.entity;
 
-/**
- * Communication delivery channels supported by the notification platform.
- */
+/** Communication delivery channels supported by the notification platform. */
 public enum NotificationChannel {
   /** Push notification (e.g. Firebase Cloud Messaging / APNs). */
   PUSH,

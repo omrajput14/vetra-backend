@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service managing mobile/web device registration and token lifecycle.
- */
+/** Service managing mobile/web device registration and token lifecycle. */
 @Service
 public class DeviceManagementService {
 
@@ -27,7 +25,8 @@ public class DeviceManagementService {
   private final UserRepository userRepository;
 
   /** Constructor injection. */
-  public DeviceManagementService(NotificationDeviceRepository deviceRepository, UserRepository userRepository) {
+  public DeviceManagementService(
+      NotificationDeviceRepository deviceRepository, UserRepository userRepository) {
     this.deviceRepository = deviceRepository;
     this.userRepository = userRepository;
   }
@@ -36,7 +35,8 @@ public class DeviceManagementService {
   @Transactional
   public NotificationDevice registerDevice(String userIdentifier, RegisterDeviceRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    Optional<NotificationDevice> existing = deviceRepository.findByDeviceToken(request.deviceToken());
+    Optional<NotificationDevice> existing =
+        deviceRepository.findByDeviceToken(request.deviceToken());
 
     if (existing.isPresent()) {
       NotificationDevice device = existing.get();
@@ -49,14 +49,15 @@ public class DeviceManagementService {
       return deviceRepository.save(device);
     }
 
-    NotificationDevice device = NotificationDevice.builder()
-        .user(user)
-        .deviceToken(request.deviceToken())
-        .platform(request.platform() != null ? request.platform() : "ANDROID")
-        .appVersion(request.appVersion())
-        .active(true)
-        .lastSeen(Instant.now())
-        .build();
+    NotificationDevice device =
+        NotificationDevice.builder()
+            .user(user)
+            .deviceToken(request.deviceToken())
+            .platform(request.platform() != null ? request.platform() : "ANDROID")
+            .appVersion(request.appVersion())
+            .active(true)
+            .lastSeen(Instant.now())
+            .build();
 
     device = deviceRepository.save(device);
     log.info("Registered new push device token id={} userId={}", device.getId(), user.getId());
@@ -67,8 +68,13 @@ public class DeviceManagementService {
   @Transactional
   public void deactivateDevice(String userIdentifier, UUID deviceId) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    NotificationDevice device = deviceRepository.findById(deviceId)
-        .orElseThrow(() -> new ResourceNotFoundException("Device token not found: " + deviceId, "NOTIFICATION_001"));
+    NotificationDevice device =
+        deviceRepository
+            .findById(deviceId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Device token not found: " + deviceId, "NOTIFICATION_001"));
 
     if (device.getUser().getId().equals(user.getId())) {
       device.setActive(false);
@@ -83,8 +89,10 @@ public class DeviceManagementService {
   }
 
   private User getUserByEmailOrPhone(String identifier) {
-    return userRepository.findByEmail(identifier)
+    return userRepository
+        .findByEmail(identifier)
         .or(() -> userRepository.findByPhone(identifier))
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
+        .orElseThrow(
+            () -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
   }
 }

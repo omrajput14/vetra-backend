@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/**
- * Data access repository for User entity.
- */
+/** Data access repository for User entity. */
 public interface UserRepository extends JpaRepository<User, UUID> {
 
   /** Finds user by email. */

@@ -19,5 +19,4 @@ public record DiseaseReportCreatedEvent(
     String diseaseName,
     DiagnosisStatus status,
     Double latitude,
-    Double longitude
-) {}
+    Double longitude) {}

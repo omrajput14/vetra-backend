@@ -15,5 +15,4 @@ public record OutbreakRiskChangedEvent(
     UUID outbreakId,
     String diseaseName,
     OutbreakRiskScore oldRiskScore,
-    OutbreakRiskScore newRiskScore
-) {}
+    OutbreakRiskScore newRiskScore) {}

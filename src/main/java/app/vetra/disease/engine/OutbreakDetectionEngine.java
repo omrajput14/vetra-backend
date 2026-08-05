@@ -24,9 +24,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Intelligent Outbreak Detection Engine.
- * Evaluates temporal windows, disease-specific threshold profiles, spatial clusters,
- * risk scoring, and lifecycle escalation without duplicate cluster creation.
+ * Intelligent Outbreak Detection Engine. Evaluates temporal windows, disease-specific threshold
+ * profiles, spatial clusters, risk scoring, and lifecycle escalation without duplicate cluster
+ * creation.
  */
 @Component
 public class OutbreakDetectionEngine {
@@ -65,19 +65,33 @@ public class OutbreakDetectionEngine {
     DiseaseProfile profile = outbreakProperties.getProfileForDisease(diseaseName);
     Instant cutoffTime = Instant.now().minus(profile.evaluationWindowHours(), ChronoUnit.HOURS);
 
-    List<DiseaseReport> timeWindowReports = diseaseReportRepository
-        .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(diseaseName, DiagnosisStatus.CONFIRMED)
-        .stream()
-        .filter(r -> r.getCreatedAt().isAfter(cutoffTime))
-        .filter(r -> GeoUtils.calculateDistanceKm(
-            report.getLatitude(), report.getLongitude(), r.getLatitude(), r.getLongitude()) <= profile.radiusKm())
-        .toList();
+    List<DiseaseReport> timeWindowReports =
+        diseaseReportRepository
+            .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(
+                diseaseName, DiagnosisStatus.CONFIRMED)
+            .stream()
+            .filter(r -> r.getCreatedAt().isAfter(cutoffTime))
+            .filter(
+                r ->
+                    GeoUtils.calculateDistanceKm(
+                            report.getLatitude(),
+                            report.getLongitude(),
+                            r.getLatitude(),
+                            r.getLongitude())
+                        <= profile.radiusKm())
+            .toList();
 
     int caseCount = timeWindowReports.size();
-    List<Outbreak> existingOutbreaks = findNearbyExistingOutbreaks(diseaseName, report.getLatitude(), report.getLongitude(), profile.radiusKm());
+    List<Outbreak> existingOutbreaks =
+        findNearbyExistingOutbreaks(
+            diseaseName, report.getLatitude(), report.getLongitude(), profile.radiusKm());
 
-    OutbreakRiskScore calculatedRisk = calculateRiskScore(
-        caseCount, profile.severityWeight(), profile.radiusKm(), profile.evaluationWindowHours());
+    OutbreakRiskScore calculatedRisk =
+        calculateRiskScore(
+            caseCount,
+            profile.severityWeight(),
+            profile.radiusKm(),
+            profile.evaluationWindowHours());
 
     if (!existingOutbreaks.isEmpty()) {
       updateExistingCluster(existingOutbreaks.get(0), calculatedRisk, caseCount);
@@ -87,9 +101,11 @@ public class OutbreakDetectionEngine {
   }
 
   /**
-   * Calculates epidemiological risk severity score based on case count, severity weight, and velocity.
+   * Calculates epidemiological risk severity score based on case count, severity weight, and
+   * velocity.
    */
-  public OutbreakRiskScore calculateRiskScore(int caseCount, double severityWeight, double radiusKm, int windowHours) {
+  public OutbreakRiskScore calculateRiskScore(
+      int caseCount, double severityWeight, double radiusKm, int windowHours) {
     if (caseCount <= 0) {
       return OutbreakRiskScore.LOW;
     }
@@ -108,16 +124,20 @@ public class OutbreakDetectionEngine {
     }
   }
 
-  private List<Outbreak> findNearbyExistingOutbreaks(String diseaseName, double lat, double lng, double radiusKm) {
-    return outbreakRepository.findByDiseaseNameIgnoreCase(diseaseName, null)
-        .getContent()
-        .stream()
+  private List<Outbreak> findNearbyExistingOutbreaks(
+      String diseaseName, double lat, double lng, double radiusKm) {
+    return outbreakRepository.findByDiseaseNameIgnoreCase(diseaseName, null).getContent().stream()
         .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
-        .filter(o -> GeoUtils.calculateDistanceKm(lat, lng, o.getCenterLatitude(), o.getCenterLongitude()) <= radiusKm)
+        .filter(
+            o ->
+                GeoUtils.calculateDistanceKm(
+                        lat, lng, o.getCenterLatitude(), o.getCenterLongitude())
+                    <= radiusKm)
         .toList();
   }
 
-  private void updateExistingCluster(Outbreak existing, OutbreakRiskScore calculatedRisk, int caseCount) {
+  private void updateExistingCluster(
+      Outbreak existing, OutbreakRiskScore calculatedRisk, int caseCount) {
     OutbreakRiskScore previousRisk = existing.getRiskScore();
     existing.setAffectedReportsCount(caseCount);
     existing.setLastCaseReportedAt(Instant.now());
@@ -130,39 +150,56 @@ public class OutbreakDetectionEngine {
     }
   }
 
-  private void createNewCluster(DiseaseReport report, DiseaseProfile profile, OutbreakRiskScore calculatedRisk, int caseCount) {
-    Outbreak newOutbreak = Outbreak.builder()
-        .diseaseName(report.getDiseaseName())
-        .severity(profile.reportPriority())
-        .status(OutbreakStatus.ACTIVE)
-        .riskScore(calculatedRisk)
-        .centerLatitude(report.getLatitude())
-        .centerLongitude(report.getLongitude())
-        .radiusKm(profile.radiusKm())
-        .affectedReportsCount(caseCount)
-        .evaluationWindowHours(profile.evaluationWindowHours())
-        .lastCaseReportedAt(Instant.now())
-        .build();
+  private void createNewCluster(
+      DiseaseReport report,
+      DiseaseProfile profile,
+      OutbreakRiskScore calculatedRisk,
+      int caseCount) {
+    Outbreak newOutbreak =
+        Outbreak.builder()
+            .diseaseName(report.getDiseaseName())
+            .severity(profile.reportPriority())
+            .status(OutbreakStatus.ACTIVE)
+            .riskScore(calculatedRisk)
+            .centerLatitude(report.getLatitude())
+            .centerLongitude(report.getLongitude())
+            .radiusKm(profile.radiusKm())
+            .affectedReportsCount(caseCount)
+            .evaluationWindowHours(profile.evaluationWindowHours())
+            .lastCaseReportedAt(Instant.now())
+            .build();
 
     newOutbreak = outbreakRepository.save(newOutbreak);
 
-    log.warn("NEW OUTBREAK CLUSTER CREATED: id={} disease='{}' risk={} cases={}",
-        newOutbreak.getId(), report.getDiseaseName(), calculatedRisk, caseCount);
+    log.warn(
+        "NEW OUTBREAK CLUSTER CREATED: id={} disease='{}' risk={} cases={}",
+        newOutbreak.getId(),
+        report.getDiseaseName(),
+        calculatedRisk,
+        caseCount);
 
-    eventPublisher.publishEvent(new PotentialOutbreakDetectedEvent(
-        report.getDiseaseName(), report.getLatitude(), report.getLongitude(), caseCount));
+    eventPublisher.publishEvent(
+        new PotentialOutbreakDetectedEvent(
+            report.getDiseaseName(), report.getLatitude(), report.getLongitude(), caseCount));
 
-    eventPublisher.publishEvent(new OutbreakEscalatedEvent(
-        newOutbreak.getId(), report.getDiseaseName(), calculatedRisk, caseCount));
+    eventPublisher.publishEvent(
+        new OutbreakEscalatedEvent(
+            newOutbreak.getId(), report.getDiseaseName(), calculatedRisk, caseCount));
   }
 
-  private void publishRiskEvents(Outbreak outbreak, OutbreakRiskScore oldRisk, OutbreakRiskScore newRisk, int caseCount) {
-    eventPublisher.publishEvent(new OutbreakRiskChangedEvent(outbreak.getId(), outbreak.getDiseaseName(), oldRisk, newRisk));
+  private void publishRiskEvents(
+      Outbreak outbreak, OutbreakRiskScore oldRisk, OutbreakRiskScore newRisk, int caseCount) {
+    eventPublisher.publishEvent(
+        new OutbreakRiskChangedEvent(
+            outbreak.getId(), outbreak.getDiseaseName(), oldRisk, newRisk));
 
     if (newRisk.ordinal() > oldRisk.ordinal()) {
-      eventPublisher.publishEvent(new OutbreakEscalatedEvent(outbreak.getId(), outbreak.getDiseaseName(), newRisk, caseCount));
+      eventPublisher.publishEvent(
+          new OutbreakEscalatedEvent(
+              outbreak.getId(), outbreak.getDiseaseName(), newRisk, caseCount));
     } else if (newRisk.ordinal() < oldRisk.ordinal()) {
-      eventPublisher.publishEvent(new OutbreakDeEscalatedEvent(outbreak.getId(), outbreak.getDiseaseName(), newRisk));
+      eventPublisher.publishEvent(
+          new OutbreakDeEscalatedEvent(outbreak.getId(), outbreak.getDiseaseName(), newRisk));
     }
   }
 }

@@ -2,9 +2,7 @@ package app.vetra.infrastructure.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Thrown when an invalid domain state transition occurs (HTTP 422 Unprocessable Entity).
- */
+/** Thrown when an invalid domain state transition occurs (HTTP 422 Unprocessable Entity). */
 public class BusinessRuleException extends BaseDomainException {
 
   /**

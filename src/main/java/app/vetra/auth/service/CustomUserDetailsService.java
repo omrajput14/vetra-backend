@@ -10,9 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Custom Spring Security UserDetailsService loading User from database.
- */
+/** Custom Spring Security UserDetailsService loading User from database. */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -26,8 +24,12 @@ public class CustomUserDetailsService implements UserDetailsService {
   @Override
   @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-    User user = userRepository.findByIdentifier(identifier)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found with identifier: " + identifier));
+    User user =
+        userRepository
+            .findByIdentifier(identifier)
+            .orElseThrow(
+                () ->
+                    new UsernameNotFoundException("User not found with identifier: " + identifier));
 
     return new org.springframework.security.core.userdetails.User(
         user.getEmail() != null ? user.getEmail() : user.getPhone(),
@@ -36,7 +38,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         true,
         true,
         true,
-        Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-    );
+        Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
   }
 }

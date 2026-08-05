@@ -19,9 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing a disease surveillance report for an animal.
- */
+/** Entity representing a disease surveillance report for an animal. */
 @Entity
 @Table(name = "disease_reports")
 @Getter
@@ -54,7 +52,8 @@ public class DiseaseReport extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(name = "diagnosis_confidence_source", nullable = false, length = 32)
   @Builder.Default
-  private DiagnosisConfidenceSource diagnosisConfidenceSource = DiagnosisConfidenceSource.VETERINARIAN;
+  private DiagnosisConfidenceSource diagnosisConfidenceSource =
+      DiagnosisConfidenceSource.VETERINARIAN;
 
   @Column(name = "disease_name", nullable = false, length = 128)
   private String diseaseName;

@@ -10,6 +10,5 @@ import jakarta.validation.constraints.Size;
  */
 public record RejectAIScanRequest(
     @NotBlank(message = "Rejection reason is required")
-    @Size(max = 5000, message = "Rejection reason cannot exceed 5000 characters")
-    String rejectionReason
-) {}
+        @Size(max = 5000, message = "Rejection reason cannot exceed 5000 characters")
+        String rejectionReason) {}

@@ -107,29 +107,38 @@ class MedicalRecordServiceTest {
   @Test
   @DisplayName("Should successfully create medical record for COMPLETED appointment")
   void createMedicalRecord_success() {
-    CreateMedicalRecordRequest request = new CreateMedicalRecordRequest(
-        appointmentId, "Bovine Mastitis", "Swelling", "Antibiotics IV", "Penicillin 500mg",
-        new BigDecimal("450.00"), new BigDecimal("39.5"), LocalDate.now().plusDays(7), "Rest and monitor"
-    );
+    CreateMedicalRecordRequest request =
+        new CreateMedicalRecordRequest(
+            appointmentId,
+            "Bovine Mastitis",
+            "Swelling",
+            "Antibiotics IV",
+            "Penicillin 500mg",
+            new BigDecimal("450.00"),
+            new BigDecimal("39.5"),
+            LocalDate.now().plusDays(7),
+            "Rest and monitor");
 
     when(userRepository.findByEmail("dr.smith@vetra.com")).thenReturn(Optional.of(vetUser));
     when(vetProfileRepository.findByUserId(vetUser.getId())).thenReturn(Optional.of(vetProfile));
     when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
     when(medicalRecordRepository.existsByAppointmentId(appointmentId)).thenReturn(false);
 
-    MedicalRecord saved = MedicalRecord.builder()
-        .id(UUID.randomUUID())
-        .appointment(appointment)
-        .animal(animal)
-        .farmer(farmerProfile)
-        .veterinarian(vetProfile)
-        .diagnosis(request.diagnosis())
-        .treatment(request.treatment())
-        .build();
+    MedicalRecord saved =
+        MedicalRecord.builder()
+            .id(UUID.randomUUID())
+            .appointment(appointment)
+            .animal(animal)
+            .farmer(farmerProfile)
+            .veterinarian(vetProfile)
+            .diagnosis(request.diagnosis())
+            .treatment(request.treatment())
+            .build();
 
     when(medicalRecordRepository.save(any(MedicalRecord.class))).thenReturn(saved);
 
-    MedicalRecordResponse response = medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request);
+    MedicalRecordResponse response =
+        medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request);
 
     assertNotNull(response);
     assertEquals("Bovine Mastitis", response.diagnosis());
@@ -141,33 +150,37 @@ class MedicalRecordServiceTest {
   @DisplayName("Should reject medical record creation when appointment is NOT completed")
   void createMedicalRecord_fails_whenNotCompleted() {
     appointment.setStatus(AppointmentStatus.CONFIRMED);
-    CreateMedicalRecordRequest request = new CreateMedicalRecordRequest(
-        appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null
-    );
+    CreateMedicalRecordRequest request =
+        new CreateMedicalRecordRequest(
+            appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null);
 
     when(userRepository.findByEmail("dr.smith@vetra.com")).thenReturn(Optional.of(vetUser));
     when(vetProfileRepository.findByUserId(vetUser.getId())).thenReturn(Optional.of(vetProfile));
     when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
 
-    BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
-        medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
+    BusinessRuleException ex =
+        assertThrows(
+            BusinessRuleException.class,
+            () -> medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
     assertEquals("APPT_008", ex.getErrorCode());
   }
 
   @Test
   @DisplayName("Should reject duplicate medical record for same appointment")
   void createMedicalRecord_fails_whenDuplicateExists() {
-    CreateMedicalRecordRequest request = new CreateMedicalRecordRequest(
-        appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null
-    );
+    CreateMedicalRecordRequest request =
+        new CreateMedicalRecordRequest(
+            appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null);
 
     when(userRepository.findByEmail("dr.smith@vetra.com")).thenReturn(Optional.of(vetUser));
     when(vetProfileRepository.findByUserId(vetUser.getId())).thenReturn(Optional.of(vetProfile));
     when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
     when(medicalRecordRepository.existsByAppointmentId(appointmentId)).thenReturn(true);
 
-    ConflictException ex = assertThrows(ConflictException.class, () ->
-        medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
+    ConflictException ex =
+        assertThrows(
+            ConflictException.class,
+            () -> medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
     assertEquals("MEDICAL_004", ex.getErrorCode());
   }
 
@@ -183,12 +196,14 @@ class MedicalRecordServiceTest {
     when(vetProfileRepository.findByUserId(vetUser.getId())).thenReturn(Optional.of(otherVet));
     when(appointmentRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
 
-    CreateMedicalRecordRequest request = new CreateMedicalRecordRequest(
-        appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null
-    );
+    CreateMedicalRecordRequest request =
+        new CreateMedicalRecordRequest(
+            appointmentId, "Diagnosis", "Symptoms", "Treatment", null, null, null, null, null);
 
-    UnauthorizedResourceAccessException ex = assertThrows(UnauthorizedResourceAccessException.class, () ->
-        medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
+    UnauthorizedResourceAccessException ex =
+        assertThrows(
+            UnauthorizedResourceAccessException.class,
+            () -> medicalRecordService.createMedicalRecord("dr.smith@vetra.com", request));
     assertEquals("MEDICAL_003", ex.getErrorCode());
   }
 
@@ -201,10 +216,15 @@ class MedicalRecordServiceTest {
 
     when(userRepository.findByEmail("farmer.john@vetra.com")).thenReturn(Optional.of(farmerUser));
     when(animalRepository.findById(animal.getId())).thenReturn(Optional.of(animal));
-    when(farmerProfileRepository.findByUserId(farmerUser.getId())).thenReturn(Optional.of(otherFarmer));
+    when(farmerProfileRepository.findByUserId(farmerUser.getId()))
+        .thenReturn(Optional.of(otherFarmer));
 
-    UnauthorizedResourceAccessException ex = assertThrows(UnauthorizedResourceAccessException.class, () ->
-        medicalRecordService.getAnimalMedicalHistory("farmer.john@vetra.com", animal.getId()));
+    UnauthorizedResourceAccessException ex =
+        assertThrows(
+            UnauthorizedResourceAccessException.class,
+            () ->
+                medicalRecordService.getAnimalMedicalHistory(
+                    "farmer.john@vetra.com", animal.getId()));
     assertEquals("MEDICAL_002", ex.getErrorCode());
   }
 }

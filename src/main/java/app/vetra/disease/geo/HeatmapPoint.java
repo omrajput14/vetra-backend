@@ -10,9 +10,4 @@ package app.vetra.disease.geo;
  * @param diseaseName target disease name
  */
 public record HeatmapPoint(
-    Double latitude,
-    Double longitude,
-    double intensityWeight,
-    int caseCount,
-    String diseaseName
-) {}
+    Double latitude, Double longitude, double intensityWeight, int caseCount, String diseaseName) {}

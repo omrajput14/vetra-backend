@@ -7,7 +7,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.stereotype.Service;
 
 /**
- * In-memory thread-safe service tracking latency, success rates, and availability metrics per AI provider.
+ * In-memory thread-safe service tracking latency, success rates, and availability metrics per AI
+ * provider.
  */
 @Service
 public class AIMetricsService {

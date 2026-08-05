@@ -13,9 +13,4 @@ import java.util.UUID;
  * @param bookedAt timestamp of booking creation
  */
 public record AppointmentBookedEvent(
-    UUID appointmentId,
-    UUID farmerId,
-    UUID vetId,
-    Instant appointmentTime,
-    Instant bookedAt
-) {}
+    UUID appointmentId, UUID farmerId, UUID vetId, Instant appointmentTime, Instant bookedAt) {}

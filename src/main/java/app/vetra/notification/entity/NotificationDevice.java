@@ -15,9 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Registered mobile or web client device token for push notification dispatch.
- */
+/** Registered mobile or web client device token for push notification dispatch. */
 @Entity
 @Table(name = "notification_devices")
 @Getter

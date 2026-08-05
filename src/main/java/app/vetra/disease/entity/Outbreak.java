@@ -13,9 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing a disease outbreak cluster under active surveillance.
- */
+/** Entity representing a disease outbreak cluster under active surveillance. */
 @Entity
 @Table(name = "outbreaks")
 @Getter

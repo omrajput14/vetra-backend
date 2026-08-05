@@ -13,9 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Profile information for livestock farmers.
- */
+/** Profile information for livestock farmers. */
 @Getter
 @Setter
 @NoArgsConstructor

@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import app.vetra.ai.entity.AIProviderType;
 import app.vetra.ai.exception.AIProviderUnavailableException;
 import app.vetra.ai.provider.gemini.GeminiAIProvider;
-import app.vetra.ai.provider.gemini.GeminiProperties;
 import app.vetra.ai.provider.gemini.GeminiPromptBuilder;
+import app.vetra.ai.provider.gemini.GeminiProperties;
 import app.vetra.ai.provider.gemini.GeminiResponseMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +32,7 @@ class GeminiAIProviderTest {
     promptBuilder = new GeminiPromptBuilder();
     responseMapper = new GeminiResponseMapper();
 
-    provider = new GeminiAIProvider(
-        properties, promptBuilder, responseMapper, WebClient.builder());
+    provider = new GeminiAIProvider(properties, promptBuilder, responseMapper, WebClient.builder());
   }
 
   @Test
@@ -61,15 +60,16 @@ class GeminiAIProviderTest {
     properties.setEnabled(true);
     properties.setApiKey("valid-key");
 
-    assertThrows(IllegalArgumentException.class, () ->
-        provider.analyze("invalid-text-without-extension"));
+    assertThrows(
+        IllegalArgumentException.class, () -> provider.analyze("invalid-text-without-extension"));
   }
 
   @Test
   void testAnalyzeThrowsAIProviderUnavailableWhenDisabled() {
     properties.setEnabled(false);
-    assertThrows(AIProviderUnavailableException.class, () ->
-        provider.analyze("https://s3.amazonaws.com/vetra/cow.jpeg"));
+    assertThrows(
+        AIProviderUnavailableException.class,
+        () -> provider.analyze("https://s3.amazonaws.com/vetra/cow.jpeg"));
   }
 
   @Test
