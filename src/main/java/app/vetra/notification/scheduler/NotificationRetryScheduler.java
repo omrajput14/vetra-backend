@@ -12,9 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Background scheduler retrying failed notifications and performing device token cleanup.
- */
+/** Background scheduler retrying failed notifications and performing device token cleanup. */
 @Component
 public class NotificationRetryScheduler {
 
@@ -27,15 +25,14 @@ public class NotificationRetryScheduler {
     this.notificationRepository = notificationRepository;
   }
 
-  /**
-   * Periodically retries failed or queued notifications due for redelivery.
-   */
+  /** Periodically retries failed or queued notifications due for redelivery. */
   @Scheduled(cron = "${vetra.notification.retry-cron:0 */15 * * * *}")
   @Transactional
   public void retryFailedNotifications() {
     log.info("Running notification retry scheduler...");
     Instant cutoff = Instant.now().minus(1, ChronoUnit.HOURS);
-    List<Notification> pendingOrQueued = notificationRepository.findByStatusAndScheduledAtBefore(NotificationStatus.QUEUED, cutoff);
+    List<Notification> pendingOrQueued =
+        notificationRepository.findByStatusAndScheduledAtBefore(NotificationStatus.QUEUED, cutoff);
 
     for (Notification n : pendingOrQueued) {
       log.info("Retrying pending notification id={} userId={}", n.getId(), n.getUser().getId());

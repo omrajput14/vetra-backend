@@ -1,9 +1,9 @@
 package app.vetra.ai.orchestrator;
 
+import app.vetra.ai.entity.AIProviderType;
 import app.vetra.ai.entity.AIScan;
 import app.vetra.ai.entity.AIScanResultEntity;
 import app.vetra.ai.entity.AIScanStatus;
-import app.vetra.ai.entity.AIProviderType;
 import app.vetra.ai.event.AIInferenceCompletedEvent;
 import app.vetra.ai.event.AIInferenceFailedEvent;
 import app.vetra.ai.exception.AIInferenceException;
@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Enterprise orchestrator coordinating AI provider selection, inference execution,
- * latency measurement, result persistence, metrics tracking, and event publishing.
+ * Enterprise orchestrator coordinating AI provider selection, inference execution, latency
+ * measurement, result persistence, metrics tracking, and event publishing.
  */
 @Service
 public class AIOrchestrator {
@@ -51,7 +51,7 @@ public class AIOrchestrator {
 
   /** Returns true if AI orchestration platform is enabled in properties. */
   public boolean isAiEnabled() {
-    return providerRegistry.getDefaultProvider() != null && providerRegistry.getDefaultProvider().isAvailable();
+    return providerRegistry.isPlatformEnabled();
   }
 
   /**
@@ -67,8 +67,10 @@ public class AIOrchestrator {
     long startTime = System.currentTimeMillis();
     final String targetImageUrl = scan.getImageUrl();
 
-    log.info("AI Orchestrator starting inference for scanId={} user={}",
-        scan.getId(), scan.getUploadedBy().getId());
+    log.info(
+        "AI Orchestrator starting inference for scanId={} user={}",
+        scan.getId(),
+        scan.getUploadedBy().getId());
 
     try {
       scan.setStatus(AIScanStatus.PROCESSING);
@@ -76,12 +78,17 @@ public class AIOrchestrator {
       scan.setAiModel(provider.model());
       AIScan savedScan = aiScanRepository.save(scan);
 
-      AIInferenceResult result = retryPolicy.executeWithRetry(() -> provider.analyze(targetImageUrl));
+      AIInferenceResult result =
+          retryPolicy.executeWithRetry(() -> provider.analyze(targetImageUrl));
       long latencyMs = System.currentTimeMillis() - startTime;
 
       // Audit log without image contents
-      log.info("AI Inference Success scanId={} provider={} model={} latencyMs={}",
-          savedScan.getId(), result.provider(), result.model(), latencyMs);
+      log.info(
+          "AI Inference Success scanId={} provider={} model={} latencyMs={}",
+          savedScan.getId(),
+          result.provider(),
+          result.model(),
+          latencyMs);
 
       metricsService.recordSuccess(result.provider(), latencyMs);
       persistInferenceResult(savedScan, result, latencyMs);
@@ -96,16 +103,20 @@ public class AIOrchestrator {
 
     } catch (Exception ex) {
       long latencyMs = System.currentTimeMillis() - startTime;
-      log.error("AI Inference Failed scanId={} provider={} error={}",
-          scan.getId(), provider.providerType(), ex.getMessage());
+      log.error(
+          "AI Inference Failed scanId={} provider={} error={}",
+          scan.getId(),
+          provider.providerType(),
+          ex.getMessage());
 
       metricsService.recordFailure(provider.providerType(), latencyMs);
 
       scan.setStatus(AIScanStatus.FAILED);
       AIScan savedFailedScan = aiScanRepository.save(scan);
 
-      eventPublisher.publishEvent(new AIInferenceFailedEvent(
-          savedFailedScan.getId(), ex.getMessage(), provider.providerType()));
+      eventPublisher.publishEvent(
+          new AIInferenceFailedEvent(
+              savedFailedScan.getId(), ex.getMessage(), provider.providerType()));
 
       if (ex instanceof RuntimeException rte) {
         throw rte;
@@ -115,18 +126,19 @@ public class AIOrchestrator {
   }
 
   private void persistInferenceResult(AIScan scan, AIInferenceResult result, long latencyMs) {
-    AIScanResultEntity resultEntity = AIScanResultEntity.builder()
-        .scan(scan)
-        .provider(result.provider())
-        .model(result.model())
-        .diagnosis(result.diagnosis())
-        .confidence(result.confidence())
-        .rawResponse(result.rawResponse())
-        .latencyMs(latencyMs)
-        .requestId(result.requestId())
-        .tokensUsed(result.tokensUsed())
-        .warnings(result.warnings() != null ? String.join("; ", result.warnings()) : null)
-        .build();
+    AIScanResultEntity resultEntity =
+        AIScanResultEntity.builder()
+            .scan(scan)
+            .provider(result.provider())
+            .model(result.model())
+            .diagnosis(result.diagnosis())
+            .confidence(result.confidence())
+            .rawResponse(result.rawResponse())
+            .latencyMs(latencyMs)
+            .requestId(result.requestId())
+            .tokensUsed(result.tokensUsed())
+            .warnings(result.warnings() != null ? String.join("; ", result.warnings()) : null)
+            .build();
 
     aiScanResultRepository.save(resultEntity);
   }

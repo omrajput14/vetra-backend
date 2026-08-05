@@ -15,9 +15,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service generating high-level epidemiological analytics and disease surveillance metrics.
- */
+/** Service generating high-level epidemiological analytics and disease surveillance metrics. */
 @Service
 public class DiseaseAnalyticsService {
 
@@ -25,7 +23,8 @@ public class DiseaseAnalyticsService {
   private final DiseaseReportRepository diseaseReportRepository;
 
   /** Constructor injection. */
-  public DiseaseAnalyticsService(OutbreakRepository outbreakRepository, DiseaseReportRepository diseaseReportRepository) {
+  public DiseaseAnalyticsService(
+      OutbreakRepository outbreakRepository, DiseaseReportRepository diseaseReportRepository) {
     this.outbreakRepository = outbreakRepository;
     this.diseaseReportRepository = diseaseReportRepository;
   }
@@ -41,33 +40,53 @@ public class DiseaseAnalyticsService {
     List<DiseaseReport> allReports = diseaseReportRepository.findAll();
 
     long totalOutbreaks = allOutbreaks.size();
-    long activeOutbreaks = allOutbreaks.stream().filter(o -> o.getStatus() == OutbreakStatus.ACTIVE || o.getStatus() == OutbreakStatus.DETECTED).count();
-    long resolvedOutbreaks = allOutbreaks.stream().filter(o -> o.getStatus() == OutbreakStatus.RESOLVED).count();
-    long highRiskOutbreaks = allOutbreaks.stream()
-        .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
-        .filter(o -> o.getRiskScore() == OutbreakRiskScore.HIGH || o.getRiskScore() == OutbreakRiskScore.CRITICAL)
-        .count();
+    long activeOutbreaks =
+        allOutbreaks.stream()
+            .filter(
+                o ->
+                    o.getStatus() == OutbreakStatus.ACTIVE
+                        || o.getStatus() == OutbreakStatus.DETECTED)
+            .count();
+    long resolvedOutbreaks =
+        allOutbreaks.stream().filter(o -> o.getStatus() == OutbreakStatus.RESOLVED).count();
+    long highRiskOutbreaks =
+        allOutbreaks.stream()
+            .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
+            .filter(
+                o ->
+                    o.getRiskScore() == OutbreakRiskScore.HIGH
+                        || o.getRiskScore() == OutbreakRiskScore.CRITICAL)
+            .count();
 
-    List<Outbreak> resolvedList = allOutbreaks.stream()
-        .filter(o -> o.getStatus() == OutbreakStatus.RESOLVED && o.getResolvedAt() != null)
-        .toList();
+    List<Outbreak> resolvedList =
+        allOutbreaks.stream()
+            .filter(o -> o.getStatus() == OutbreakStatus.RESOLVED && o.getResolvedAt() != null)
+            .toList();
 
-    double avgResolutionTime = resolvedList.isEmpty() ? 0.0 : resolvedList.stream()
-        .mapToDouble(o -> ChronoUnit.HOURS.between(o.getCreatedAt(), o.getResolvedAt()))
-        .average()
-        .orElse(0.0);
+    double avgResolutionTime =
+        resolvedList.isEmpty()
+            ? 0.0
+            : resolvedList.stream()
+                .mapToDouble(o -> ChronoUnit.HOURS.between(o.getCreatedAt(), o.getResolvedAt()))
+                .average()
+                .orElse(0.0);
 
-    Map<String, Long> diseaseDistribution = allOutbreaks.stream()
-        .collect(Collectors.groupingBy(Outbreak::getDiseaseName, Collectors.counting()));
+    Map<String, Long> diseaseDistribution =
+        allOutbreaks.stream()
+            .collect(Collectors.groupingBy(Outbreak::getDiseaseName, Collectors.counting()));
 
-    List<String> mostCommonDiseases = diseaseDistribution.entrySet().stream()
-        .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
-        .map(Map.Entry::getKey)
-        .limit(5)
-        .toList();
+    List<String> mostCommonDiseases =
+        diseaseDistribution.entrySet().stream()
+            .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+            .map(Map.Entry::getKey)
+            .limit(5)
+            .toList();
 
-    Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource = allReports.stream()
-        .collect(Collectors.groupingBy(DiseaseReport::getDiagnosisConfidenceSource, Collectors.counting()));
+    Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource =
+        allReports.stream()
+            .collect(
+                Collectors.groupingBy(
+                    DiseaseReport::getDiagnosisConfidenceSource, Collectors.counting()));
 
     return new DiseaseAnalyticsResponse(
         totalOutbreaks,
@@ -77,7 +96,6 @@ public class DiseaseAnalyticsService {
         Math.round(avgResolutionTime * 10.0) / 10.0,
         diseaseDistribution,
         mostCommonDiseases,
-        reportsByConfidenceSource
-    );
+        reportsByConfidenceSource);
   }
 }

@@ -6,9 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/**
- * Response DTO payload for animal details.
- */
+/** Response DTO payload for animal details. */
 public record AnimalResponse(
     UUID id,
     UUID farmerId,

@@ -17,9 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Livestock animal entity.
- */
+/** Livestock animal entity. */
 @Entity
 @Table(name = "animals")
 @Getter

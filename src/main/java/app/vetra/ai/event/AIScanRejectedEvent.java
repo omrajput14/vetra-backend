@@ -9,8 +9,4 @@ import java.util.UUID;
  * @param rejectionReason rejection reason or notes
  * @param rejectedBy veterinarian user UUID
  */
-public record AIScanRejectedEvent(
-    UUID scanId,
-    String rejectionReason,
-    UUID rejectedBy
-) {}
+public record AIScanRejectedEvent(UUID scanId, String rejectionReason, UUID rejectedBy) {}

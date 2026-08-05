@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST controller managing end-user notification channel preferences.
- */
+/** REST controller managing end-user notification channel preferences. */
 @RestController
 @RequestMapping("/api/v1/notifications/preferences")
-@Tag(name = "Notification Preference Management", description = "Endpoints for viewing and updating user notification opt-in preferences")
+@Tag(
+    name = "Notification Preference Management",
+    description = "Endpoints for viewing and updating user notification opt-in preferences")
 @SecurityRequirement(name = "bearerAuth")
 public class NotificationPreferenceController {
 
@@ -32,7 +32,9 @@ public class NotificationPreferenceController {
 
   /** Retrieves user notification preferences. */
   @GetMapping
-  @Operation(summary = "Get Notification Preferences", description = "Retrieves end-user notification opt-in/opt-out channel preferences.")
+  @Operation(
+      summary = "Get Notification Preferences",
+      description = "Retrieves end-user notification opt-in/opt-out channel preferences.")
   public ApiResponse<NotificationPreferenceResponse> getPreferences(Principal principal) {
     NotificationPreferenceResponse response = preferenceService.getPreferences(principal.getName());
     return ApiResponse.ok("Notification preferences retrieved successfully", response);
@@ -40,10 +42,13 @@ public class NotificationPreferenceController {
 
   /** Updates user notification preferences. */
   @PutMapping
-  @Operation(summary = "Update Notification Preferences", description = "Updates end-user notification opt-in/opt-out channel preferences.")
+  @Operation(
+      summary = "Update Notification Preferences",
+      description = "Updates end-user notification opt-in/opt-out channel preferences.")
   public ApiResponse<NotificationPreferenceResponse> updatePreferences(
       Principal principal, @RequestBody UpdatePreferenceRequest request) {
-    NotificationPreferenceResponse response = preferenceService.updatePreferences(principal.getName(), request);
+    NotificationPreferenceResponse response =
+        preferenceService.updatePreferences(principal.getName(), request);
     return ApiResponse.ok("Notification preferences updated successfully", response);
   }
 }

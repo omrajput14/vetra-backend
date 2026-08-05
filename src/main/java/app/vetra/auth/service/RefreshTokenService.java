@@ -16,7 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service managing database-backed refresh tokens using SHA-256 token hashing and SecureRandom byte generation.
+ * Service managing database-backed refresh tokens using SHA-256 token hashing and SecureRandom byte
+ * generation.
  */
 @Service
 public class RefreshTokenService {
@@ -34,7 +35,8 @@ public class RefreshTokenService {
   }
 
   /**
-   * Generates a 32-byte SecureRandom URL-safe Base64 raw token, computes its SHA-256 hash, stores ONLY the hash, and returns the raw token string.
+   * Generates a 32-byte SecureRandom URL-safe Base64 raw token, computes its SHA-256 hash, stores
+   * ONLY the hash, and returns the raw token string.
    */
   @Transactional
   public String createRefreshToken(User user) {
@@ -45,12 +47,13 @@ public class RefreshTokenService {
     String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     String tokenHash = hashToken(rawToken);
 
-    RefreshToken refreshToken = RefreshToken.builder()
-        .user(user)
-        .tokenHash(tokenHash)
-        .expiryDate(Instant.now().plusMillis(jwtProperties.refreshExpirationMs()))
-        .revoked(false)
-        .build();
+    RefreshToken refreshToken =
+        RefreshToken.builder()
+            .user(user)
+            .tokenHash(tokenHash)
+            .expiryDate(Instant.now().plusMillis(jwtProperties.refreshExpirationMs()))
+            .revoked(false)
+            .build();
 
     refreshTokenRepository.save(refreshToken);
     return rawToken;
@@ -77,10 +80,13 @@ public class RefreshTokenService {
   @Transactional
   public void revokeToken(String rawToken) {
     String tokenHash = hashToken(rawToken);
-    refreshTokenRepository.findByTokenHash(tokenHash).ifPresent(t -> {
-      t.setRevoked(true);
-      refreshTokenRepository.save(t);
-    });
+    refreshTokenRepository
+        .findByTokenHash(tokenHash)
+        .ifPresent(
+            t -> {
+              t.setRevoked(true);
+              refreshTokenRepository.save(t);
+            });
   }
 
   /** Deletes all refresh token sessions belonging to a user (used on password change). */

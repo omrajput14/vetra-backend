@@ -18,7 +18,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 /**
- * Gemini Vision AI Provider strategy implementing visual diagnostic inference via Google Gemini REST API.
+ * Gemini Vision AI Provider strategy implementing visual diagnostic inference via Google Gemini
+ * REST API.
  */
 @Component("geminiAIProvider")
 public class GeminiAIProvider implements AIProvider {
@@ -46,9 +47,7 @@ public class GeminiAIProvider implements AIProvider {
     this.properties = properties;
     this.promptBuilder = promptBuilder;
     this.responseMapper = responseMapper;
-    this.webClient = webClientBuilder
-        .baseUrl(properties.getBaseUrl())
-        .build();
+    this.webClient = webClientBuilder.baseUrl(properties.getBaseUrl()).build();
   }
 
   @Override
@@ -68,36 +67,52 @@ public class GeminiAIProvider implements AIProvider {
     String requestId = "GEM-" + UUID.randomUUID().toString().substring(0, 8);
     long startTime = System.currentTimeMillis();
 
-    log.info("Dispatching Gemini Vision API inference request requestId={} model={}",
-        requestId, properties.getModel());
+    log.info(
+        "Dispatching Gemini Vision API inference request requestId={} model={}",
+        requestId,
+        properties.getModel());
 
     try {
       Map<String, Object> requestPayload = buildRequestBody(imageUrl);
 
-      String rawResponse = webClient.post()
-          .uri(uriBuilder -> uriBuilder
-              .path("/v1beta/models/" + properties.getModel() + ":generateContent")
-              .queryParam("key", properties.getApiKey())
-              .build())
-          .contentType(MediaType.APPLICATION_JSON)
-          .bodyValue(requestPayload)
-          .retrieve()
-          .bodyToMono(String.class)
-          .block(properties.getTimeout() != null ? properties.getTimeout() : Duration.ofSeconds(30));
+      String rawResponse =
+          webClient
+              .post()
+              .uri(
+                  uriBuilder ->
+                      uriBuilder
+                          .path("/v1beta/models/" + properties.getModel() + ":generateContent")
+                          .queryParam("key", properties.getApiKey())
+                          .build())
+              .contentType(MediaType.APPLICATION_JSON)
+              .bodyValue(requestPayload)
+              .retrieve()
+              .bodyToMono(String.class)
+              .block(
+                  properties.getTimeout() != null
+                      ? properties.getTimeout()
+                      : Duration.ofSeconds(30));
 
       long latencyMs = System.currentTimeMillis() - startTime;
-      log.info("Gemini Vision API request successful requestId={} latencyMs={}", requestId, latencyMs);
+      log.info(
+          "Gemini Vision API request successful requestId={} latencyMs={}", requestId, latencyMs);
 
       String candidateText = extractCandidateText(rawResponse);
-      return responseMapper.mapToInferenceResult(candidateText, properties.getModel(), requestId, latencyMs);
+      return responseMapper.mapToInferenceResult(
+          candidateText, properties.getModel(), requestId, latencyMs);
 
     } catch (WebClientResponseException ex) {
       long latencyMs = System.currentTimeMillis() - startTime;
-      log.error("Gemini Vision API HTTP error requestId={} status={} body={}",
-          requestId, ex.getStatusCode(), ex.getResponseBodyAsString());
+      log.error(
+          "Gemini Vision API HTTP error requestId={} status={} body={}",
+          requestId,
+          ex.getStatusCode(),
+          ex.getResponseBodyAsString());
 
-      if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED || ex.getStatusCode() == HttpStatus.FORBIDDEN) {
-        throw new AIProviderUnavailableException("Invalid or unauthorized Gemini API key", "AI_003");
+      if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED
+          || ex.getStatusCode() == HttpStatus.FORBIDDEN) {
+        throw new AIProviderUnavailableException(
+            "Invalid or unauthorized Gemini API key", "AI_003");
       } else if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
         throw new AIProviderUnavailableException("Gemini API rate limit exceeded", "AI_003");
       }
@@ -107,13 +122,16 @@ public class GeminiAIProvider implements AIProvider {
 
     } catch (Exception ex) {
       long latencyMs = System.currentTimeMillis() - startTime;
-      log.error("Gemini Vision API request execution failed requestId={} error={}",
-          requestId, ex.getMessage());
+      log.error(
+          "Gemini Vision API request execution failed requestId={} error={}",
+          requestId,
+          ex.getMessage());
 
       if (ex instanceof AIProviderUnavailableException aue) {
         throw aue;
       }
-      throw new AIInferenceException("Gemini Vision API inference failed: " + ex.getMessage(), "AI_004");
+      throw new AIInferenceException(
+          "Gemini Vision API inference failed: " + ex.getMessage(), "AI_004");
     }
   }
 
@@ -150,18 +168,25 @@ public class GeminiAIProvider implements AIProvider {
     }
 
     String lower = imageUrl.toLowerCase();
-    boolean isValidFormat = lower.contains(".jpg") || lower.contains(".jpeg") || lower.contains(".png")
-        || lower.contains("image") || lower.startsWith("http://") || lower.startsWith("https://");
+    boolean isValidFormat =
+        lower.contains(".jpg")
+            || lower.contains(".jpeg")
+            || lower.contains(".png")
+            || lower.contains("image")
+            || lower.startsWith("http://")
+            || lower.startsWith("https://");
 
     if (!isValidFormat) {
-      throw new IllegalArgumentException("Unsupported image format or invalid URL. Only JPEG and PNG are supported.");
+      throw new IllegalArgumentException(
+          "Unsupported image format or invalid URL. Only JPEG and PNG are supported.");
     }
   }
 
   private Map<String, Object> buildRequestBody(String imageUrl) {
     String systemPrompt = promptBuilder.buildPrompt();
 
-    Map<String, Object> textPart = Map.of("text", systemPrompt + "\nAnalyze image at URL: " + imageUrl);
+    Map<String, Object> textPart =
+        Map.of("text", systemPrompt + "\nAnalyze image at URL: " + imageUrl);
     Map<String, Object> content = Map.of("parts", List.of(textPart));
 
     return Map.of("contents", List.of(content));
@@ -173,10 +198,12 @@ public class GeminiAIProvider implements AIProvider {
     }
     // Basic text extraction from Gemini API JSON response candidates structure
     try {
-      com.fasterxml.jackson.databind.JsonNode root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(rawResponse);
+      com.fasterxml.jackson.databind.JsonNode root =
+          new com.fasterxml.jackson.databind.ObjectMapper().readTree(rawResponse);
       com.fasterxml.jackson.databind.JsonNode candidates = root.path("candidates");
       if (candidates.isArray() && !candidates.isEmpty()) {
-        com.fasterxml.jackson.databind.JsonNode parts = candidates.get(0).path("content").path("parts");
+        com.fasterxml.jackson.databind.JsonNode parts =
+            candidates.get(0).path("content").path("parts");
         if (parts.isArray() && !parts.isEmpty()) {
           return parts.get(0).path("text").asText();
         }

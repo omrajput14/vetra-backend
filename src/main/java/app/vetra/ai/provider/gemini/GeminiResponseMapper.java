@@ -35,14 +35,17 @@ public class GeminiResponseMapper {
 
     try {
       String cleanJson = cleanMarkdownJson(rawResponse);
-      GeminiDiagnosticPayload payload = objectMapper.readValue(cleanJson, GeminiDiagnosticPayload.class);
+      GeminiDiagnosticPayload payload =
+          objectMapper.readValue(cleanJson, GeminiDiagnosticPayload.class);
 
-      String diagnosis = payload.condition() != null ? payload.condition() : "Unspecified Observation";
+      String diagnosis =
+          payload.condition() != null ? payload.condition() : "Unspecified Observation";
       if (payload.observations() != null && !payload.observations().isEmpty()) {
         diagnosis += " | Observations: " + String.join(", ", payload.observations());
       }
 
-      BigDecimal confidence = payload.confidence() != null ? payload.confidence() : BigDecimal.valueOf(0.50);
+      BigDecimal confidence =
+          payload.confidence() != null ? payload.confidence() : BigDecimal.valueOf(0.50);
 
       List<String> warnings = new ArrayList<>();
       if (payload.recommendations() != null && !payload.recommendations().isEmpty()) {
@@ -62,12 +65,12 @@ public class GeminiResponseMapper {
           latencyMs,
           null,
           warnings,
-          Instant.now()
-      );
+          Instant.now());
 
     } catch (Exception ex) {
       log.error("Failed to parse Gemini Vision API JSON response: {}", ex.getMessage());
-      throw new AIInferenceException("Failed to parse Gemini Vision response payload: " + ex.getMessage(), "AI_004");
+      throw new AIInferenceException(
+          "Failed to parse Gemini Vision response payload: " + ex.getMessage(), "AI_004");
     }
   }
 

@@ -1,8 +1,6 @@
 package app.vetra.disease.entity;
 
-/**
- * Status lifecycle of a disease outbreak cluster.
- */
+/** Status lifecycle of a disease outbreak cluster. */
 public enum OutbreakStatus {
   /** Newly detected cluster awaiting initial field investigation. */
   DETECTED,

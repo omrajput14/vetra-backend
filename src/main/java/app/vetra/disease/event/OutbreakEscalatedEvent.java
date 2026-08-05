@@ -15,5 +15,4 @@ public record OutbreakEscalatedEvent(
     UUID outbreakId,
     String diseaseName,
     OutbreakRiskScore newRiskScore,
-    int affectedReportsCount
-) {}
+    int affectedReportsCount) {}

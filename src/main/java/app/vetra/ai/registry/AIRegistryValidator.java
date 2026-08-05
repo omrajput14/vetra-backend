@@ -12,10 +12,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Performs fail-fast startup validation of the AI Gateway configuration. Runs after all registries
- * have been initialized. If any validation error is found, a single {@link AIConfigurationException}
- * is thrown containing all actionable error messages so that the application fails immediately with
- * a clear diagnosis rather than failing silently at request time.
+ * Performs fail-fast startup validation of the AI Gateway configuration. Only executes when {@code
+ * vetra.ai.gateway.enabled=true}. When the gateway is disabled (the default), this validator is a
+ * no-op and the Spring context starts normally. This design ensures that integration tests and
+ * non-gateway profiles are not affected by gateway configuration requirements.
+ *
+ * <p>When enabled, if any validation error is found, a single {@link AIConfigurationException} is
+ * thrown containing all actionable error messages so that the application fails immediately with a
+ * clear diagnosis rather than failing silently at request time.
  */
 @Component
 public class AIRegistryValidator {
@@ -43,13 +47,20 @@ public class AIRegistryValidator {
   }
 
   /**
-   * Executes all validation rules after Spring context initialization. Collects all errors and
-   * throws a single exception containing the complete list of violations.
+   * Executes all validation rules after Spring context initialization. Skips validation when the
+   * gateway is disabled ({@code vetra.ai.gateway.enabled=false}). When enabled, collects all errors
+   * and throws a single exception containing the complete list of violations.
    *
-   * @throws AIConfigurationException if any configuration violation is detected
+   * @throws AIConfigurationException if gateway is enabled and any configuration violation exists
    */
   @PostConstruct
   public void validate() {
+    if (!properties.isEnabled()) {
+      log.debug(
+          "AI Gateway is disabled (vetra.ai.gateway.enabled=false). Skipping registry validation.");
+      return;
+    }
+
     List<String> errors = new ArrayList<>();
 
     validateDefaultProvider(errors);

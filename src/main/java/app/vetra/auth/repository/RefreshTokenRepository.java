@@ -7,9 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 
-/**
- * Data access repository for RefreshToken entity.
- */
+/** Data access repository for RefreshToken entity. */
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
 
   /** Finds refresh token entity by SHA-256 token hash. */

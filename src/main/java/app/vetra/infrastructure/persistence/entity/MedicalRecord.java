@@ -24,8 +24,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Entity representing an immutable Electronic Veterinary Medical Record (EVMR).
- * Medical records represent permanent clinical history associated with a completed appointment.
+ * Entity representing an immutable Electronic Veterinary Medical Record (EVMR). Medical records
+ * represent permanent clinical history associated with a completed appointment.
  */
 @Entity
 @Table(name = "medical_records")
@@ -66,9 +66,9 @@ public class MedicalRecord {
   private String treatment;
 
   /**
-   * Plain-text prescription summary.
-   * Note: Intentionally designed as text for initial stage, ready for future normalization
-   * into structured prescription item entities (medicine name, dosage, frequency, duration).
+   * Plain-text prescription summary. Note: Intentionally designed as text for initial stage, ready
+   * for future normalization into structured prescription item entities (medicine name, dosage,
+   * frequency, duration).
    */
   @Column(name = "prescription", columnDefinition = "TEXT")
   private String prescription;

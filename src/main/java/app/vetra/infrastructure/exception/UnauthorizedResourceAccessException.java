@@ -2,9 +2,7 @@ package app.vetra.infrastructure.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Thrown when an authenticated user attempts to access a resource they do not own (HTTP 403).
- */
+/** Thrown when an authenticated user attempts to access a resource they do not own (HTTP 403). */
 public class UnauthorizedResourceAccessException extends BaseDomainException {
 
   /**

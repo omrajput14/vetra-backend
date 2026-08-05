@@ -1,8 +1,6 @@
 package app.vetra.infrastructure.persistence.enums;
 
-/**
- * Livestock species taxonomy.
- */
+/** Livestock species taxonomy. */
 public enum Species {
   CATTLE,
   BUFFALO,

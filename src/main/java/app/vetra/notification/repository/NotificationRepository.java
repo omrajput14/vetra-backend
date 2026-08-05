@@ -10,9 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-/**
- * Spring Data JPA repository for Notification entities.
- */
+/** Spring Data JPA repository for Notification entities. */
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 

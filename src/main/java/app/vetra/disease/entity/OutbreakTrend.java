@@ -1,8 +1,6 @@
 package app.vetra.disease.entity;
 
-/**
- * Spatial-temporal velocity trend of an outbreak cluster.
- */
+/** Spatial-temporal velocity trend of an outbreak cluster. */
 public enum OutbreakTrend {
   /** Case reporting velocity is accelerating. */
   INCREASING,

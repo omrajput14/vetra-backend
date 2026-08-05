@@ -13,7 +13,6 @@ import app.vetra.ai.exception.AIProviderUnavailableException;
 import app.vetra.ai.model.AICapability;
 import app.vetra.ai.provider.AIProvider;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,7 +97,8 @@ class ProviderRegistryTest {
   @Test
   @DisplayName("findByCapabilities returns only available providers supporting required caps")
   void testFindByCapabilities_filtered() {
-    AIProvider vision = mockProvider("vision-provider", true, Set.of(AICapability.VISION, AICapability.JSON_MODE));
+    AIProvider vision =
+        mockProvider("vision-provider", true, Set.of(AICapability.VISION, AICapability.JSON_MODE));
     AIProvider text = mockProvider("text-provider", true, Set.of());
     AIProvider unavailable = mockProvider("dead-provider", false, Set.of(AICapability.VISION));
 

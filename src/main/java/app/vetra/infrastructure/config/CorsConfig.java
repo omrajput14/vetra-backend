@@ -34,18 +34,13 @@ public class CorsConfig {
     CorsConfiguration config = new CorsConfiguration();
 
     config.setAllowedOrigins(corsProperties.allowedOrigins());
-    config.setAllowedMethods(
-        Arrays.asList(corsProperties.allowedMethods().split(",")));
+    config.setAllowedMethods(Arrays.asList(corsProperties.allowedMethods().split(",")));
     config.setAllowedHeaders(List.of(corsProperties.allowedHeaders()));
     config.setAllowCredentials(corsProperties.allowCredentials());
     config.setMaxAge(corsProperties.maxAge());
 
     // Expose headers the client SDK may need to read
-    config.setExposedHeaders(List.of(
-        "Authorization",
-        "X-Request-Id",
-        "X-Total-Count",
-        "Location"));
+    config.setExposedHeaders(List.of("Authorization", "X-Request-Id", "X-Total-Count", "Location"));
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);

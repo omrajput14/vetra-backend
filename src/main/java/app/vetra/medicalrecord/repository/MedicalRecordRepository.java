@@ -9,13 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-/**
- * Spring Data JPA Repository for Electronic Veterinary Medical Record operations.
- */
+/** Spring Data JPA Repository for Electronic Veterinary Medical Record operations. */
 @Repository
 public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, UUID> {
 
-  /** Finds all medical records for a specific animal ordered by clinical history date descending. */
+  /**
+   * Finds all medical records for a specific animal ordered by clinical history date descending.
+   */
   List<MedicalRecord> findByAnimalIdOrderByCreatedAtDesc(UUID animalId);
 
   /** Finds all medical records belonging to a farmer's registered livestock. */

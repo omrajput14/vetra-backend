@@ -3,9 +3,7 @@ package app.vetra.ai.exception;
 import app.vetra.infrastructure.exception.BaseDomainException;
 import org.springframework.http.HttpStatus;
 
-/**
- * Thrown when AI configuration properties or parameters are invalid or missing.
- */
+/** Thrown when AI configuration properties or parameters are invalid or missing. */
 public class AIConfigurationException extends BaseDomainException {
 
   /**

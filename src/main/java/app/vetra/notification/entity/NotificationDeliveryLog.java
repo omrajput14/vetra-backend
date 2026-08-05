@@ -17,9 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Audit log recording individual provider transmission attempts and response payloads.
- */
+/** Audit log recording individual provider transmission attempts and response payloads. */
 @Entity
 @Table(name = "notification_delivery_log")
 @Getter

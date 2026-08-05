@@ -3,9 +3,7 @@ package app.vetra.notification.dto;
 import app.vetra.notification.entity.NotificationPreference;
 import java.util.UUID;
 
-/**
- * Public DTO representing a user's notification preferences.
- */
+/** Public DTO representing a user's notification preferences. */
 public record NotificationPreferenceResponse(
     UUID id,
     UUID userId,
@@ -13,8 +11,7 @@ public record NotificationPreferenceResponse(
     boolean vaccinationNotifications,
     boolean aiNotifications,
     boolean outbreakNotifications,
-    boolean marketingNotifications
-) {
+    boolean marketingNotifications) {
 
   /**
    * Factory method mapping NotificationPreference entity to NotificationPreferenceResponse DTO.
@@ -30,7 +27,6 @@ public record NotificationPreferenceResponse(
         pref.isVaccinationNotifications(),
         pref.isAiNotifications(),
         pref.isOutbreakNotifications(),
-        pref.isMarketingNotifications()
-    );
+        pref.isMarketingNotifications());
   }
 }

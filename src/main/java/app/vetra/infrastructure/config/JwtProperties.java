@@ -14,6 +14,4 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @ConfigurationProperties(prefix = "vetra.jwt")
 public record JwtProperties(
-    @NotBlank String secret,
-    @Positive long expirationMs,
-    @Positive long refreshExpirationMs) {}
+    @NotBlank String secret, @Positive long expirationMs, @Positive long refreshExpirationMs) {}

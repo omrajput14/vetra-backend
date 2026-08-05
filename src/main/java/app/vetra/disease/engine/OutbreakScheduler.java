@@ -19,8 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Autonomous background scheduler executing periodic epidemiological re-evaluation
- * and automated outbreak cluster lifecycle transitions.
+ * Autonomous background scheduler executing periodic epidemiological re-evaluation and automated
+ * outbreak cluster lifecycle transitions.
  */
 @Component
 public class OutbreakScheduler {
@@ -44,18 +44,16 @@ public class OutbreakScheduler {
     this.eventPublisher = eventPublisher;
   }
 
-  /**
-   * Periodic hourly cron task evaluating active and monitoring outbreak clusters.
-   */
+  /** Periodic hourly cron task evaluating active and monitoring outbreak clusters. */
   @Scheduled(cron = "${vetra.disease.outbreak.cron:0 0 * * * *}")
   @Transactional
   public void runScheduledEvaluation() {
     log.info("Running autonomous disease outbreak evaluation scheduler...");
 
-    List<Outbreak> activeOrMonitoring = outbreakRepository.findAll()
-        .stream()
-        .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
-        .toList();
+    List<Outbreak> activeOrMonitoring =
+        outbreakRepository.findAll().stream()
+            .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
+            .toList();
 
     Instant now = Instant.now();
 
@@ -64,14 +62,13 @@ public class OutbreakScheduler {
     }
   }
 
-  /**
-   * Evaluates a single outbreak cluster for lifecycle transitions and risk/trend updates.
-   */
+  /** Evaluates a single outbreak cluster for lifecycle transitions and risk/trend updates. */
   @Transactional
   public void evaluateSingleOutbreak(Outbreak outbreak, Instant now) {
-    long hoursSinceLastCase = outbreak.getLastCaseReportedAt() != null
-        ? ChronoUnit.HOURS.between(outbreak.getLastCaseReportedAt(), now)
-        : ChronoUnit.HOURS.between(outbreak.getCreatedAt(), now);
+    long hoursSinceLastCase =
+        outbreak.getLastCaseReportedAt() != null
+            ? ChronoUnit.HOURS.between(outbreak.getLastCaseReportedAt(), now)
+            : ChronoUnit.HOURS.between(outbreak.getCreatedAt(), now);
 
     int windowHours = outbreak.getEvaluationWindowHours();
     OutbreakTrend oldTrend = outbreak.getTrend();
@@ -79,11 +76,14 @@ public class OutbreakScheduler {
 
     if (oldTrend != newTrend) {
       outbreak.setTrend(newTrend);
-      eventPublisher.publishEvent(new OutbreakTrendChangedEvent(outbreak.getId(), outbreak.getDiseaseName(), oldTrend, newTrend));
+      eventPublisher.publishEvent(
+          new OutbreakTrendChangedEvent(
+              outbreak.getId(), outbreak.getDiseaseName(), oldTrend, newTrend));
     }
 
     // Lifecycle Automation Rules
-    if (hoursSinceLastCase >= 2L * windowHours && outbreak.getStatus() == OutbreakStatus.MONITORING) {
+    if (hoursSinceLastCase >= 2L * windowHours
+        && outbreak.getStatus() == OutbreakStatus.MONITORING) {
       // Transition MONITORING -> RESOLVED
       outbreak.setStatus(OutbreakStatus.RESOLVED);
       outbreak.setResolvedAt(now);
@@ -91,19 +91,26 @@ public class OutbreakScheduler {
       outbreak.setRiskScore(OutbreakRiskScore.LOW);
       outbreakRepository.save(outbreak);
 
-      log.info("AUTONOMOUS OUTBREAK RESOLUTION: id={} disease='{}' reason='AUTOMATIC_INACTIVITY_TIMEOUT'",
-          outbreak.getId(), outbreak.getDiseaseName());
+      log.info(
+          "AUTONOMOUS OUTBREAK RESOLUTION: id={} disease='{}' reason='AUTOMATIC_INACTIVITY_TIMEOUT'",
+          outbreak.getId(),
+          outbreak.getDiseaseName());
 
-      eventPublisher.publishEvent(new OutbreakResolvedAutomaticallyEvent(
-          outbreak.getId(), outbreak.getDiseaseName(), outbreak.getResolutionReason(), now));
+      eventPublisher.publishEvent(
+          new OutbreakResolvedAutomaticallyEvent(
+              outbreak.getId(), outbreak.getDiseaseName(), outbreak.getResolutionReason(), now));
 
     } else if (hoursSinceLastCase >= windowHours && outbreak.getStatus() == OutbreakStatus.ACTIVE) {
       // Transition ACTIVE -> MONITORING
       outbreak.setStatus(OutbreakStatus.MONITORING);
       outbreakRepository.save(outbreak);
 
-      log.info("AUTONOMOUS OUTBREAK MONITORING TRANSITION: id={} disease='{}'", outbreak.getId(), outbreak.getDiseaseName());
-      eventPublisher.publishEvent(new OutbreakMonitoringEvent(outbreak.getId(), outbreak.getDiseaseName(), now));
+      log.info(
+          "AUTONOMOUS OUTBREAK MONITORING TRANSITION: id={} disease='{}'",
+          outbreak.getId(),
+          outbreak.getDiseaseName());
+      eventPublisher.publishEvent(
+          new OutbreakMonitoringEvent(outbreak.getId(), outbreak.getDiseaseName(), now));
     }
 
     outbreak.setLastEvaluatedAt(now);

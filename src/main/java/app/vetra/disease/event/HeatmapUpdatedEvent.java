@@ -8,7 +8,4 @@ import java.time.Instant;
  * @param totalHotspots total active hotspot centroids
  * @param timestamp refresh timestamp
  */
-public record HeatmapUpdatedEvent(
-    int totalHotspots,
-    Instant timestamp
-) {}
+public record HeatmapUpdatedEvent(int totalHotspots, Instant timestamp) {}

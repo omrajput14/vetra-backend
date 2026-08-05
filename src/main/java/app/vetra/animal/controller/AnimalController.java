@@ -29,12 +29,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST Controller for managing livestock animals.
- */
+/** REST Controller for managing livestock animals. */
 @RestController
 @RequestMapping("/api/v1/animals")
-@Tag(name = "Animal Management Module", description = "Endpoints for creating, listing, viewing, updating, and searching livestock animals")
+@Tag(
+    name = "Animal Management Module",
+    description =
+        "Endpoints for creating, listing, viewing, updating, and searching livestock animals")
 public class AnimalController {
 
   private final AnimalService animalService;
@@ -47,7 +48,9 @@ public class AnimalController {
   /** Creates a new animal record. */
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Create Animal", description = "Registers a new livestock animal for the authenticated farmer")
+  @Operation(
+      summary = "Create Animal",
+      description = "Registers a new livestock animal for the authenticated farmer")
   public ApiResponse<AnimalResponse> createAnimal(
       Principal principal, @Valid @RequestBody CreateAnimalRequest request) {
     AnimalResponse response = animalService.createAnimal(principal.getName(), request);
@@ -64,10 +67,13 @@ public class AnimalController {
 
   /** Paginated list of animals based on user role. */
   @GetMapping("/page")
-  @Operation(summary = "Paginated List of Animals", description = "Retrieves paginated animals with page, size, sort support")
+  @Operation(
+      summary = "Paginated List of Animals",
+      description = "Retrieves paginated animals with page, size, sort support")
   public ApiResponse<Page<AnimalResponse>> listAnimalsPaginated(
       Principal principal,
-      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
     Page<AnimalResponse> response = animalService.listAnimals(principal.getName(), pageable);
     return ApiResponse.ok("Paginated animals retrieved successfully", response);
   }
@@ -83,7 +89,9 @@ public class AnimalController {
 
   /** Updates an existing animal record. */
   @PutMapping("/{id}")
-  @Operation(summary = "Update Animal", description = "Updates details of an existing animal record")
+  @Operation(
+      summary = "Update Animal",
+      description = "Updates details of an existing animal record")
   public ApiResponse<AnimalResponse> updateAnimal(
       Principal principal,
       @PathVariable("id") UUID id,
@@ -102,7 +110,9 @@ public class AnimalController {
 
   /** Searches animals with optional filters. */
   @GetMapping("/search")
-  @Operation(summary = "Search Animals", description = "Filters animals by name, tag number, QR code, species, breed, or gender")
+  @Operation(
+      summary = "Search Animals",
+      description = "Filters animals by name, tag number, QR code, species, breed, or gender")
   public ApiResponse<List<AnimalResponse>> searchAnimals(
       Principal principal,
       @RequestParam(value = "animalName", required = false) String animalName,
@@ -112,8 +122,9 @@ public class AnimalController {
       @RequestParam(value = "breed", required = false) String breed,
       @RequestParam(value = "gender", required = false) AnimalGender gender) {
 
-    List<AnimalResponse> response = animalService.searchAnimals(
-        principal.getName(), animalName, tagNumber, qrCodeId, species, breed, gender);
+    List<AnimalResponse> response =
+        animalService.searchAnimals(
+            principal.getName(), animalName, tagNumber, qrCodeId, species, breed, gender);
     return ApiResponse.ok("Search results retrieved successfully", response);
   }
 }

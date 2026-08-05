@@ -7,9 +7,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-/**
- * Spring Data JPA repository for NotificationDevice entities.
- */
+/** Spring Data JPA repository for NotificationDevice entities. */
 @Repository
 public interface NotificationDeviceRepository extends JpaRepository<NotificationDevice, UUID> {
 

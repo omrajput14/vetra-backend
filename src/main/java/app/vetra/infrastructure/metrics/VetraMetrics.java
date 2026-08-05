@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 /**
  * Centralized Micrometer business metrics component for the Vetra Platform.
  *
- * <p>This is the single source of truth for all custom business counters and timers.
- * Only low-cardinality labels are used — no UUIDs, emails, user IDs, or entity IDs.
+ * <p>This is the single source of truth for all custom business counters and timers. Only
+ * low-cardinality labels are used — no UUIDs, emails, user IDs, or entity IDs.
  *
  * <p>Metric naming convention: {@code vetra.<domain>.<event>}
  */
@@ -54,23 +54,28 @@ public class VetraMetrics {
     farmerLoginFailure = authLoginCounter(registry, "FARMER", "failure");
     vetLoginSuccess = authLoginCounter(registry, "VETERINARIAN", "success");
     vetLoginFailure = authLoginCounter(registry, "VETERINARIAN", "failure");
-    animalRegistrations = buildCounter(registry, "vetra.animal.registrations",
-        "Total livestock animals registered");
-    appointmentsCreated = buildCounter(registry, "vetra.appointments.created",
-        "Total appointment bookings created");
+    animalRegistrations =
+        buildCounter(registry, "vetra.animal.registrations", "Total livestock animals registered");
+    appointmentsCreated =
+        buildCounter(registry, "vetra.appointments.created", "Total appointment bookings created");
     appointmentsConfirmed = appointmentStatusCounter(registry, "CONFIRMED");
     appointmentsCompleted = appointmentStatusCounter(registry, "COMPLETED");
     appointmentsCancelled = appointmentStatusCounter(registry, "CANCELLED");
     appointmentsRejected = appointmentStatusCounter(registry, "REJECTED");
-    aiDiagnosisRequests = buildCounter(registry, "vetra.ai.diagnosis.requests",
-        "Total AI diagnostic scan requests submitted");
+    aiDiagnosisRequests =
+        buildCounter(
+            registry, "vetra.ai.diagnosis.requests", "Total AI diagnostic scan requests submitted");
     notificationsSentSuccess = notificationCounter(registry, "success");
     notificationsSentFailure = notificationCounter(registry, "failure");
     notificationsQueued = notificationCounter(registry, "queued");
-    appointmentCreateTimer = buildTimer(registry, "vetra.appointments.create.duration",
-        "Appointment creation service layer duration");
-    animalCreateTimer = buildTimer(registry, "vetra.animal.create.duration",
-        "Animal registration service layer duration");
+    appointmentCreateTimer =
+        buildTimer(
+            registry,
+            "vetra.appointments.create.duration",
+            "Appointment creation service layer duration");
+    animalCreateTimer =
+        buildTimer(
+            registry, "vetra.animal.create.duration", "Animal registration service layer duration");
   }
 
   // ─── Factory helpers ─────────────────────────────────────────────────────

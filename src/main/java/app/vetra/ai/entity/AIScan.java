@@ -20,9 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing an AI livestock diagnostic image scan and verification audit trail.
- */
+/** Entity representing an AI livestock diagnostic image scan and verification audit trail. */
 @Entity
 @Table(name = "ai_scans")
 @Getter

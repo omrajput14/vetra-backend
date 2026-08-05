@@ -1,15 +1,13 @@
 package app.vetra.ai.dto;
 
-import app.vetra.ai.entity.AIScan;
 import app.vetra.ai.entity.AIProviderType;
+import app.vetra.ai.entity.AIScan;
 import app.vetra.ai.entity.AIScanStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Standard API response representation of an AI Diagnostic Scan.
- */
+/** Standard API response representation of an AI Diagnostic Scan. */
 public record AIScanResponse(
     UUID id,
     UUID animalId,
@@ -29,8 +27,7 @@ public record AIScanResponse(
     Instant verifiedAt,
     String notes,
     Instant createdAt,
-    Instant updatedAt
-) {
+    Instant updatedAt) {
 
   /**
    * Factory mapper converting an AIScan JPA entity to AIScanResponse record.
@@ -64,7 +61,6 @@ public record AIScanResponse(
         scan.getVerifiedAt(),
         scan.getNotes(),
         scan.getCreatedAt(),
-        scan.getUpdatedAt()
-    );
+        scan.getUpdatedAt());
   }
 }

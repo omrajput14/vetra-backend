@@ -1,8 +1,8 @@
 package app.vetra.infrastructure.cache;
 
 /**
- * Centralized constant definitions for all Spring Cache names in Vetra Backend.
- * Prevents magic strings and hardcoded cache names across the application.
+ * Centralized constant definitions for all Spring Cache names in Vetra Backend. Prevents magic
+ * strings and hardcoded cache names across the application.
  */
 public final class CacheNames {
 

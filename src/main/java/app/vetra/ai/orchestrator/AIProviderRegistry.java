@@ -33,7 +33,8 @@ public class AIProviderRegistry {
     this.aiProperties = aiProperties;
     for (AIProvider provider : providers) {
       providerMap.put(provider.providerType(), provider);
-      log.info("Registered AI Provider: [{}] type={}", provider.providerName(), provider.providerType());
+      log.info(
+          "Registered AI Provider: [{}] type={}", provider.providerName(), provider.providerType());
     }
   }
 
@@ -44,14 +45,18 @@ public class AIProviderRegistry {
    * @return {@link AIProvider} instance
    */
   public AIProvider getProvider(AIProviderType type) {
-    AIProviderType targetType = (type != null && type != AIProviderType.NONE)
-        ? type
-        : aiProperties.getDefaultProvider();
+    AIProviderType targetType =
+        (type != null && type != AIProviderType.NONE) ? type : aiProperties.getDefaultProvider();
 
     return Optional.ofNullable(providerMap.get(targetType))
-        .orElseGet(() -> Optional.ofNullable(providerMap.get(AIProviderType.NONE))
-            .orElseThrow(() -> new AIProviderUnavailableException(
-                "No registered AI provider found for type: " + targetType, "AI_003")));
+        .orElseGet(
+            () ->
+                Optional.ofNullable(providerMap.get(AIProviderType.NONE))
+                    .orElseThrow(
+                        () ->
+                            new AIProviderUnavailableException(
+                                "No registered AI provider found for type: " + targetType,
+                                "AI_003")));
   }
 
   /**
@@ -61,6 +66,15 @@ public class AIProviderRegistry {
    */
   public AIProvider getDefaultProvider() {
     return getProvider(aiProperties.getDefaultProvider());
+  }
+
+  /**
+   * Returns whether the AI platform is globally enabled in configuration.
+   *
+   * @return true if enabled
+   */
+  public boolean isPlatformEnabled() {
+    return aiProperties.isEnabled();
   }
 
   /**
@@ -78,8 +92,6 @@ public class AIProviderRegistry {
    * @return list of active {@link AIProvider}
    */
   public List<AIProvider> getAvailableProviders() {
-    return providerMap.values().stream()
-        .filter(AIProvider::isAvailable)
-        .toList();
+    return providerMap.values().stream().filter(AIProvider::isAvailable).toList();
   }
 }

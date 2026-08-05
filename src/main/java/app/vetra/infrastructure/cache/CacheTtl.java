@@ -3,8 +3,8 @@ package app.vetra.infrastructure.cache;
 import java.time.Duration;
 
 /**
- * Centralized Time-To-Live (TTL) duration policies for Vetra enterprise cache regions.
- * Defines deterministic TTLs based on data volatility, operational SLA, and consistency rules.
+ * Centralized Time-To-Live (TTL) duration policies for Vetra enterprise cache regions. Defines
+ * deterministic TTLs based on data volatility, operational SLA, and consistency rules.
  */
 public final class CacheTtl {
 

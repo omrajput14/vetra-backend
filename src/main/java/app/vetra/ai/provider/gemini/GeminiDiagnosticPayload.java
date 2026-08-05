@@ -17,5 +17,4 @@ public record GeminiDiagnosticPayload(
     BigDecimal confidence,
     List<String> observations,
     List<String> recommendations,
-    Boolean requiresVeterinarianReview
-) {}
+    Boolean requiresVeterinarianReview) {}

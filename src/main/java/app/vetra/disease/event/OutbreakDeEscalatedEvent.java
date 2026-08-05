@@ -11,7 +11,4 @@ import java.util.UUID;
  * @param newRiskScore de-escalated risk score
  */
 public record OutbreakDeEscalatedEvent(
-    UUID outbreakId,
-    String diseaseName,
-    OutbreakRiskScore newRiskScore
-) {}
+    UUID outbreakId, String diseaseName, OutbreakRiskScore newRiskScore) {}

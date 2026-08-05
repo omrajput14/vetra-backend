@@ -1,8 +1,6 @@
 package app.vetra.ai.exception;
 
-/**
- * Base exception for all AI Gateway errors.
- */
+/** Base exception for all AI Gateway errors. */
 public abstract class AIException extends RuntimeException {
 
   private final String provider;

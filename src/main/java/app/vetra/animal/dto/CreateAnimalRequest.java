@@ -6,9 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-/**
- * Request payload DTO for creating a new animal record.
- */
+/** Request payload DTO for creating a new animal record. */
 public record CreateAnimalRequest(
     String animalName,
     @NotBlank String tagNumber,

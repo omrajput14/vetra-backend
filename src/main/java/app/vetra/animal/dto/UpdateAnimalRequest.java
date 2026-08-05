@@ -6,9 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-/**
- * Request payload DTO for updating an existing animal record.
- */
+/** Request payload DTO for updating an existing animal record. */
 public record UpdateAnimalRequest(
     String animalName,
     @NotBlank String tagNumber,

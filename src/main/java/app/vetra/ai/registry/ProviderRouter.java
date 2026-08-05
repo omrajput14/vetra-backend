@@ -96,15 +96,16 @@ public class ProviderRouter {
    */
   public RoutingDecision resolveByCapabilities(Set<AICapability> required) {
     // Find capable models first
-    List<ModelDescriptor> capableModels = modelRegistry.findByCapabilities(required).stream()
-        .filter(m -> providerRegistry.isRegistered(m.providerName()))
-        .filter(
-            m ->
-                providerRegistry
-                    .findByName(m.providerName())
-                    .map(AIProvider::isAvailable)
-                    .orElse(false))
-        .toList();
+    List<ModelDescriptor> capableModels =
+        modelRegistry.findByCapabilities(required).stream()
+            .filter(m -> providerRegistry.isRegistered(m.providerName()))
+            .filter(
+                m ->
+                    providerRegistry
+                        .findByName(m.providerName())
+                        .map(AIProvider::isAvailable)
+                        .orElse(false))
+            .toList();
 
     if (capableModels.isEmpty()) {
       throw new AIProviderUnavailableException(

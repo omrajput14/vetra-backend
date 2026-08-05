@@ -32,8 +32,7 @@ public class NoOpAIProvider implements AIProvider {
   @Deprecated
   public AIInferenceResult analyze(String imageUrl) {
     throw new AIProviderUnavailableException(
-        "AI provider is not configured. NoOpAIProvider does not perform inference.",
-        PROVIDER_NAME);
+        "AI provider is not configured. NoOpAIProvider does not perform inference.", PROVIDER_NAME);
   }
 
   @Override
@@ -84,13 +83,7 @@ public class NoOpAIProvider implements AIProvider {
    */
   @Override
   public AIResponse execute(AIRequest request, String promptText) {
-    return new AIResponse(
-        "noop-stub-response",
-        request.promptId(),
-        PROVIDER_NAME,
-        "noop-v1",
-        0,
-        0);
+    return new AIResponse("noop-stub-response", request.promptId(), PROVIDER_NAME, "noop-v1", 0, 0);
   }
 
   /**

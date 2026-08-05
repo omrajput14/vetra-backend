@@ -2,9 +2,7 @@ package app.vetra.infrastructure.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Thrown when a requested domain resource is not found (HTTP 404).
- */
+/** Thrown when a requested domain resource is not found (HTTP 404). */
 public class ResourceNotFoundException extends BaseDomainException {
 
   /**

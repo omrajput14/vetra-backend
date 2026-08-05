@@ -3,8 +3,8 @@ package app.vetra.infrastructure.cache;
 import java.util.UUID;
 
 /**
- * Centralized key formatting strategies and namespace constants for Vetra Redis caching.
- * Ensures deterministic, collision-free key structures across all cache regions.
+ * Centralized key formatting strategies and namespace constants for Vetra Redis caching. Ensures
+ * deterministic, collision-free key structures across all cache regions.
  *
  * <p>Format convention: {@code vetra:<domain>:<identifier>}
  */

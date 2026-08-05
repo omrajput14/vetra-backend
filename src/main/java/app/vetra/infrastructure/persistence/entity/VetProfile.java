@@ -13,9 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Profile information for licensed veterinarians.
- */
+/** Profile information for licensed veterinarians. */
 @Getter
 @Setter
 @NoArgsConstructor

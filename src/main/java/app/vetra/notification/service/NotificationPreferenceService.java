@@ -10,9 +10,7 @@ import app.vetra.notification.repository.NotificationPreferenceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service managing user notification preferences and opt-in/opt-out validation.
- */
+/** Service managing user notification preferences and opt-in/opt-out validation. */
 @Service
 public class NotificationPreferenceService {
 
@@ -20,7 +18,8 @@ public class NotificationPreferenceService {
   private final UserRepository userRepository;
 
   /** Constructor injection. */
-  public NotificationPreferenceService(NotificationPreferenceRepository preferenceRepository, UserRepository userRepository) {
+  public NotificationPreferenceService(
+      NotificationPreferenceRepository preferenceRepository, UserRepository userRepository) {
     this.preferenceRepository = preferenceRepository;
     this.userRepository = userRepository;
   }
@@ -29,18 +28,25 @@ public class NotificationPreferenceService {
   @Transactional
   public NotificationPreferenceResponse getPreferences(String userIdentifier) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    NotificationPreference pref = preferenceRepository.findByUserId(user.getId())
-        .orElseGet(() -> preferenceRepository.save(NotificationPreference.builder().user(user).build()));
+    NotificationPreference pref =
+        preferenceRepository
+            .findByUserId(user.getId())
+            .orElseGet(
+                () ->
+                    preferenceRepository.save(NotificationPreference.builder().user(user).build()));
 
     return NotificationPreferenceResponse.fromEntity(pref);
   }
 
   /** Updates user notification preferences. */
   @Transactional
-  public NotificationPreferenceResponse updatePreferences(String userIdentifier, UpdatePreferenceRequest request) {
+  public NotificationPreferenceResponse updatePreferences(
+      String userIdentifier, UpdatePreferenceRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    NotificationPreference pref = preferenceRepository.findByUserId(user.getId())
-        .orElseGet(() -> NotificationPreference.builder().user(user).build());
+    NotificationPreference pref =
+        preferenceRepository
+            .findByUserId(user.getId())
+            .orElseGet(() -> NotificationPreference.builder().user(user).build());
 
     if (request.appointmentNotifications() != null) {
       pref.setAppointmentNotifications(request.appointmentNotifications());
@@ -63,8 +69,10 @@ public class NotificationPreferenceService {
   }
 
   private User getUserByEmailOrPhone(String identifier) {
-    return userRepository.findByEmail(identifier)
+    return userRepository
+        .findByEmail(identifier)
         .or(() -> userRepository.findByPhone(identifier))
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
+        .orElseThrow(
+            () -> new ResourceNotFoundException("User not found: " + identifier, "USER_004"));
   }
 }

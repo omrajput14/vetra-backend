@@ -20,5 +20,4 @@ public record DiseaseMetadata(
     String mortality,
     double defaultRadiusKm,
     int minimumCases,
-    int evaluationWindowHours
-) {}
+    int evaluationWindowHours) {}

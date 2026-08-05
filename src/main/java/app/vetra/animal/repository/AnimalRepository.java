@@ -13,9 +13,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/**
- * Data access repository for Animal entity.
- */
+/** Data access repository for Animal entity. */
 public interface AnimalRepository extends JpaRepository<Animal, UUID> {
 
   /** Finds all animals owned by farmer (non-paginated). */
@@ -43,14 +41,15 @@ public interface AnimalRepository extends JpaRepository<Animal, UUID> {
   boolean existsByQrCodeId(String qrCodeId);
 
   /** Search query filter for animals including animalName. */
-  @Query("SELECT a FROM Animal a WHERE "
-      + "(:farmerId IS NULL OR a.farmer.id = :farmerId) AND "
-      + "(:animalName IS NULL OR LOWER(a.animalName) LIKE LOWER(CONCAT('%', :animalName, '%'))) AND "
-      + "(:tagNumber IS NULL OR LOWER(a.tagNumber) LIKE LOWER(CONCAT('%', :tagNumber, '%'))) AND "
-      + "(:qrCodeId IS NULL OR LOWER(a.qrCodeId) LIKE LOWER(CONCAT('%', :qrCodeId, '%'))) AND "
-      + "(:species IS NULL OR a.species = :species) AND "
-      + "(:breed IS NULL OR LOWER(a.breed) LIKE LOWER(CONCAT('%', :breed, '%'))) AND "
-      + "(:gender IS NULL OR a.gender = :gender)")
+  @Query(
+      "SELECT a FROM Animal a WHERE "
+          + "(:farmerId IS NULL OR a.farmer.id = :farmerId) AND "
+          + "(:animalName IS NULL OR LOWER(a.animalName) LIKE LOWER(CONCAT('%', :animalName, '%'))) AND "
+          + "(:tagNumber IS NULL OR LOWER(a.tagNumber) LIKE LOWER(CONCAT('%', :tagNumber, '%'))) AND "
+          + "(:qrCodeId IS NULL OR LOWER(a.qrCodeId) LIKE LOWER(CONCAT('%', :qrCodeId, '%'))) AND "
+          + "(:species IS NULL OR a.species = :species) AND "
+          + "(:breed IS NULL OR LOWER(a.breed) LIKE LOWER(CONCAT('%', :breed, '%'))) AND "
+          + "(:gender IS NULL OR a.gender = :gender)")
   List<Animal> searchAnimals(
       @Param("farmerId") UUID farmerId,
       @Param("animalName") String animalName,

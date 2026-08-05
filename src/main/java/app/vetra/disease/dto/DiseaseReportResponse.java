@@ -7,9 +7,7 @@ import app.vetra.disease.entity.DiseaseReportSource;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Public DTO representing a disease surveillance report.
- */
+/** Public DTO representing a disease surveillance report. */
 public record DiseaseReportResponse(
     UUID id,
     UUID animalId,
@@ -27,8 +25,7 @@ public record DiseaseReportResponse(
     Double longitude,
     String notes,
     Instant createdAt,
-    Instant updatedAt
-) {
+    Instant updatedAt) {
 
   /**
    * Factory method mapping DiseaseReport entity to DiseaseReportResponse DTO.
@@ -54,7 +51,6 @@ public record DiseaseReportResponse(
         report.getLongitude(),
         report.getNotes(),
         report.getCreatedAt(),
-        report.getUpdatedAt()
-    );
+        report.getUpdatedAt());
   }
 }

@@ -5,8 +5,8 @@ import java.util.Set;
 
 /**
  * Describes a registered AI model with its capabilities and constraints. Model descriptors are
- * immutable and constructed from {@link app.vetra.ai.config.AIGatewayProperties.ModelConfig}
- * during application startup.
+ * immutable and constructed from {@link app.vetra.ai.config.AIGatewayProperties.ModelConfig} during
+ * application startup.
  *
  * @param alias the unique model alias used by business logic (e.g., "diagnostics-fast")
  * @param modelId the provider-specific model identifier (e.g., "gemini-2.5-flash")

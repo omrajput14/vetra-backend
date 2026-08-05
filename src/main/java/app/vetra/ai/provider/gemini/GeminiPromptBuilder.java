@@ -2,13 +2,12 @@ package app.vetra.ai.provider.gemini;
 
 import org.springframework.stereotype.Component;
 
-/**
- * Prompt engineering builder constructing structured instructions for Gemini Vision API.
- */
+/** Prompt engineering builder constructing structured instructions for Gemini Vision API. */
 @Component
 public class GeminiPromptBuilder {
 
-  private static final String VETERINARY_SYSTEM_PROMPT = """
+  private static final String VETERINARY_SYSTEM_PROMPT =
+      """
       You are a senior veterinary clinician specializing in livestock animal health and disease diagnostic support.
       Analyze the provided livestock diagnostic image carefully and identify visible clinical abnormalities, physical lesions, symptoms, or disease signs.
 

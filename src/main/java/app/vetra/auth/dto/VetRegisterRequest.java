@@ -4,9 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * DTO payload for veterinarian account registration.
- */
+/** DTO payload for veterinarian account registration. */
 public record VetRegisterRequest(
     @NotBlank @Email String email,
     String phone,

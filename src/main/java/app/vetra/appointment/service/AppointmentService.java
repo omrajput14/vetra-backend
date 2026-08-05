@@ -32,9 +32,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Service managing appointment lifecycle and business state machine.
- */
+/** Service managing appointment lifecycle and business state machine. */
 @Service
 public class AppointmentService {
 
@@ -66,41 +64,57 @@ public class AppointmentService {
 
   /** Creates a new appointment for the authenticated farmer. */
   @Transactional
-  @CacheEvict(value = {CacheNames.DASHBOARD_FARMER, CacheNames.DASHBOARD_VET}, allEntries = true)
+  @CacheEvict(
+      value = {CacheNames.DASHBOARD_FARMER, CacheNames.DASHBOARD_VET},
+      allEntries = true)
   public AppointmentResponse createAppointment(
       String currentUserIdentifier, CreateAppointmentRequest request) {
     User user = getUserByEmail(currentUserIdentifier);
     if (user.getRole() != UserRole.FARMER) {
-      throw new UnauthorizedResourceAccessException("Only registered farmers can request appointments", "AUTH_006");
+      throw new UnauthorizedResourceAccessException(
+          "Only registered farmers can request appointments", "AUTH_006");
     }
 
-    FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-        .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
+    FarmerProfile farmer =
+        farmerProfileRepository
+            .findByUser(user)
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
 
     if (request.appointmentDate().isBefore(LocalDate.now())) {
       throw new BusinessRuleException("Appointment date cannot be in the past", "APPT_007");
     }
 
-    Animal animal = animalRepository.findById(request.animalId())
-        .orElseThrow(() -> new ResourceNotFoundException("Animal not found with ID: " + request.animalId(), "ANIMAL_001"));
+    Animal animal =
+        animalRepository
+            .findById(request.animalId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Animal not found with ID: " + request.animalId(), "ANIMAL_001"));
 
     if (!animal.getFarmer().getId().equals(farmer.getId())) {
-      throw new UnauthorizedResourceAccessException("Animal does not belong to the requesting farmer", "ANIMAL_002");
+      throw new UnauthorizedResourceAccessException(
+          "Animal does not belong to the requesting farmer", "ANIMAL_002");
     }
 
-    VetProfile vet = vetProfileRepository.findById(request.veterinarianId())
-        .orElseThrow(() -> new ResourceNotFoundException("Veterinarian profile not found", "USER_004"));
+    VetProfile vet =
+        vetProfileRepository
+            .findById(request.veterinarianId())
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Veterinarian profile not found", "USER_004"));
 
-    Appointment appointment = Appointment.builder()
-        .farmer(farmer)
-        .veterinarian(vet)
-        .animal(animal)
-        .appointmentDate(request.appointmentDate())
-        .appointmentTime(request.appointmentTime())
-        .visitType(request.visitType())
-        .reason(request.reason())
-        .status(AppointmentStatus.PENDING)
-        .build();
+    Appointment appointment =
+        Appointment.builder()
+            .farmer(farmer)
+            .veterinarian(vet)
+            .animal(animal)
+            .appointmentDate(request.appointmentDate())
+            .appointmentTime(request.appointmentTime())
+            .visitType(request.visitType())
+            .reason(request.reason())
+            .status(AppointmentStatus.PENDING)
+            .build();
 
     Appointment saved = appointmentRepository.save(appointment);
     vetraMetrics.recordAppointmentCreated();
@@ -120,13 +134,22 @@ public class AppointmentService {
 
     List<Appointment> appointments;
     if (user.getRole() == UserRole.FARMER) {
-      FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
-      appointments = appointmentRepository.findByFarmerOrderByAppointmentDateDescAppointmentTimeDesc(farmer);
+      FarmerProfile farmer =
+          farmerProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
+      appointments =
+          appointmentRepository.findByFarmerOrderByAppointmentDateDescAppointmentTimeDesc(farmer);
     } else if (user.getRole() == UserRole.VETERINARIAN) {
-      VetProfile vet = vetProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Vet profile not found", "USER_004"));
-      appointments = appointmentRepository.findByVeterinarianOrderByAppointmentDateDescAppointmentTimeDesc(vet);
+      VetProfile vet =
+          vetProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Vet profile not found", "USER_004"));
+      appointments =
+          appointmentRepository.findByVeterinarianOrderByAppointmentDateDescAppointmentTimeDesc(
+              vet);
     } else {
       appointments = appointmentRepository.findAll();
     }
@@ -136,17 +159,28 @@ public class AppointmentService {
 
   /** Retrieves appointments relevant to the current user with Pageable. */
   @Transactional(readOnly = true)
-  public Page<AppointmentResponse> listAppointments(String currentUserIdentifier, Pageable pageable) {
+  public Page<AppointmentResponse> listAppointments(
+      String currentUserIdentifier, Pageable pageable) {
     User user = getUserByEmail(currentUserIdentifier);
 
     if (user.getRole() == UserRole.FARMER) {
-      FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
-      return appointmentRepository.findByFarmer(farmer, pageable).map(AppointmentResponse::fromEntity);
+      FarmerProfile farmer =
+          farmerProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
+      return appointmentRepository
+          .findByFarmer(farmer, pageable)
+          .map(AppointmentResponse::fromEntity);
     } else if (user.getRole() == UserRole.VETERINARIAN) {
-      VetProfile vet = vetProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Vet profile not found", "USER_004"));
-      return appointmentRepository.findByVeterinarian(vet, pageable).map(AppointmentResponse::fromEntity);
+      VetProfile vet =
+          vetProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Vet profile not found", "USER_004"));
+      return appointmentRepository
+          .findByVeterinarian(vet, pageable)
+          .map(AppointmentResponse::fromEntity);
     } else {
       return appointmentRepository.findAll(pageable).map(AppointmentResponse::fromEntity);
     }
@@ -159,8 +193,13 @@ public class AppointmentService {
       key = "T(app.vetra.infrastructure.cache.CacheKeys).appointmentKey(#id)")
   public AppointmentResponse getAppointmentById(String currentUserIdentifier, UUID id) {
     User user = getUserByEmail(currentUserIdentifier);
-    Appointment appointment = appointmentRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with ID: " + id, "APPT_001"));
+    Appointment appointment =
+        appointmentRepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Appointment not found with ID: " + id, "APPT_001"));
 
     validateUserAccess(user, appointment);
     return AppointmentResponse.fromEntity(appointment);
@@ -170,21 +209,27 @@ public class AppointmentService {
   @Transactional
   @Caching(
       evict = {
-          @CacheEvict(
-              value = CacheNames.APPOINTMENTS,
-              key = "T(app.vetra.infrastructure.cache.CacheKeys).appointmentKey(#id)"),
-          @CacheEvict(
-              value = {CacheNames.DASHBOARD_FARMER, CacheNames.DASHBOARD_VET},
-              allEntries = true)
+        @CacheEvict(
+            value = CacheNames.APPOINTMENTS,
+            key = "T(app.vetra.infrastructure.cache.CacheKeys).appointmentKey(#id)"),
+        @CacheEvict(
+            value = {CacheNames.DASHBOARD_FARMER, CacheNames.DASHBOARD_VET},
+            allEntries = true)
       })
   public AppointmentResponse updateStatus(
       String currentUserIdentifier, UUID id, UpdateAppointmentStatusRequest request) {
     User user = getUserByEmail(currentUserIdentifier);
-    Appointment appointment = appointmentRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found with ID: " + id, "APPT_001"));
+    Appointment appointment =
+        appointmentRepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Appointment not found with ID: " + id, "APPT_001"));
 
     validateUserAccess(user, appointment);
-    applyStateTransition(user, appointment, request.status(), request.notes(), request.cancellationReason());
+    applyStateTransition(
+        user, appointment, request.status(), request.notes(), request.cancellationReason());
 
     Appointment updated = appointmentRepository.save(appointment);
     return AppointmentResponse.fromEntity(updated);
@@ -193,38 +238,54 @@ public class AppointmentService {
   /** Delegate helper for confirming an appointment (Vet only). */
   @Transactional
   public AppointmentResponse confirmAppointment(String currentUserIdentifier, UUID id) {
-    return updateStatus(currentUserIdentifier, id,
+    return updateStatus(
+        currentUserIdentifier,
+        id,
         new UpdateAppointmentStatusRequest(AppointmentStatus.CONFIRMED, null, null));
   }
 
   /** Delegate helper for rejecting an appointment (Vet only). */
   @Transactional
-  public AppointmentResponse rejectAppointment(String currentUserIdentifier, UUID id, String reason) {
-    return updateStatus(currentUserIdentifier, id,
+  public AppointmentResponse rejectAppointment(
+      String currentUserIdentifier, UUID id, String reason) {
+    return updateStatus(
+        currentUserIdentifier,
+        id,
         new UpdateAppointmentStatusRequest(AppointmentStatus.REJECTED, null, reason));
   }
 
   /** Delegate helper for completing an appointment (Vet only). */
   @Transactional
-  public AppointmentResponse completeAppointment(String currentUserIdentifier, UUID id, String notes) {
-    return updateStatus(currentUserIdentifier, id,
+  public AppointmentResponse completeAppointment(
+      String currentUserIdentifier, UUID id, String notes) {
+    return updateStatus(
+        currentUserIdentifier,
+        id,
         new UpdateAppointmentStatusRequest(AppointmentStatus.COMPLETED, notes, null));
   }
 
   /** Delegate helper for cancelling an appointment (Farmer). */
   @Transactional
-  public AppointmentResponse cancelAppointment(String currentUserIdentifier, UUID id, String reason) {
-    return updateStatus(currentUserIdentifier, id,
+  public AppointmentResponse cancelAppointment(
+      String currentUserIdentifier, UUID id, String reason) {
+    return updateStatus(
+        currentUserIdentifier,
+        id,
         new UpdateAppointmentStatusRequest(AppointmentStatus.CANCELLED, null, reason));
   }
 
   /** Centralized state machine transition logic. */
   private void applyStateTransition(
-      User user, Appointment appointment, AppointmentStatus targetStatus, String notes, String cancellationReason) {
+      User user,
+      Appointment appointment,
+      AppointmentStatus targetStatus,
+      String notes,
+      String cancellationReason) {
     AppointmentStatus currentStatus = appointment.getStatus();
 
     if (currentStatus.isTerminal()) {
-      throw new BusinessRuleException("Terminal appointments (COMPLETED, CANCELLED, REJECTED) cannot be edited", "APPT_005");
+      throw new BusinessRuleException(
+          "Terminal appointments (COMPLETED, CANCELLED, REJECTED) cannot be edited", "APPT_005");
     }
 
     validateAllowedTransition(currentStatus, targetStatus);
@@ -247,54 +308,73 @@ public class AppointmentService {
       case COMPLETED -> vetraMetrics.recordAppointmentCompleted();
       case CANCELLED -> vetraMetrics.recordAppointmentCancelled();
       case REJECTED -> vetraMetrics.recordAppointmentRejected();
-      default -> { /* PENDING not a transition target */ }
+      default -> {
+        /* PENDING not a transition target */
+      }
     }
   }
 
   private void validateAllowedTransition(AppointmentStatus current, AppointmentStatus target) {
     if (current == AppointmentStatus.PENDING) {
-      if (target != AppointmentStatus.CONFIRMED && target != AppointmentStatus.REJECTED && target != AppointmentStatus.CANCELLED) {
-        throw new BusinessRuleException("Invalid state transition from PENDING to " + target, "APPT_004");
+      if (target != AppointmentStatus.CONFIRMED
+          && target != AppointmentStatus.REJECTED
+          && target != AppointmentStatus.CANCELLED) {
+        throw new BusinessRuleException(
+            "Invalid state transition from PENDING to " + target, "APPT_004");
       }
     } else if (current == AppointmentStatus.CONFIRMED) {
       if (target != AppointmentStatus.COMPLETED && target != AppointmentStatus.CANCELLED) {
-        throw new BusinessRuleException("Invalid state transition from CONFIRMED to " + target, "APPT_004");
+        throw new BusinessRuleException(
+            "Invalid state transition from CONFIRMED to " + target, "APPT_004");
       }
     }
   }
 
   private void validateRolePermissions(User user, AppointmentStatus targetStatus) {
-    boolean isVetAction = targetStatus == AppointmentStatus.CONFIRMED
-        || targetStatus == AppointmentStatus.REJECTED
-        || targetStatus == AppointmentStatus.COMPLETED;
+    boolean isVetAction =
+        targetStatus == AppointmentStatus.CONFIRMED
+            || targetStatus == AppointmentStatus.REJECTED
+            || targetStatus == AppointmentStatus.COMPLETED;
 
     if (isVetAction && user.getRole() != UserRole.VETERINARIAN) {
-      throw new UnauthorizedResourceAccessException("Only veterinarians can " + targetStatus.name().toLowerCase() + " appointments", "APPT_003");
+      throw new UnauthorizedResourceAccessException(
+          "Only veterinarians can " + targetStatus.name().toLowerCase() + " appointments",
+          "APPT_003");
     }
 
     if (targetStatus == AppointmentStatus.CANCELLED && user.getRole() != UserRole.FARMER) {
-      throw new UnauthorizedResourceAccessException("Only requesting farmers can cancel appointments", "APPT_002");
+      throw new UnauthorizedResourceAccessException(
+          "Only requesting farmers can cancel appointments", "APPT_002");
     }
   }
 
   private void validateUserAccess(User user, Appointment appointment) {
     if (user.getRole() == UserRole.FARMER) {
-      FarmerProfile farmer = farmerProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
+      FarmerProfile farmer =
+          farmerProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Farmer profile not found", "USER_004"));
       if (!appointment.getFarmer().getId().equals(farmer.getId())) {
-        throw new UnauthorizedResourceAccessException("Unauthorized access to farmer appointment", "APPT_002");
+        throw new UnauthorizedResourceAccessException(
+            "Unauthorized access to farmer appointment", "APPT_002");
       }
     } else if (user.getRole() == UserRole.VETERINARIAN) {
-      VetProfile vet = vetProfileRepository.findByUser(user)
-          .orElseThrow(() -> new ResourceNotFoundException("Vet profile not found", "USER_004"));
+      VetProfile vet =
+          vetProfileRepository
+              .findByUser(user)
+              .orElseThrow(
+                  () -> new ResourceNotFoundException("Vet profile not found", "USER_004"));
       if (!appointment.getVeterinarian().getId().equals(vet.getId())) {
-        throw new UnauthorizedResourceAccessException("Unauthorized access to veterinarian appointment", "APPT_003");
+        throw new UnauthorizedResourceAccessException(
+            "Unauthorized access to veterinarian appointment", "APPT_003");
       }
     }
   }
 
   private User getUserByEmail(String email) {
-    return userRepository.findByIdentifier(email)
+    return userRepository
+        .findByIdentifier(email)
         .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email, "USER_004"));
   }
 }

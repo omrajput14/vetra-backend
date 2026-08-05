@@ -27,8 +27,7 @@ public class SwaggerConfig {
   private final String appVersion;
 
   /** Constructor injection for the project version from POM. */
-  public SwaggerConfig(
-      @Value("${spring.application.name:vetra-backend}") String appName) {
+  public SwaggerConfig(@Value("${spring.application.name:vetra-backend}") String appName) {
     this.appVersion = appName;
   }
 
@@ -52,9 +51,10 @@ public class SwaggerConfig {
 
     return new OpenAPI()
         .info(apiInfo())
-        .servers(List.of(
-            new Server().url("http://localhost:8080").description("Local Development"),
-            new Server().url("https://api.vetra.app").description("Production")))
+        .servers(
+            List.of(
+                new Server().url("http://localhost:8080").description("Local Development"),
+                new Server().url("https://api.vetra.app").description("Production")))
         .components(new Components().addSecuritySchemes(BEARER_SCHEME, bearerScheme))
         .addSecurityItem(new SecurityRequirement().addList(BEARER_SCHEME));
   }
@@ -66,12 +66,11 @@ public class SwaggerConfig {
         .description(
             "Production REST API for the Vetra Livestock and Veterinary Healthcare Platform. "
                 + "Roles: FARMER, VETERINARIAN, ADMINISTRATOR.")
-        .contact(new Contact()
-            .name("Vetra Engineering")
-            .email("backend@vetra.app")
-            .url("https://github.com/omrajput14/vetra"))
-        .license(new License()
-            .name("Proprietary")
-            .url("https://vetra.app/terms"));
+        .contact(
+            new Contact()
+                .name("Vetra Engineering")
+                .email("backend@vetra.app")
+                .url("https://github.com/omrajput14/vetra"))
+        .license(new License().name("Proprietary").url("https://vetra.app/terms"));
   }
 }

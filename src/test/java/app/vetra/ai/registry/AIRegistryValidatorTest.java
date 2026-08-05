@@ -1,7 +1,7 @@
 package app.vetra.ai.registry;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -10,14 +10,13 @@ import app.vetra.ai.config.AIGatewayProperties.ModelConfig;
 import app.vetra.ai.exception.AIConfigurationException;
 import app.vetra.ai.provider.AIProvider;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link AIRegistryValidator}: startup validation covering missing defaults, unknown
- * provider references, and a clean valid configuration.
+ * provider references, a clean valid configuration, and disabled-gateway no-op behaviour.
  */
 class AIRegistryValidatorTest {
 
@@ -40,14 +39,34 @@ class AIRegistryValidatorTest {
   }
 
   @Test
+  @DisplayName("Disabled gateway skips all validation")
+  void testValidate_gatewayDisabled_noOp() {
+    // No providers or models configured, but enabled=false — should not throw
+    AIGatewayProperties props =
+        AIGatewayProperties.builder()
+            .enabled(false)
+            .defaultProvider("missing-provider")
+            .defaultModel("missing-model")
+            .build();
+
+    ProviderRegistry providerRegistry = new ProviderRegistry(List.of(), props);
+    ModelRegistry modelRegistry = new ModelRegistry(props);
+    AIRegistryValidator validator = new AIRegistryValidator(props, modelRegistry, providerRegistry);
+
+    assertThatCode(validator::validate).doesNotThrowAnyException();
+  }
+
+  @Test
   @DisplayName("Valid configuration passes validation without exception")
   void testValidate_success() {
     AIProvider noop = mockProvider("noop");
-    AIGatewayProperties props = AIGatewayProperties.builder()
-        .defaultProvider("noop")
-        .defaultModel("noop-default")
-        .model("noop-default", modelFor("noop"))
-        .build();
+    AIGatewayProperties props =
+        AIGatewayProperties.builder()
+            .enabled(true)
+            .defaultProvider("noop")
+            .defaultModel("noop-default")
+            .model("noop-default", modelFor("noop"))
+            .build();
 
     ProviderRegistry providerRegistry = new ProviderRegistry(List.of(noop), props);
     ModelRegistry modelRegistry = new ModelRegistry(props);
@@ -59,11 +78,13 @@ class AIRegistryValidatorTest {
   @Test
   @DisplayName("Missing default provider registration causes validation failure")
   void testValidate_missingDefaultProvider_throws() {
-    AIGatewayProperties props = AIGatewayProperties.builder()
-        .defaultProvider("gemini")
-        .defaultModel("noop-default")
-        .model("noop-default", modelFor("noop"))
-        .build();
+    AIGatewayProperties props =
+        AIGatewayProperties.builder()
+            .enabled(true)
+            .defaultProvider("gemini")
+            .defaultModel("noop-default")
+            .model("noop-default", modelFor("noop"))
+            .build();
 
     AIProvider noop = mockProvider("noop");
     ProviderRegistry providerRegistry = new ProviderRegistry(List.of(noop), props);
@@ -80,11 +101,13 @@ class AIRegistryValidatorTest {
   @DisplayName("Missing default model alias causes validation failure")
   void testValidate_missingDefaultModel_throws() {
     AIProvider noop = mockProvider("noop");
-    AIGatewayProperties props = AIGatewayProperties.builder()
-        .defaultProvider("noop")
-        .defaultModel("missing-alias")
-        .model("noop-default", modelFor("noop"))
-        .build();
+    AIGatewayProperties props =
+        AIGatewayProperties.builder()
+            .enabled(true)
+            .defaultProvider("noop")
+            .defaultModel("missing-alias")
+            .model("noop-default", modelFor("noop"))
+            .build();
 
     ProviderRegistry providerRegistry = new ProviderRegistry(List.of(noop), props);
     ModelRegistry modelRegistry = new ModelRegistry(props);
@@ -100,12 +123,14 @@ class AIRegistryValidatorTest {
   @DisplayName("Model referencing unregistered provider causes validation failure")
   void testValidate_modelReferencesUnknownProvider_throws() {
     AIProvider noop = mockProvider("noop");
-    AIGatewayProperties props = AIGatewayProperties.builder()
-        .defaultProvider("noop")
-        .defaultModel("noop-default")
-        .model("noop-default", modelFor("noop"))
-        .model("bad-model", modelFor("nonexistent-provider"))
-        .build();
+    AIGatewayProperties props =
+        AIGatewayProperties.builder()
+            .enabled(true)
+            .defaultProvider("noop")
+            .defaultModel("noop-default")
+            .model("noop-default", modelFor("noop"))
+            .model("bad-model", modelFor("nonexistent-provider"))
+            .build();
 
     ProviderRegistry providerRegistry = new ProviderRegistry(List.of(noop), props);
     ModelRegistry modelRegistry = new ModelRegistry(props);

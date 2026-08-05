@@ -9,7 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Enterprise retry policy helper executing AI inference tasks with exponential backoff and configurable attempts.
+ * Enterprise retry policy helper executing AI inference tasks with exponential backoff and
+ * configurable attempts.
  */
 @Component
 public class AIRetryPolicy {
@@ -62,7 +63,11 @@ public class AIRetryPolicy {
     if (lastException instanceof RuntimeException rte) {
       throw rte;
     }
-    throw new AIInferenceException("AI inference failed after " + maxAttempts + " attempts: "
-        + (lastException != null ? lastException.getMessage() : "Unknown error"), "AI_004");
+    throw new AIInferenceException(
+        "AI inference failed after "
+            + maxAttempts
+            + " attempts: "
+            + (lastException != null ? lastException.getMessage() : "Unknown error"),
+        "AI_004");
   }
 }

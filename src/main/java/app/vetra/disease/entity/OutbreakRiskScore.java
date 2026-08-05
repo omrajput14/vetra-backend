@@ -1,8 +1,6 @@
 package app.vetra.disease.entity;
 
-/**
- * Calculated epidemiological risk severity score for an outbreak cluster.
- */
+/** Calculated epidemiological risk severity score for an outbreak cluster. */
 public enum OutbreakRiskScore {
   /** Low epidemiological risk (small case count, localized). */
   LOW,

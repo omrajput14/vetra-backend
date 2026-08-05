@@ -7,10 +7,10 @@ import app.vetra.ai.model.AIResponse;
 import java.util.Set;
 
 /**
- * Enterprise AI provider contract. Implemented by adapters for each supported LLM backend.
- * Provider adapters are responsible only for translating the standard {@link AIRequest} into the
- * provider-specific wire format and normalizing the raw response into a standard {@link AIResponse}.
- * All retry, fallover, caching, and safety logic is handled by the AIGateway layer.
+ * Enterprise AI provider contract. Implemented by adapters for each supported LLM backend. Provider
+ * adapters are responsible only for translating the standard {@link AIRequest} into the
+ * provider-specific wire format and normalizing the raw response into a standard {@link
+ * AIResponse}. All retry, fallover, caching, and safety logic is handled by the AIGateway layer.
  */
 public interface AIProvider {
 

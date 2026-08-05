@@ -12,8 +12,4 @@ import java.util.UUID;
  * @param newTrend updated trend
  */
 public record OutbreakTrendChangedEvent(
-    UUID outbreakId,
-    String diseaseName,
-    OutbreakTrend oldTrend,
-    OutbreakTrend newTrend
-) {}
+    UUID outbreakId, String diseaseName, OutbreakTrend oldTrend, OutbreakTrend newTrend) {}

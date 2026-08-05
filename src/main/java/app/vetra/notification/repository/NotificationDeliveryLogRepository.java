@@ -6,11 +6,10 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-/**
- * Spring Data JPA repository for NotificationDeliveryLog audit entries.
- */
+/** Spring Data JPA repository for NotificationDeliveryLog audit entries. */
 @Repository
-public interface NotificationDeliveryLogRepository extends JpaRepository<NotificationDeliveryLog, UUID> {
+public interface NotificationDeliveryLogRepository
+    extends JpaRepository<NotificationDeliveryLog, UUID> {
 
   /** Finds delivery log entries for a notification. */
   List<NotificationDeliveryLog> findByNotificationId(UUID notificationId);

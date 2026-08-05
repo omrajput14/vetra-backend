@@ -8,7 +8,4 @@ import java.util.UUID;
  * @param outbreakId outbreak UUID
  * @param diseaseName disease name
  */
-public record OutbreakResolvedEvent(
-    UUID outbreakId,
-    String diseaseName
-) {}
+public record OutbreakResolvedEvent(UUID outbreakId, String diseaseName) {}

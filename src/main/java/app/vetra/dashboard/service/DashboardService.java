@@ -6,21 +6,19 @@ import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
 import app.vetra.dashboard.dto.DashboardResponse;
+import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.medicalrecord.repository.MedicalRecordRepository;
-import app.vetra.infrastructure.cache.CacheNames;
 import java.util.Optional;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Business service providing unified dashboard metrics with real database counts.
- */
+/** Business service providing unified dashboard metrics with real database counts. */
 @Service
 public class DashboardService {
 
@@ -51,8 +49,10 @@ public class DashboardService {
   @Transactional(readOnly = true)
   @Cacheable(value = CacheNames.DASHBOARD_FARMER, key = "#currentUserIdentifier")
   public DashboardResponse getDashboardMetrics(String currentUserIdentifier) {
-    User user = userRepository.findByIdentifier(currentUserIdentifier)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    User user =
+        userRepository
+            .findByIdentifier(currentUserIdentifier)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
     long animalCount = 0;
     long pendingAppointmentsCount = 0;
@@ -67,7 +67,8 @@ public class DashboardService {
         userName = farmer.getFullName() != null ? farmer.getFullName() : user.getEmail();
         facilityName = farmer.getFarmName() != null ? farmer.getFarmName() : "My Livestock Farm";
         animalCount = animalRepository.countByFarmer(farmer);
-        pendingAppointmentsCount = appointmentRepository.countByFarmerAndStatus(farmer, AppointmentStatus.PENDING);
+        pendingAppointmentsCount =
+            appointmentRepository.countByFarmerAndStatus(farmer, AppointmentStatus.PENDING);
       }
     } else if (user.getRole() == UserRole.VETERINARIAN) {
       Optional<VetProfile> vetOpt = vetProfileRepository.findByUser(user);
@@ -75,7 +76,8 @@ public class DashboardService {
         VetProfile vet = vetOpt.get();
         userName = vet.getFullName() != null ? vet.getFullName() : user.getEmail();
         facilityName = vet.getClinicName() != null ? vet.getClinicName() : "Clinical Practice";
-        pendingAppointmentsCount = appointmentRepository.countByVeterinarianAndStatus(vet, AppointmentStatus.PENDING);
+        pendingAppointmentsCount =
+            appointmentRepository.countByVeterinarianAndStatus(vet, AppointmentStatus.PENDING);
         medicalRecordsCreatedCount = medicalRecordRepository.countByVeterinarianId(vet.getId());
       }
       animalCount = animalRepository.count();
@@ -88,7 +90,6 @@ public class DashboardService {
         medicalRecordsCreatedCount,
         userName,
         facilityName,
-        user.getRole().name()
-    );
+        user.getRole().name());
   }
 }

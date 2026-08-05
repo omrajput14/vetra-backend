@@ -21,9 +21,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * Refresh token persistence entity storing SHA-256 token hashes.
- */
+/** Refresh token persistence entity storing SHA-256 token hashes. */
 @Getter
 @Setter
 @NoArgsConstructor

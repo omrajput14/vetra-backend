@@ -194,6 +194,7 @@ vetra:
     # Provider-agnostic routing layer. Business logic references aliases only.
     # All provider-specific model IDs are confined to this section.
     gateway:
+      enabled: ${AI_GATEWAY_ENABLED:false}
       default-provider: ${AI_GATEWAY_DEFAULT_PROVIDER:noop}
       default-model: ${AI_GATEWAY_DEFAULT_MODEL:noop-default}
       timeout: ${AI_GATEWAY_TIMEOUT:10s}

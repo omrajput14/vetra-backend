@@ -24,5 +24,4 @@ public record DiseaseAnalyticsResponse(
     double averageResolutionTimeHours,
     Map<String, Long> diseaseDistribution,
     List<String> mostCommonDiseases,
-    Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource
-) {}
+    Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource) {}

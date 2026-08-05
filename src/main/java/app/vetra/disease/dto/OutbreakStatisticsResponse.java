@@ -14,5 +14,4 @@ public record OutbreakStatisticsResponse(
     long activeOutbreaks,
     long criticalOutbreaks,
     long highRiskOutbreaks,
-    long totalAffectedReports
-) {}
+    long totalAffectedReports) {}

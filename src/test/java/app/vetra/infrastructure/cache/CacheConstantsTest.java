@@ -64,14 +64,10 @@ class CacheConstantsTest {
           .isEqualTo("vetra:dashboard:farmer:123e4567-e89b-12d3-a456-426614174000");
       assertThat(CacheKeys.vetDashboardKey(sampleId))
           .isEqualTo("vetra:dashboard:vet:123e4567-e89b-12d3-a456-426614174000");
-      assertThat(CacheKeys.DASHBOARD_ADMIN_KEY)
-          .isEqualTo("vetra:dashboard:admin");
-      assertThat(CacheKeys.otpKey("+256700000000"))
-          .isEqualTo("vetra:otp:+256700000000");
-      assertThat(CacheKeys.aiDiagnosisKey("a1b2c3d4e5f6"))
-          .isEqualTo("vetra:ai:a1b2c3d4e5f6");
-      assertThat(CacheKeys.referenceDataKey("diseases"))
-          .isEqualTo("vetra:ref:diseases");
+      assertThat(CacheKeys.DASHBOARD_ADMIN_KEY).isEqualTo("vetra:dashboard:admin");
+      assertThat(CacheKeys.otpKey("+256700000000")).isEqualTo("vetra:otp:+256700000000");
+      assertThat(CacheKeys.aiDiagnosisKey("a1b2c3d4e5f6")).isEqualTo("vetra:ai:a1b2c3d4e5f6");
+      assertThat(CacheKeys.referenceDataKey("diseases")).isEqualTo("vetra:ref:diseases");
     }
   }
 

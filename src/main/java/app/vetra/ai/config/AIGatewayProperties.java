@@ -1,9 +1,5 @@
 package app.vetra.ai.config;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -11,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * Strongly-typed, immutable configuration properties for the AI Gateway layer. Binds from the
@@ -37,35 +32,44 @@ import org.springframework.validation.annotation.Validated;
  *           enabled: true
  * }</pre>
  */
-@Validated
 @ConfigurationProperties(prefix = "vetra.ai.gateway")
 public final class AIGatewayProperties {
 
-  @NotBlank(message = "vetra.ai.gateway.default-provider must not be blank")
+  private final boolean enabled;
+
   private final String defaultProvider;
 
-  @NotBlank(message = "vetra.ai.gateway.default-model must not be blank")
   private final String defaultModel;
 
-  @NotNull(message = "vetra.ai.gateway.timeout must not be null")
   private final Duration timeout;
 
-  @Valid private final List<ProviderConfig> providers;
+  private final List<ProviderConfig> providers;
 
-  @Valid private final Map<String, ModelConfig> models;
+  private final Map<String, ModelConfig> models;
 
   /** Spring-constructor-binding constructor. */
   public AIGatewayProperties(
+      @DefaultValue("false") boolean enabled,
       @DefaultValue("noop") String defaultProvider,
       @DefaultValue("noop-default") String defaultModel,
       @DefaultValue("10s") Duration timeout,
       @DefaultValue List<ProviderConfig> providers,
       @DefaultValue Map<String, ModelConfig> models) {
+    this.enabled = enabled;
     this.defaultProvider = defaultProvider;
     this.defaultModel = defaultModel;
     this.timeout = timeout;
     this.providers = providers != null ? List.copyOf(providers) : List.of();
     this.models = models != null ? Map.copyOf(models) : Map.of();
+  }
+
+  /**
+   * Returns true if the AI Gateway routing layer is enabled.
+   *
+   * @return true if gateway is enabled
+   */
+  public boolean isEnabled() {
+    return enabled;
   }
 
   /**
@@ -120,7 +124,6 @@ public final class AIGatewayProperties {
    */
   public static final class ProviderConfig {
 
-    @NotBlank(message = "Provider name must not be blank")
     private String name;
 
     private boolean enabled = true;
@@ -173,16 +176,12 @@ public final class AIGatewayProperties {
    */
   public static final class ModelConfig {
 
-    @NotBlank(message = "Model provider must not be blank")
     private String provider;
 
-    @NotBlank(message = "Model model-id must not be blank")
     private String modelId;
 
-    @Min(value = 1, message = "Context window must be at least 1")
     private int contextWindow = 8192;
 
-    @Min(value = 1, message = "Max output tokens must be at least 1")
     private int maxOutputTokens = 2048;
 
     private boolean supportsVision = false;
@@ -370,11 +369,23 @@ public final class AIGatewayProperties {
   /** Builder for constructing {@link AIGatewayProperties} in unit tests. */
   public static final class Builder {
 
+    private boolean enabled = true;
     private String defaultProvider = "noop";
     private String defaultModel = "noop-default";
     private Duration timeout = Duration.ofSeconds(10);
     private List<ProviderConfig> providers = new ArrayList<>();
     private Map<String, ModelConfig> models = new LinkedHashMap<>();
+
+    /**
+     * Sets whether the gateway is enabled.
+     *
+     * @param enabled true to enable
+     * @return this builder
+     */
+    public Builder enabled(boolean enabled) {
+      this.enabled = enabled;
+      return this;
+    }
 
     /**
      * Sets the default provider name.
@@ -438,7 +449,8 @@ public final class AIGatewayProperties {
      * @return constructed properties
      */
     public AIGatewayProperties build() {
-      return new AIGatewayProperties(defaultProvider, defaultModel, timeout, providers, models);
+      return new AIGatewayProperties(
+          enabled, defaultProvider, defaultModel, timeout, providers, models);
     }
   }
 }

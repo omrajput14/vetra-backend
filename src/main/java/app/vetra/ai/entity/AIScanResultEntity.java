@@ -16,9 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Audit trail entity storing individual AI provider inference iteration results for an AIScan.
- */
+/** Audit trail entity storing individual AI provider inference iteration results for an AIScan. */
 @Entity
 @Table(name = "ai_scan_results")
 @Getter

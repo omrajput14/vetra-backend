@@ -3,9 +3,7 @@ package app.vetra.ai.exception;
 import app.vetra.infrastructure.exception.BaseDomainException;
 import org.springframework.http.HttpStatus;
 
-/**
- * Thrown when an error occurs during AI model image analysis execution.
- */
+/** Thrown when an error occurs during AI model image analysis execution. */
 public class AIInferenceException extends BaseDomainException {
 
   /**

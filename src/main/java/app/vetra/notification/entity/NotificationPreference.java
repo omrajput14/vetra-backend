@@ -14,9 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * End-user channel opt-in/opt-out notification preferences.
- */
+/** End-user channel opt-in/opt-out notification preferences. */
 @Entity
 @Table(name = "notification_preferences")
 @Getter

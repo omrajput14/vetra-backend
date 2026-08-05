@@ -2,9 +2,7 @@ package app.vetra.infrastructure.exception;
 
 import org.springframework.http.HttpStatus;
 
-/**
- * Thrown when a resource conflict occurs (HTTP 409).
- */
+/** Thrown when a resource conflict occurs (HTTP 409). */
 public class ConflictException extends BaseDomainException {
 
   /**

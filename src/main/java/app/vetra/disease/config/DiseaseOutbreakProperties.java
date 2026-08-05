@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Strongly-typed Spring Boot properties for disease outbreak thresholds and disease-specific profiles.
+ * Strongly-typed Spring Boot properties for disease outbreak thresholds and disease-specific
+ * profiles.
  */
 @Configuration
 @ConfigurationProperties(prefix = "vetra.disease.outbreak")
@@ -51,7 +52,8 @@ public class DiseaseOutbreakProperties {
   }
 
   /**
-   * Resolves a disease profile for the specified disease name, or returns disease-specific defaults.
+   * Resolves a disease profile for the specified disease name, or returns disease-specific
+   * defaults.
    *
    * @param diseaseName name of disease
    * @return {@link DiseaseProfile} instance
@@ -79,19 +81,20 @@ public class DiseaseOutbreakProperties {
       return new DiseaseProfile(
           diseaseName,
           cfg.getRadiusKm() > 0 ? cfg.getRadiusKm() : defaultRadiusKm,
-          cfg.getMinimumConfirmedCases() > 0 ? cfg.getMinimumConfirmedCases() : defaultMinimumConfirmedCases,
-          cfg.getEvaluationWindowHours() > 0 ? cfg.getEvaluationWindowHours() : evaluationWindowHours,
+          cfg.getMinimumConfirmedCases() > 0
+              ? cfg.getMinimumConfirmedCases()
+              : defaultMinimumConfirmedCases,
+          cfg.getEvaluationWindowHours() > 0
+              ? cfg.getEvaluationWindowHours()
+              : evaluationWindowHours,
           cfg.getSeverityWeight() > 0 ? cfg.getSeverityWeight() : 1.0,
-          cfg.getReportPriority() != null ? cfg.getReportPriority() : "MEDIUM"
-      );
+          cfg.getReportPriority() != null ? cfg.getReportPriority() : "MEDIUM");
     }
 
     return DiseaseProfile.defaultProfile(diseaseName);
   }
 
-  /**
-   * Inner configuration class mapping individual YAML profile properties.
-   */
+  /** Inner configuration class mapping individual YAML profile properties. */
   public static class ProfileConfig {
     private double radiusKm;
     private int minimumConfirmedCases;

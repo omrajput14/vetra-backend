@@ -35,36 +35,35 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Integration tests for AIScanService, AIOrchestrator, and NoOpAIProvider.
- */
+/** Integration tests for AIScanService, AIOrchestrator, and NoOpAIProvider. */
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:vetra_ai_full_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
-    "spring.datasource.driver-class-name=org.h2.Driver",
-    "spring.datasource.username=sa",
-    "spring.datasource.password=",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
-    "spring.flyway.enabled=false",
-    "vetra.jwt.secret=test-jwt-secret-value-minimum-32-characters-long",
-    "vetra.jwt.expiration-ms=86400000",
-    "vetra.jwt.refresh-expiration-ms=604800000",
-    "vetra.cors.allowed-origins=http://localhost:3000",
-    "vetra.cors.allowed-methods=GET,POST,PUT,DELETE,PATCH,OPTIONS",
-    "vetra.cors.allowed-headers=*",
-    "vetra.cors.allow-credentials=true",
-    "vetra.cors.max-age=3600",
-    "vetra.aws.region=ap-south-1",
-    "vetra.aws.credentials.access-key=test-key",
-    "vetra.aws.credentials.secret-key=test-secret",
-    "vetra.aws.s3.bucket-name=vetra-test-bucket",
-    "vetra.aws.s3.presigned-url-expiry-minutes=15",
-    "vetra.ai.enabled=false",
-    "vetra.ai.default-provider=NONE"
-})
+@TestPropertySource(
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:vetra_ai_full_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL",
+      "spring.datasource.driver-class-name=org.h2.Driver",
+      "spring.datasource.username=sa",
+      "spring.datasource.password=",
+      "spring.jpa.hibernate.ddl-auto=create-drop",
+      "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+      "spring.flyway.enabled=false",
+      "vetra.jwt.secret=test-jwt-secret-value-minimum-32-characters-long",
+      "vetra.jwt.expiration-ms=86400000",
+      "vetra.jwt.refresh-expiration-ms=604800000",
+      "vetra.cors.allowed-origins=http://localhost:3000",
+      "vetra.cors.allowed-methods=GET,POST,PUT,DELETE,PATCH,OPTIONS",
+      "vetra.cors.allowed-headers=*",
+      "vetra.cors.allow-credentials=true",
+      "vetra.cors.max-age=3600",
+      "vetra.aws.region=ap-south-1",
+      "vetra.aws.credentials.access-key=test-key",
+      "vetra.aws.credentials.secret-key=test-secret",
+      "vetra.aws.s3.bucket-name=vetra-test-bucket",
+      "vetra.aws.s3.presigned-url-expiry-minutes=15",
+      "vetra.ai.enabled=false",
+      "vetra.ai.default-provider=NONE"
+    })
 class AIScanServiceTest {
 
   @Autowired private AIScanService aiScanService;
@@ -76,31 +75,64 @@ class AIScanServiceTest {
 
   @Test
   void testNoOpAIProviderBehavior() {
-    assertEquals("NOOP", noOpAIProvider.providerName());
+    assertEquals("noop", noOpAIProvider.providerName());
     assertFalse(noOpAIProvider.health());
-    AIProviderUnavailableException ex = assertThrows(AIProviderUnavailableException.class, () ->
-        noOpAIProvider.analyze("https://s3.amazonaws.com/vetra/sample.jpg"));
-    assertEquals("AI_003", ex.getErrorCode());
+    AIProviderUnavailableException ex =
+        assertThrows(
+            AIProviderUnavailableException.class,
+            () -> noOpAIProvider.analyze("https://s3.amazonaws.com/vetra/sample.jpg"));
+    assertEquals("noop", ex.getProvider());
   }
 
   @Test
   void testAIScanLifecycleAndVetVerification() {
     // 1. Register Farmer & Vet
-    authService.registerFarmer(new FarmerRegisterRequest(
-        "farmer_ai@vetra.app", "+1555077111", "pass123", "Farmer Bob", "Green Acres",
-        "Village", "District", "State", 12.0, 56.0, 10));
+    authService.registerFarmer(
+        new FarmerRegisterRequest(
+            "farmer_ai@vetra.app",
+            "+1555077111",
+            "pass123",
+            "Farmer Bob",
+            "Green Acres",
+            "Village",
+            "District",
+            "State",
+            12.0,
+            56.0,
+            10));
 
-    authService.registerVet(new VetRegisterRequest(
-        "vet_ai@vetra.app", "+1555077222", "pass123", "Dr. Alan", "VET-REG-5544",
-        "BVSc", "Dermatology", "Valley Vet Clinic", 6, 12.1, 56.1));
+    authService.registerVet(
+        new VetRegisterRequest(
+            "vet_ai@vetra.app",
+            "+1555077222",
+            "pass123",
+            "Dr. Alan",
+            "VET-REG-5544",
+            "BVSc",
+            "Dermatology",
+            "Valley Vet Clinic",
+            6,
+            12.1,
+            56.1));
 
     // 2. Register Animal
-    AnimalResponse animal = animalService.createAnimal("farmer_ai@vetra.app",
-        new CreateAnimalRequest("Daisy", "TAG-AI-1", "QR-AI-1", Species.CATTLE, "Holstein", AnimalGender.FEMALE, LocalDate.now().minusYears(2), null));
+    AnimalResponse animal =
+        animalService.createAnimal(
+            "farmer_ai@vetra.app",
+            new CreateAnimalRequest(
+                "Daisy",
+                "TAG-AI-1",
+                "QR-AI-1",
+                Species.CATTLE,
+                "Holstein",
+                AnimalGender.FEMALE,
+                LocalDate.now().minusYears(2),
+                null));
 
     // 3. Create Scan (Farmer)
-    CreateAIScanRequest scanReq = new CreateAIScanRequest(
-        animal.id(), "https://s3.amazonaws.com/vetra/scans/daisy.jpg", "HASH-SHA256-DAISY");
+    CreateAIScanRequest scanReq =
+        new CreateAIScanRequest(
+            animal.id(), "https://s3.amazonaws.com/vetra/scans/daisy.jpg", "HASH-SHA256-DAISY");
 
     AIScanResponse createdScan = aiScanService.createScan("farmer_ai@vetra.app", scanReq);
     assertNotNull(createdScan.id());
@@ -108,24 +140,39 @@ class AIScanServiceTest {
     assertFalse(createdScan.veterinarianVerified());
 
     // 4. List Scans with Pageable
-    Page<AIScanResponse> farmerPage = aiScanService.listScans("farmer_ai@vetra.app", PageRequest.of(0, 10));
+    Page<AIScanResponse> farmerPage =
+        aiScanService.listScans("farmer_ai@vetra.app", PageRequest.of(0, 10));
     assertEquals(1, farmerPage.getTotalElements());
 
     // Set scan status to COMPLETED to simulate finished AI processing before vet review
-    aiScanService.updateStatus(createdScan.id(), AIScanStatus.COMPLETED, "Initial Dermatological Observation", new BigDecimal("0.850"));
+    aiScanService.updateStatus(
+        createdScan.id(),
+        AIScanStatus.COMPLETED,
+        "Initial Dermatological Observation",
+        new BigDecimal("0.850"));
 
     // 5. Verify Scan (Farmer cannot verify -> UnauthorizedResourceAccessException)
-    assertThrows(UnauthorizedResourceAccessException.class, () ->
-        aiScanService.verifyScan("farmer_ai@vetra.app", createdScan.id(),
-            new VerifyAIScanRequest(true, "Looks good", null)));
+    assertThrows(
+        UnauthorizedResourceAccessException.class,
+        () ->
+            aiScanService.verifyScan(
+                "farmer_ai@vetra.app",
+                createdScan.id(),
+                new VerifyAIScanRequest(true, "Looks good", null)));
 
     // 6. Vet Verifies Scan (Accepts Diagnosis)
-    AIScanResponse verifiedScan = aiScanService.verifyScan("vet_ai@vetra.app", createdScan.id(),
-        new VerifyAIScanRequest(true, "Confirmed dermatological inflammation. Prescribed topical ointment.", null));
+    AIScanResponse verifiedScan =
+        aiScanService.verifyScan(
+            "vet_ai@vetra.app",
+            createdScan.id(),
+            new VerifyAIScanRequest(
+                true, "Confirmed dermatological inflammation. Prescribed topical ointment.", null));
 
     assertTrue(verifiedScan.veterinarianVerified());
     assertEquals(AIScanStatus.VERIFIED, verifiedScan.status());
-    assertEquals("Confirmed dermatological inflammation. Prescribed topical ointment.", verifiedScan.notes());
+    assertEquals(
+        "Confirmed dermatological inflammation. Prescribed topical ointment.",
+        verifiedScan.notes());
   }
 
   @Test

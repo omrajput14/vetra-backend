@@ -9,7 +9,4 @@ import java.util.UUID;
  * @param scanId scan UUID
  * @param result inference result payload
  */
-public record AIInferenceCompletedEvent(
-    UUID scanId,
-    AIInferenceResult result
-) {}
+public record AIInferenceCompletedEvent(UUID scanId, AIInferenceResult result) {}

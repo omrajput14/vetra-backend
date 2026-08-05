@@ -16,9 +16,8 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
- * Production-ready Redis infrastructure configuration.
- * Configures Lettuce connection factory, Redis templates with JSON serialization,
- * transaction support, and Spring Cache abstraction enablement.
+ * Production-ready Redis infrastructure configuration. Configures Lettuce connection factory, Redis
+ * templates with JSON serialization, transaction support, and Spring Cache abstraction enablement.
  */
 @Configuration
 @EnableCaching
@@ -37,8 +36,8 @@ public class RedisConfig {
   }
 
   /**
-   * Creates the {@link RedisConnectionFactory} configured with standalone host,
-   * port, database index, optional password, and command execution timeout.
+   * Creates the {@link RedisConnectionFactory} configured with standalone host, port, database
+   * index, optional password, and command execution timeout.
    *
    * @return configured Lettuce RedisConnectionFactory bean
    */
@@ -53,16 +52,15 @@ public class RedisConfig {
       standaloneConfig.setPassword(RedisPassword.of(redisProperties.getPassword()));
     }
 
-    LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
-        .commandTimeout(redisProperties.getTimeout())
-        .build();
+    LettuceClientConfiguration clientConfig =
+        LettuceClientConfiguration.builder().commandTimeout(redisProperties.getTimeout()).build();
 
     return new LettuceConnectionFactory(standaloneConfig, clientConfig);
   }
 
   /**
-   * Creates a {@link RedisTemplate} configured with UTF-8 String key serialization,
-   * Jackson JSON value serialization, and transaction support.
+   * Creates a {@link RedisTemplate} configured with UTF-8 String key serialization, Jackson JSON
+   * value serialization, and transaction support.
    *
    * @param connectionFactory configured RedisConnectionFactory
    * @return typed RedisTemplate bean

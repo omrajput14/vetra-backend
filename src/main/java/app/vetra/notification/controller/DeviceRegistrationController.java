@@ -19,12 +19,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * REST controller managing mobile and web device registration for push notifications.
- */
+/** REST controller managing mobile and web device registration for push notifications. */
 @RestController
 @RequestMapping("/api/v1/notifications/devices")
-@Tag(name = "Notification Device Management", description = "Endpoints for registering and updating mobile push device tokens")
+@Tag(
+    name = "Notification Device Management",
+    description = "Endpoints for registering and updating mobile push device tokens")
 @SecurityRequirement(name = "bearerAuth")
 public class DeviceRegistrationController {
 
@@ -38,7 +38,9 @@ public class DeviceRegistrationController {
   /** Registers a push device token. */
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Register Push Device Token", description = "Registers a new device token for Firebase push notification delivery.")
+  @Operation(
+      summary = "Register Push Device Token",
+      description = "Registers a new device token for Firebase push notification delivery.")
   public ApiResponse<String> registerDevice(
       Principal principal, @Valid @RequestBody RegisterDeviceRequest request) {
     NotificationDevice device = deviceService.registerDevice(principal.getName(), request);
@@ -47,9 +49,10 @@ public class DeviceRegistrationController {
 
   /** Deactivates a device token. */
   @PutMapping("/{id}")
-  @Operation(summary = "Deactivate Push Device Token", description = "Deactivates a registered device token.")
-  public ApiResponse<Void> deactivateDevice(
-      Principal principal, @PathVariable("id") UUID id) {
+  @Operation(
+      summary = "Deactivate Push Device Token",
+      description = "Deactivates a registered device token.")
+  public ApiResponse<Void> deactivateDevice(Principal principal, @PathVariable("id") UUID id) {
     deviceService.deactivateDevice(principal.getName(), id);
     return ApiResponse.ok("Device token deactivated successfully", null);
   }

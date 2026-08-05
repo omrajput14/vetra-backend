@@ -7,9 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
-/**
- * DTO for creating a new appointment.
- */
+/** DTO for creating a new appointment. */
 public record CreateAppointmentRequest(
     @NotNull(message = "Animal ID is required") UUID animalId,
     @NotNull(message = "Veterinarian ID is required") UUID veterinarianId,

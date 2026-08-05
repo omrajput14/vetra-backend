@@ -6,9 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/**
- * Data access repository for FarmerProfile entity.
- */
+/** Data access repository for FarmerProfile entity. */
 public interface FarmerProfileRepository extends JpaRepository<FarmerProfile, UUID> {
 
   /** Finds farmer profile by user entity. */

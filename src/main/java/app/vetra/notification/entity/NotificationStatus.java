@@ -1,8 +1,6 @@
 package app.vetra.notification.entity;
 
-/**
- * Delivery status lifecycle of a notification message.
- */
+/** Delivery status lifecycle of a notification message. */
 public enum NotificationStatus {
   /** Created and awaiting processing. */
   PENDING,

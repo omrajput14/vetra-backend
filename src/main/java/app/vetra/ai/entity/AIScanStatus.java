@@ -1,8 +1,6 @@
 package app.vetra.ai.entity;
 
-/**
- * Processing status lifecycle of an AI diagnostic scan.
- */
+/** Processing status lifecycle of an AI diagnostic scan. */
 public enum AIScanStatus {
   PENDING,
   PROCESSING,

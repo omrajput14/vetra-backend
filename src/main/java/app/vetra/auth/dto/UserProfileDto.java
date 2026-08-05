@@ -4,9 +4,7 @@ import app.vetra.infrastructure.persistence.enums.UserRole;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.UUID;
 
-/**
- * Unified user profile response DTO combining User and role profile details.
- */
+/** Unified user profile response DTO combining User and role profile details. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record UserProfileDto(
     UUID id,

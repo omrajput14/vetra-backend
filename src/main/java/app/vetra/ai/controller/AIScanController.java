@@ -28,12 +28,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST API controller providing endpoints for AI diagnostic scan creation, status queries,
- * and veterinarian approval/rejection workflows.
+ * REST API controller providing endpoints for AI diagnostic scan creation, status queries, and
+ * veterinarian approval/rejection workflows.
  */
 @RestController
 @RequestMapping("/api/v1/ai/scans")
-@Tag(name = "AI Diagnostic Scans", description = "Endpoints for uploading, querying, approving, and rejecting AI diagnostic scans")
+@Tag(
+    name = "AI Diagnostic Scans",
+    description = "Endpoints for uploading, querying, approving, and rejecting AI diagnostic scans")
 @SecurityRequirement(name = "bearerAuth")
 public class AIScanController {
 
@@ -44,57 +46,61 @@ public class AIScanController {
     this.aiScanService = aiScanService;
   }
 
-  /**
-   * Registers a new AI diagnostic scan request for an animal.
-   */
+  /** Registers a new AI diagnostic scan request for an animal. */
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @Operation(summary = "Submit AI Diagnostic Scan", description = "Uploads a new diagnostic image scan for AI inference processing.")
+  @Operation(
+      summary = "Submit AI Diagnostic Scan",
+      description = "Uploads a new diagnostic image scan for AI inference processing.")
   public ApiResponse<AIScanResponse> createScan(
       Principal principal, @Valid @RequestBody CreateAIScanRequest request) {
     AIScanResponse response = aiScanService.createScan(principal.getName(), request);
     return ApiResponse.created("AI diagnostic scan submitted successfully", response);
   }
 
-  /**
-   * Fetches an AI diagnostic scan by ID.
-   */
+  /** Fetches an AI diagnostic scan by ID. */
   @GetMapping("/{id}")
-  @Operation(summary = "Get AI Scan by ID", description = "Retrieves diagnostic scan details and AI inference results.")
-  public ApiResponse<AIScanResponse> getScanById(
-      Principal principal, @PathVariable("id") UUID id) {
+  @Operation(
+      summary = "Get AI Scan by ID",
+      description = "Retrieves diagnostic scan details and AI inference results.")
+  public ApiResponse<AIScanResponse> getScanById(Principal principal, @PathVariable("id") UUID id) {
     AIScanResponse response = aiScanService.getScanById(principal.getName(), id);
     return ApiResponse.ok("AI scan details retrieved successfully", response);
   }
 
-  /**
-   * Lists AI scans for the authenticated user (non-paginated).
-   */
+  /** Lists AI scans for the authenticated user (non-paginated). */
   @GetMapping
-  @Operation(summary = "List AI Diagnostic Scans", description = "Retrieves AI diagnostic scans relevant to active user role.")
+  @Operation(
+      summary = "List AI Diagnostic Scans",
+      description = "Retrieves AI diagnostic scans relevant to active user role.")
   public ApiResponse<List<AIScanResponse>> listScans(Principal principal) {
     List<AIScanResponse> response = aiScanService.listScans(principal.getName());
     return ApiResponse.ok("AI scans retrieved successfully", response);
   }
 
-  /**
-   * Lists AI scans for the authenticated user with Pageable pagination.
-   */
+  /** Lists AI scans for the authenticated user with Pageable pagination. */
   @GetMapping("/page")
-  @Operation(summary = "Paginated List of AI Diagnostic Scans", description = "Retrieves paginated list of AI diagnostic scans.")
+  @Operation(
+      summary = "Paginated List of AI Diagnostic Scans",
+      description = "Retrieves paginated list of AI diagnostic scans.")
   public ApiResponse<Page<AIScanResponse>> listScansPaginated(
       Principal principal,
-      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
     Page<AIScanResponse> response = aiScanService.listScans(principal.getName(), pageable);
     return ApiResponse.ok("Paginated AI scans retrieved successfully", response);
   }
 
   /**
-   * Approves an AI diagnostic scan result and automatically generates an Electronic Veterinary Medical Record.
+   * Approves an AI diagnostic scan result and automatically generates an Electronic Veterinary
+   * Medical Record.
    */
   @PostMapping("/{id}/approve")
   @PreAuthorize("hasRole('VETERINARIAN')")
-  @Operation(summary = "Approve AI Diagnostic Scan", description = "Licensed veterinarian approves AI scan output and creates an immutable MedicalRecord entry.")
+  @Operation(
+      summary = "Approve AI Diagnostic Scan",
+      description =
+          "Licensed veterinarian approves AI scan output and creates an immutable MedicalRecord entry.")
   public ApiResponse<AIScanResponse> approveScan(
       Principal principal,
       @PathVariable("id") UUID id,
@@ -103,12 +109,12 @@ public class AIScanController {
     return ApiResponse.ok("AI diagnostic scan approved and MedicalRecord created", response);
   }
 
-  /**
-   * Rejects an AI diagnostic scan result.
-   */
+  /** Rejects an AI diagnostic scan result. */
   @PostMapping("/{id}/reject")
   @PreAuthorize("hasRole('VETERINARIAN')")
-  @Operation(summary = "Reject AI Diagnostic Scan", description = "Licensed veterinarian rejects AI scan output and records rejection reason.")
+  @Operation(
+      summary = "Reject AI Diagnostic Scan",
+      description = "Licensed veterinarian rejects AI scan output and records rejection reason.")
   public ApiResponse<AIScanResponse> rejectScan(
       Principal principal,
       @PathVariable("id") UUID id,

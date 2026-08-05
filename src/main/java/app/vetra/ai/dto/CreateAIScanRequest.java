@@ -12,11 +12,6 @@ import java.util.UUID;
  * @param imageHash optional SHA-256 hash of the image content for deduplication
  */
 public record CreateAIScanRequest(
-    @NotNull(message = "Animal ID is required")
-    UUID animalId,
-
-    @NotBlank(message = "Image URL is required")
-    String imageUrl,
-
-    String imageHash
-) {}
+    @NotNull(message = "Animal ID is required") UUID animalId,
+    @NotBlank(message = "Image URL is required") String imageUrl,
+    String imageHash) {}

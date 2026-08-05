@@ -20,7 +20,8 @@ public class GeoJsonService {
   private final DiseaseReportRepository diseaseReportRepository;
 
   /** Constructor injection. */
-  public GeoJsonService(OutbreakRepository outbreakRepository, DiseaseReportRepository diseaseReportRepository) {
+  public GeoJsonService(
+      OutbreakRepository outbreakRepository, DiseaseReportRepository diseaseReportRepository) {
     this.outbreakRepository = outbreakRepository;
     this.diseaseReportRepository = diseaseReportRepository;
   }
@@ -32,27 +33,29 @@ public class GeoJsonService {
    */
   @Transactional(readOnly = true)
   public GeoJsonFeatureCollection getOutbreaksGeoJson() {
-    List<Outbreak> activeOutbreaks = outbreakRepository.findAll()
-        .stream()
-        .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
-        .toList();
+    List<Outbreak> activeOutbreaks =
+        outbreakRepository.findAll().stream()
+            .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
+            .toList();
 
-    List<GeoJsonFeatureCollection.GeoJsonFeature> features = activeOutbreaks.stream()
-        .map(o -> {
-          Map<String, Object> props = new HashMap<>();
-          props.put("id", o.getId().toString());
-          props.put("diseaseName", o.getDiseaseName());
-          props.put("severity", o.getSeverity());
-          props.put("status", o.getStatus().name());
-          props.put("riskScore", o.getRiskScore().name());
-          props.put("trend", o.getTrend().name());
-          props.put("radiusKm", o.getRadiusKm());
-          props.put("affectedReportsCount", o.getAffectedReportsCount());
+    List<GeoJsonFeatureCollection.GeoJsonFeature> features =
+        activeOutbreaks.stream()
+            .map(
+                o -> {
+                  Map<String, Object> props = new HashMap<>();
+                  props.put("id", o.getId().toString());
+                  props.put("diseaseName", o.getDiseaseName());
+                  props.put("severity", o.getSeverity());
+                  props.put("status", o.getStatus().name());
+                  props.put("riskScore", o.getRiskScore().name());
+                  props.put("trend", o.getTrend().name());
+                  props.put("radiusKm", o.getRadiusKm());
+                  props.put("affectedReportsCount", o.getAffectedReportsCount());
 
-          return GeoJsonFeatureCollection.GeoJsonFeature.point(
-              o.getCenterLongitude(), o.getCenterLatitude(), props);
-        })
-        .toList();
+                  return GeoJsonFeatureCollection.GeoJsonFeature.point(
+                      o.getCenterLongitude(), o.getCenterLatitude(), props);
+                })
+            .toList();
 
     return GeoJsonFeatureCollection.of(features);
   }
@@ -64,24 +67,25 @@ public class GeoJsonService {
    */
   @Transactional(readOnly = true)
   public List<HeatmapPoint> getHeatmapData() {
-    List<Outbreak> active = outbreakRepository.findAll()
-        .stream()
-        .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
-        .toList();
+    List<Outbreak> active =
+        outbreakRepository.findAll().stream()
+            .filter(o -> o.getStatus() != OutbreakStatus.RESOLVED)
+            .toList();
 
     int maxCases = active.stream().mapToInt(Outbreak::getAffectedReportsCount).max().orElse(1);
 
     return active.stream()
-        .map(o -> {
-          double intensity = Math.min(1.0, (double) o.getAffectedReportsCount() / Math.max(1, maxCases));
-          return new HeatmapPoint(
-              o.getCenterLatitude(),
-              o.getCenterLongitude(),
-              Math.round(intensity * 100.0) / 100.0,
-              o.getAffectedReportsCount(),
-              o.getDiseaseName()
-          );
-        })
+        .map(
+            o -> {
+              double intensity =
+                  Math.min(1.0, (double) o.getAffectedReportsCount() / Math.max(1, maxCases));
+              return new HeatmapPoint(
+                  o.getCenterLatitude(),
+                  o.getCenterLongitude(),
+                  Math.round(intensity * 100.0) / 100.0,
+                  o.getAffectedReportsCount(),
+                  o.getDiseaseName());
+            })
         .toList();
   }
 }

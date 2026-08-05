@@ -1,8 +1,6 @@
 package app.vetra.disease.entity;
 
-/**
- * Origin source of a disease surveillance report.
- */
+/** Origin source of a disease surveillance report. */
 public enum DiseaseReportSource {
   /** Report originating from a veterinarian-verified AI diagnostic scan. */
   AI_VERIFIED,

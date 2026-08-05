@@ -5,6 +5,4 @@ package app.vetra.notification.dto;
  *
  * @param unreadCount total unread notifications
  */
-public record UnreadCountResponse(
-    long unreadCount
-) {}
+public record UnreadCountResponse(long unreadCount) {}

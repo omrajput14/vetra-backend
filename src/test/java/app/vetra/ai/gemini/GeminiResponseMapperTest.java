@@ -18,7 +18,8 @@ class GeminiResponseMapperTest {
 
   @Test
   void testMapToInferenceResultParsesCleanJson() {
-    String jsonResponse = """
+    String jsonResponse =
+        """
         {
           "condition": "Bovine Foot and Mouth Disease (FMD)",
           "confidence": 0.92,
@@ -28,7 +29,8 @@ class GeminiResponseMapperTest {
         }
         """;
 
-    AIInferenceResult result = mapper.mapToInferenceResult(jsonResponse, "gemini-1.5-flash", "REQ-1234", 250L);
+    AIInferenceResult result =
+        mapper.mapToInferenceResult(jsonResponse, "gemini-1.5-flash", "REQ-1234", 250L);
 
     assertNotNull(result);
     assertEquals(AIProviderType.GEMINI, result.provider());
@@ -40,7 +42,8 @@ class GeminiResponseMapperTest {
 
   @Test
   void testMapToInferenceResultCleansMarkdownJsonBlocks() {
-    String markdownResponse = """
+    String markdownResponse =
+        """
         ```json
         {
           "condition": "Bovine Dermatitis",
@@ -52,7 +55,8 @@ class GeminiResponseMapperTest {
         ```
         """;
 
-    AIInferenceResult result = mapper.mapToInferenceResult(markdownResponse, "gemini-1.5-flash", "REQ-5678", 180L);
+    AIInferenceResult result =
+        mapper.mapToInferenceResult(markdownResponse, "gemini-1.5-flash", "REQ-5678", 180L);
 
     assertNotNull(result);
     assertEquals(AIProviderType.GEMINI, result.provider());
@@ -63,7 +67,8 @@ class GeminiResponseMapperTest {
   void testMapToInferenceResultThrowsAIInferenceExceptionOnMalformedJson() {
     String malformedJson = "{ invalid json body }";
 
-    assertThrows(AIInferenceException.class, () ->
-        mapper.mapToInferenceResult(malformedJson, "gemini-1.5-flash", "REQ-0000", 100L));
+    assertThrows(
+        AIInferenceException.class,
+        () -> mapper.mapToInferenceResult(malformedJson, "gemini-1.5-flash", "REQ-0000", 100L));
   }
 }
