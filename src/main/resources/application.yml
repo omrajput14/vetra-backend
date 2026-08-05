@@ -190,6 +190,33 @@ vetra:
       timeout: ${GEMINI_TIMEOUT:30s}
       max-retries: ${GEMINI_MAX_RETRIES:3}
 
+    # ── AI Gateway Layer (Stage 13) ─────────────────────────────────────────
+    # Provider-agnostic routing layer. Business logic references aliases only.
+    # All provider-specific model IDs are confined to this section.
+    gateway:
+      default-provider: ${AI_GATEWAY_DEFAULT_PROVIDER:noop}
+      default-model: ${AI_GATEWAY_DEFAULT_MODEL:noop-default}
+      timeout: ${AI_GATEWAY_TIMEOUT:10s}
+      providers:
+        - name: noop
+          enabled: true
+        - name: gemini
+          enabled: ${GEMINI_ENABLED:false}
+      models:
+        noop-default:
+          provider: noop
+          model-id: noop-v1
+          context-window: 1
+          max-output-tokens: 1
+          enabled: true
+        # Example: diagnostics-fast:
+        #   provider: gemini
+        #   model-id: gemini-2.5-flash
+        #   capabilities: [VISION, JSON_MODE]
+        #   context-window: 1048576
+        #   max-output-tokens: 8192
+        #   enabled: ${GEMINI_ENABLED:false}
+
   # Redis Infrastructure Foundation
   redis:
     host: ${REDIS_HOST:localhost}
