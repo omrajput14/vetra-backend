@@ -1,61 +1,98 @@
 package app.vetra.ai.provider;
 
 import app.vetra.ai.entity.AIProviderType;
+import app.vetra.ai.model.AICapability;
+import app.vetra.ai.model.AIRequest;
+import app.vetra.ai.model.AIResponse;
+import java.util.Set;
 
 /**
- * Enterprise AI provider contract interface.
- * Providers execute visual diagnostic inference without containing business logic.
+ * Enterprise AI provider contract. Implemented by adapters for each supported LLM backend.
+ * Provider adapters are responsible only for translating the standard {@link AIRequest} into the
+ * provider-specific wire format and normalizing the raw response into a standard {@link AIResponse}.
+ * All retry, fallover, caching, and safety logic is handled by the AIGateway layer.
  */
 public interface AIProvider {
 
   /**
-   * Checks if this provider supports the requested provider type enum.
+   * Checks if this provider supports the requested provider type.
    *
-   * @param type target provider type
+   * @param type the provider type to check
    * @return true if supported
+   * @deprecated Use capability-based routing via ProviderRouter instead.
    */
+  @Deprecated
   boolean supports(AIProviderType type);
 
   /**
-   * Performs image analysis and returns standard {@link AIInferenceResult}.
+   * Performs image analysis and returns a raw inference result.
    *
-   * @param imageUrl public or presigned S3 image URL
-   * @return {@link AIInferenceResult} payload
+   * @param imageUrl the image URL to analyze
+   * @return the inference result
+   * @deprecated Use {@link #execute(AIRequest, String)} with a structured AIRequest instead.
    */
+  @Deprecated
   AIInferenceResult analyze(String imageUrl);
 
   /**
-   * Performs real-time health check against the provider service endpoint.
+   * Returns the enum type of this provider.
    *
-   * @return true if reachable and healthy
+   * @return the provider type
+   * @deprecated Use {@link #providerName()} instead.
    */
-  boolean health();
+  @Deprecated
+  AIProviderType providerType();
 
   /**
-   * Returns human-readable provider name.
+   * Returns the active model identifier for this provider.
    *
-   * @return name string
+   * @return the model name
+   * @deprecated Model selection is now managed by ModelRegistry in the Gateway architecture.
+   */
+  @Deprecated
+  String model();
+
+  /**
+   * Returns the unique string identifier of this provider (e.g., "gemini", "noop").
+   *
+   * @return the provider name
    */
   String providerName();
 
   /**
-   * Returns provider enum type.
+   * Performs a real-time health check against the provider endpoint.
    *
-   * @return {@link AIProviderType}
+   * @return true if the provider is reachable and healthy
    */
-  AIProviderType providerType();
+  boolean health();
 
   /**
-   * Returns current active model name or checkpoint identifier.
+   * Returns true if this provider is enabled in configuration and ready to accept requests.
    *
-   * @return model identifier string
-   */
-  String model();
-
-  /**
-   * Returns true if provider is enabled in configuration and passes health checks.
-   *
-   * @return true if ready for inference
+   * @return true if the provider is available
    */
   boolean isAvailable();
+
+  /**
+   * Executes an AI inference request using the resolved prompt text.
+   *
+   * @param request the standardized domain-agnostic AI request
+   * @param promptText the fully resolved and validated prompt text
+   * @return the standardized {@link AIResponse}
+   * @throws UnsupportedOperationException if the provider has not implemented this method
+   */
+  default AIResponse execute(AIRequest request, String promptText) {
+    throw new UnsupportedOperationException(
+        "execute() is not implemented for provider: " + providerName());
+  }
+
+  /**
+   * Returns the set of capabilities supported by this provider adapter. Used by the ProviderRouter
+   * to match requests with compatible providers.
+   *
+   * @return an immutable set of supported capabilities
+   */
+  default Set<AICapability> supportedCapabilities() {
+    return Set.of();
+  }
 }
