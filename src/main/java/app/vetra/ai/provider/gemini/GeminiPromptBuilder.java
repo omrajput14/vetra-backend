@@ -2,8 +2,13 @@ package app.vetra.ai.provider.gemini;
 
 import org.springframework.stereotype.Component;
 
-/** Prompt engineering builder constructing structured instructions for Gemini Vision API. */
+/**
+ * Prompt engineering builder constructing structured instructions for Gemini Vision API.
+ *
+ * @deprecated Use PromptRegistry and external JSON templates instead.
+ */
 @Component
+@Deprecated
 public class GeminiPromptBuilder {
 
   private static final String VETERINARY_SYSTEM_PROMPT =

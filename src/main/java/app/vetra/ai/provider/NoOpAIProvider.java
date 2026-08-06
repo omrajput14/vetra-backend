@@ -83,7 +83,18 @@ public class NoOpAIProvider implements AIProvider {
    */
   @Override
   public AIResponse execute(AIRequest request, String promptText) {
-    return new AIResponse("noop-stub-response", request.promptId(), PROVIDER_NAME, "noop-v1", 0, 0);
+    String stubJsonResponse =
+        """
+        {
+          "condition": "Healthy",
+          "confidence": 0.99,
+          "observations": ["No visible abnormalities in the provided image"],
+          "recommendations": ["Continue standard care"],
+          "requiresVeterinarianReview": false
+        }
+        """;
+    return new AIResponse(
+        stubJsonResponse, request.promptId(), PROVIDER_NAME, "noop-v1", 0, 0, "stop");
   }
 
   /**

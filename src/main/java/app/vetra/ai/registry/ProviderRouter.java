@@ -58,47 +58,46 @@ public class ProviderRouter {
    * @throws AIProviderUnavailableException if no suitable provider/model pair can be found
    */
   public RoutingDecision route(AIRequest request) {
-    Set<AICapability> required = request.requiredCapabilities();
+    return route(request, Set.of());
+  }
 
-    if (required.isEmpty()) {
-      return resolveDefault();
+  /**
+   * Resolves the most suitable routing decision for the request, excluding any providers specified
+   * in {@code excludedProviders}.
+   *
+   * @param request the incoming AI request
+   * @param excludedProviders set of provider names (case-insensitive) to skip during selection
+   * @return a {@link RoutingDecision}
+   * @throws AIProviderUnavailableException if no non-excluded provider is available
+   */
+  public RoutingDecision route(AIRequest request, Set<String> excludedProviders) {
+    Set<String> excluded =
+        excludedProviders != null
+            ? excludedProviders.stream()
+                .map(String::toLowerCase)
+                .collect(java.util.stream.Collectors.toSet())
+            : Set.of();
+
+    if (request.requestedProvider() != null
+        && !excluded.contains(request.requestedProvider().name().toLowerCase())) {
+      Optional<AIProvider> explicit =
+          providerRegistry.findByName(request.requestedProvider().name());
+      if (explicit.isPresent() && explicit.get().isAvailable()) {
+        Optional<ModelDescriptor> explicitModel =
+            modelRegistry.getAll().stream()
+                .filter(m -> m.providerName().equalsIgnoreCase(request.requestedProvider().name()))
+                .findFirst();
+        if (explicitModel.isPresent()) {
+          return new RoutingDecision(explicit.get(), explicitModel.get());
+        }
+      }
     }
 
-    return resolveByCapabilities(required);
-  }
-
-  /**
-   * Resolves a routing decision using only the configured default provider and model, without
-   * capability filtering.
-   *
-   * @return the default routing decision
-   * @throws AIProviderUnavailableException if the default provider is not registered or unavailable
-   */
-  public RoutingDecision resolveDefault() {
-    AIProvider provider = providerRegistry.getDefault();
-    ModelDescriptor model = modelRegistry.getDefault();
-
-    log.debug(
-        "Routing to default: provider='{}' model alias='{}'",
-        provider.providerName(),
-        model.alias());
-
-    return new RoutingDecision(provider, model);
-  }
-
-  /**
-   * Resolves a routing decision based on required capabilities. Prefers the default provider if it
-   * supports the required capabilities. Falls back to the first available capable provider.
-   *
-   * @param required the required capabilities
-   * @return a capability-matched routing decision
-   * @throws AIProviderUnavailableException if no available provider supports the requirements
-   */
-  public RoutingDecision resolveByCapabilities(Set<AICapability> required) {
-    // Find capable models first
+    Set<AICapability> required = request.requiredCapabilities();
     List<ModelDescriptor> capableModels =
         modelRegistry.findByCapabilities(required).stream()
             .filter(m -> providerRegistry.isRegistered(m.providerName()))
+            .filter(m -> !excluded.contains(m.providerName().toLowerCase()))
             .filter(
                 m ->
                     providerRegistry
@@ -109,14 +108,17 @@ public class ProviderRouter {
 
     if (capableModels.isEmpty()) {
       throw new AIProviderUnavailableException(
-          "No enabled provider/model combination found that supports capabilities: " + required,
+          "No available AI provider found supporting capabilities: "
+              + required
+              + " (excluded: "
+              + excluded
+              + ")",
           "none");
     }
 
-    // Prefer the default model if it's in the capable set
     String defaultAlias = properties.getDefaultModel();
     Optional<ModelDescriptor> preferred =
-        capableModels.stream().filter(m -> m.alias().equals(defaultAlias)).findFirst();
+        capableModels.stream().filter(m -> m.alias().equalsIgnoreCase(defaultAlias)).findFirst();
 
     ModelDescriptor selectedModel = preferred.orElse(capableModels.get(0));
     AIProvider selectedProvider =
@@ -127,12 +129,6 @@ public class ProviderRouter {
                     new AIProviderUnavailableException(
                         "Provider '" + selectedModel.providerName() + "' not found in registry.",
                         selectedModel.providerName()));
-
-    log.debug(
-        "Capability routing: required={} → provider='{}' model='{}'",
-        required,
-        selectedProvider.providerName(),
-        selectedModel.alias());
 
     return new RoutingDecision(selectedProvider, selectedModel);
   }

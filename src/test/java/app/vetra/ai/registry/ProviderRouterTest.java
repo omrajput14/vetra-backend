@@ -70,7 +70,7 @@ class ProviderRouterTest {
     ModelRegistry modelRegistry = new ModelRegistry(props);
     ProviderRouter router = new ProviderRouter(providerRegistry, modelRegistry, props);
 
-    AIRequest request = new AIRequest("test-prompt", Map.of(), null, false, Set.of());
+    AIRequest request = new AIRequest("test-prompt", Map.of(), null, false, Set.of(), null);
     ProviderRouter.RoutingDecision decision = router.route(request);
 
     assertThat(decision.provider().providerName()).isEqualTo("noop");
@@ -93,7 +93,7 @@ class ProviderRouterTest {
 
     AIRequest request =
         new AIRequest(
-            "diag-prompt", Map.of(), "http://img.jpg", false, Set.of(AICapability.VISION));
+            "diag-prompt", Map.of(), "http://img.jpg", false, Set.of(AICapability.VISION), null);
     ProviderRouter.RoutingDecision decision = router.route(request);
 
     assertThat(decision.provider().providerName()).isEqualTo("vision-provider");
@@ -111,7 +111,7 @@ class ProviderRouterTest {
     ProviderRouter router = new ProviderRouter(providerRegistry, modelRegistry, props);
 
     AIRequest request =
-        new AIRequest("diag", Map.of(), null, false, Set.of(AICapability.STREAMING));
+        new AIRequest("diag", Map.of(), null, false, Set.of(AICapability.STREAMING), null);
 
     assertThatThrownBy(() -> router.route(request))
         .isInstanceOf(AIProviderUnavailableException.class)
@@ -135,7 +135,8 @@ class ProviderRouterTest {
     ProviderRouter router = new ProviderRouter(providerRegistry, modelRegistry, props);
 
     // vision-model is the default, and it matches — should be preferred
-    AIRequest request = new AIRequest("p", Map.of(), null, false, Set.of(AICapability.VISION));
+    AIRequest request =
+        new AIRequest("p", Map.of(), null, false, Set.of(AICapability.VISION), null);
     ProviderRouter.RoutingDecision decision = router.route(request);
 
     assertThat(decision.model().alias()).isEqualTo("vision-model");

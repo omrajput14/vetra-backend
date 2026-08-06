@@ -16,7 +16,8 @@ public record AIResponse(
     String provider,
     String model,
     int promptTokens,
-    int completionTokens) {
+    int completionTokens,
+    String finishReason) {
 
   /**
    * Returns the combined prompt and completion token count.
