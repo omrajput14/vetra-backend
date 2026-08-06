@@ -10,70 +10,58 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * Strongly-typed, immutable configuration properties for the AI Gateway layer. Binds from the
- * {@code vetra.ai.gateway} YAML namespace. No provider-specific terminology is permitted here —
- * this configuration layer is provider-agnostic by design.
- *
- * <p>Example YAML:
- *
- * <pre>{@code
- * vetra:
- *   ai:
- *     gateway:
- *       default-provider: gemini
- *       default-model: diagnostics-fast
- *       timeout: 10s
- *       models:
- *         diagnostics-fast:
- *           provider: gemini
- *           model-id: gemini-2.5-flash
- *           capabilities: [VISION, JSON_MODE]
- *           context-window: 1048576
- *           max-output-tokens: 8192
- *           enabled: true
- * }</pre>
+ * {@code vetra.ai.gateway} YAML namespace.
  */
 @ConfigurationProperties(prefix = "vetra.ai.gateway")
 public final class AIGatewayProperties {
 
   private final boolean enabled;
-
   private final String defaultProvider;
-
   private final String defaultModel;
-
   private final Duration timeout;
-
   private final List<ProviderConfig> providers;
-
   private final Map<String, ModelConfig> models;
+  private final GovernanceProperties governance;
 
-  /** Spring-constructor-binding constructor. */
+  /**
+   * Spring-constructor-binding constructor.
+   *
+   * @param enabled enabled status
+   * @param defaultProvider default provider
+   * @param defaultModel default model
+   * @param timeout timeout duration
+   * @param providers list of provider configs
+   * @param models map of model configs
+   * @param governance governance configuration
+   */
   public AIGatewayProperties(
       @DefaultValue("false") boolean enabled,
       @DefaultValue("noop") String defaultProvider,
       @DefaultValue("noop-default") String defaultModel,
       @DefaultValue("10s") Duration timeout,
       @DefaultValue List<ProviderConfig> providers,
-      @DefaultValue Map<String, ModelConfig> models) {
+      @DefaultValue Map<String, ModelConfig> models,
+      @DefaultValue GovernanceProperties governance) {
     this.enabled = enabled;
     this.defaultProvider = defaultProvider;
     this.defaultModel = defaultModel;
     this.timeout = timeout;
     this.providers = providers != null ? List.copyOf(providers) : List.of();
     this.models = models != null ? Map.copyOf(models) : Map.of();
+    this.governance = governance != null ? governance : new GovernanceProperties();
   }
 
   /**
-   * Returns true if the AI Gateway routing layer is enabled.
+   * Returns true if gateway is enabled.
    *
-   * @return true if gateway is enabled
+   * @return true if enabled
    */
   public boolean isEnabled() {
     return enabled;
   }
 
   /**
-   * Returns the name of the default provider.
+   * Returns default provider.
    *
    * @return default provider name
    */
@@ -82,16 +70,16 @@ public final class AIGatewayProperties {
   }
 
   /**
-   * Returns the alias of the default model.
+   * Returns default model.
    *
-   * @return default model alias
+   * @return default model name
    */
   public String getDefaultModel() {
     return defaultModel;
   }
 
   /**
-   * Returns the request execution timeout for the gateway.
+   * Returns timeout.
    *
    * @return timeout duration
    */
@@ -100,39 +88,47 @@ public final class AIGatewayProperties {
   }
 
   /**
-   * Returns the list of provider configuration entries.
+   * Returns provider configs.
    *
-   * @return immutable list of provider configs
+   * @return list of provider configs
    */
   public List<ProviderConfig> getProviders() {
     return providers;
   }
 
   /**
-   * Returns the map of model alias to model configuration.
+   * Returns model configs.
    *
-   * @return immutable map of model configs keyed by alias
+   * @return map of model configs
    */
   public Map<String, ModelConfig> getModels() {
     return models;
   }
 
+  /**
+   * Returns governance properties.
+   *
+   * @return governance properties object
+   */
+  public GovernanceProperties getGovernance() {
+    return governance;
+  }
+
   // ── Nested: ProviderConfig ────────────────────────────────────────────────
 
-  /**
-   * Configuration entry for a single AI provider. Provider names must be unique across all entries.
-   */
+  /** Configuration entry for a single AI provider. */
   public static final class ProviderConfig {
 
     private String name;
-
     private boolean enabled = true;
+    private int priority = 1;
+    private ResilienceConfig resilience = new ResilienceConfig();
 
-    /** No-arg constructor for property binding. */
+    /** Default constructor. */
     public ProviderConfig() {}
 
     /**
-     * Returns the unique provider name (matches {@code AIProvider.providerName()}).
+     * Returns provider name.
      *
      * @return provider name
      */
@@ -141,16 +137,16 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the provider name.
+     * Sets provider name.
      *
-     * @param name the provider name
+     * @param name provider name
      */
     public void setName(String name) {
       this.name = name;
     }
 
     /**
-     * Returns whether this provider is enabled for traffic.
+     * Returns whether provider is enabled.
      *
      * @return true if enabled
      */
@@ -159,43 +155,71 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the enabled status of this provider.
+     * Sets enabled status.
      *
      * @param enabled true to enable
      */
     public void setEnabled(boolean enabled) {
       this.enabled = enabled;
     }
+
+    /**
+     * Returns priority.
+     *
+     * @return priority value
+     */
+    public int getPriority() {
+      return priority;
+    }
+
+    /**
+     * Sets priority.
+     *
+     * @param priority priority value
+     */
+    public void setPriority(int priority) {
+      this.priority = priority;
+    }
+
+    /**
+     * Returns resilience config.
+     *
+     * @return resilience config
+     */
+    public ResilienceConfig getResilience() {
+      return resilience;
+    }
+
+    /**
+     * Sets resilience config.
+     *
+     * @param resilience resilience config
+     */
+    public void setResilience(ResilienceConfig resilience) {
+      this.resilience = resilience != null ? resilience : new ResilienceConfig();
+    }
   }
 
   // ── Nested: ModelConfig ───────────────────────────────────────────────────
 
-  /**
-   * Configuration entry for a single model alias. The alias is the key in the {@code models} map.
-   * Model IDs are provider-specific and must not be referenced directly by business logic.
-   */
+  /** Configuration entry for a single model alias. */
   public static final class ModelConfig {
 
     private String provider;
-
     private String modelId;
-
     private int contextWindow = 8192;
-
     private int maxOutputTokens = 2048;
-
     private boolean supportsVision = false;
     private boolean supportsStreaming = false;
     private boolean supportsJsonMode = false;
     private boolean enabled = true;
-
     private List<String> capabilities = new ArrayList<>();
 
-    /** No-arg constructor for property binding. */
+    /** Default constructor. */
     public ModelConfig() {}
 
     /**
-     * Returns the provider name this model belongs to.
+     * Returns provider name.
      *
      * @return provider name
      */
@@ -204,16 +228,16 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the provider name.
+     * Sets provider name.
      *
-     * @param provider the provider name
+     * @param provider provider name
      */
     public void setProvider(String provider) {
       this.provider = provider;
     }
 
     /**
-     * Returns the provider-specific model identifier (e.g., gemini-2.5-flash).
+     * Returns model ID.
      *
      * @return model ID
      */
@@ -222,54 +246,54 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the model ID.
+     * Sets model ID.
      *
-     * @param modelId the model ID
+     * @param modelId model ID
      */
     public void setModelId(String modelId) {
       this.modelId = modelId;
     }
 
     /**
-     * Returns the maximum context window in tokens.
+     * Returns context window token size.
      *
-     * @return context window size
+     * @return token count
      */
     public int getContextWindow() {
       return contextWindow;
     }
 
     /**
-     * Sets the context window size.
+     * Sets context window size.
      *
-     * @param contextWindow context window in tokens
+     * @param contextWindow token count
      */
     public void setContextWindow(int contextWindow) {
       this.contextWindow = contextWindow;
     }
 
     /**
-     * Returns the maximum number of output tokens.
+     * Returns max output tokens.
      *
-     * @return max output tokens
+     * @return max output token count
      */
     public int getMaxOutputTokens() {
       return maxOutputTokens;
     }
 
     /**
-     * Sets the maximum output tokens.
+     * Sets max output tokens.
      *
-     * @param maxOutputTokens max output tokens
+     * @param maxOutputTokens max token count
      */
     public void setMaxOutputTokens(int maxOutputTokens) {
       this.maxOutputTokens = maxOutputTokens;
     }
 
     /**
-     * Returns true if this model supports vision (image) inputs.
+     * Returns true if vision supported.
      *
-     * @return true if vision is supported
+     * @return true if supported
      */
     public boolean isSupportsVision() {
       return supportsVision;
@@ -285,9 +309,9 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Returns true if this model supports streaming responses.
+     * Returns true if streaming supported.
      *
-     * @return true if streaming is supported
+     * @return true if supported
      */
     public boolean isSupportsStreaming() {
       return supportsStreaming;
@@ -303,9 +327,9 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Returns true if this model supports native JSON mode.
+     * Returns true if JSON mode supported.
      *
-     * @return true if JSON mode is supported
+     * @return true if supported
      */
     public boolean isSupportsJsonMode() {
       return supportsJsonMode;
@@ -321,7 +345,7 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Returns true if this model is enabled for use.
+     * Returns true if enabled.
      *
      * @return true if enabled
      */
@@ -330,7 +354,7 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the enabled status.
+     * Sets enabled status.
      *
      * @param enabled true to enable
      */
@@ -339,18 +363,18 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Returns the list of capability names declared for this model (e.g., "VISION", "JSON_MODE").
+     * Returns capabilities list.
      *
-     * @return list of capability name strings
+     * @return list of capability strings
      */
     public List<String> getCapabilities() {
       return capabilities;
     }
 
     /**
-     * Sets the capability list.
+     * Sets capabilities list.
      *
-     * @param capabilities list of capability name strings
+     * @param capabilities list of capability strings
      */
     public void setCapabilities(List<String> capabilities) {
       this.capabilities = capabilities != null ? capabilities : new ArrayList<>();
@@ -358,15 +382,15 @@ public final class AIGatewayProperties {
   }
 
   /**
-   * Returns a new {@link Builder} for constructing {@link AIGatewayProperties} in tests.
+   * Creates builder.
    *
-   * @return a new builder instance
+   * @return new Builder instance
    */
   public static Builder builder() {
     return new Builder();
   }
 
-  /** Builder for constructing {@link AIGatewayProperties} in unit tests. */
+  /** Builder for constructing AIGatewayProperties in tests. */
   public static final class Builder {
 
     private boolean enabled = true;
@@ -375,12 +399,16 @@ public final class AIGatewayProperties {
     private Duration timeout = Duration.ofSeconds(10);
     private List<ProviderConfig> providers = new ArrayList<>();
     private Map<String, ModelConfig> models = new LinkedHashMap<>();
+    private GovernanceProperties governance = new GovernanceProperties();
+
+    /** Default constructor. */
+    public Builder() {}
 
     /**
-     * Sets whether the gateway is enabled.
+     * Sets enabled status.
      *
      * @param enabled true to enable
-     * @return this builder
+     * @return builder instance
      */
     public Builder enabled(boolean enabled) {
       this.enabled = enabled;
@@ -388,10 +416,10 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the default provider name.
+     * Sets default provider.
      *
      * @param defaultProvider provider name
-     * @return this builder
+     * @return builder instance
      */
     public Builder defaultProvider(String defaultProvider) {
       this.defaultProvider = defaultProvider;
@@ -399,10 +427,10 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the default model alias.
+     * Sets default model.
      *
      * @param defaultModel model alias
-     * @return this builder
+     * @return builder instance
      */
     public Builder defaultModel(String defaultModel) {
       this.defaultModel = defaultModel;
@@ -410,10 +438,10 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Sets the gateway timeout.
+     * Sets timeout.
      *
-     * @param timeout request timeout
-     * @return this builder
+     * @param timeout timeout duration
+     * @return builder instance
      */
     public Builder timeout(Duration timeout) {
       this.timeout = timeout;
@@ -421,10 +449,10 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Adds a provider configuration.
+     * Adds provider config.
      *
      * @param config provider config
-     * @return this builder
+     * @return builder instance
      */
     public Builder provider(ProviderConfig config) {
       this.providers.add(config);
@@ -432,11 +460,11 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Adds a model configuration with the given alias.
+     * Adds model config.
      *
-     * @param alias model alias key
+     * @param alias model alias
      * @param config model config
-     * @return this builder
+     * @return builder instance
      */
     public Builder model(String alias, ModelConfig config) {
       this.models.put(alias, config);
@@ -444,13 +472,24 @@ public final class AIGatewayProperties {
     }
 
     /**
-     * Builds and returns the {@link AIGatewayProperties} instance.
+     * Sets governance properties.
+     *
+     * @param governance governance properties object
+     * @return builder instance
+     */
+    public Builder governance(GovernanceProperties governance) {
+      this.governance = governance;
+      return this;
+    }
+
+    /**
+     * Builds AIGatewayProperties.
      *
      * @return constructed properties
      */
     public AIGatewayProperties build() {
       return new AIGatewayProperties(
-          enabled, defaultProvider, defaultModel, timeout, providers, models);
+          enabled, defaultProvider, defaultModel, timeout, providers, models, governance);
     }
   }
 }

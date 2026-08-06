@@ -13,6 +13,9 @@
   <property name="charset" value="UTF-8"/>
   <property name="fileExtensions" value="java"/>
 
+  <!-- Allow SuppressWarnings annotation -->
+  <module name="SuppressWarningsFilter"/>
+
   <!-- Require files to end with a newline -->
   <module name="NewlineAtEndOfFile"/>
 
@@ -27,6 +30,9 @@
   </module>
 
   <module name="TreeWalker">
+
+    <!-- Allow SuppressWarnings annotation -->
+    <module name="SuppressWarningsHolder"/>
 
     <!-- ─── Imports ─────────────────────────────────────────────────── -->
     <module name="AvoidStarImport"/>

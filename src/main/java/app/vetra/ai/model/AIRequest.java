@@ -17,7 +17,8 @@ public record AIRequest(
     Map<String, Object> variables,
     String imageUrl,
     boolean cacheBypass,
-    Set<AICapability> requiredCapabilities) {
+    Set<AICapability> requiredCapabilities,
+    app.vetra.ai.entity.AIProviderType requestedProvider) {
 
   /** Compact constructor that normalises null collections to empty immutable defaults. */
   public AIRequest {

@@ -35,6 +35,7 @@
     <checkstyle.version>3.6.0</checkstyle.version>
     <!-- datasource-micrometer: JDBC/HikariCP tracing via Micrometer Observation -->
     <datasource-micrometer.version>1.0.6</datasource-micrometer.version>
+    <resilience4j.version>2.2.0</resilience4j.version>
   </properties>
 
   <!-- ─── Dependency Management (BOM imports) ─────────────────────── -->
@@ -103,6 +104,18 @@
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
+    <!-- Resilience4j (Stage 13.0.4) -->
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-spring-boot3</artifactId>
+      <version>${resilience4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-micrometer</artifactId>
+      <version>${resilience4j.version}</version>
     </dependency>
 
     <!-- ─── Distributed Tracing (Stage 12.5.0) ───────────────────────── -->
