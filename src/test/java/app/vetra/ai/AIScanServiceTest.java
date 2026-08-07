@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import app.vetra.ai.config.AIProperties;
 import app.vetra.ai.dto.AIScanResponse;
 import app.vetra.ai.dto.CreateAIScanRequest;
 import app.vetra.ai.dto.VerifyAIScanRequest;
@@ -60,9 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
       "vetra.aws.credentials.access-key=test-key",
       "vetra.aws.credentials.secret-key=test-secret",
       "vetra.aws.s3.bucket-name=vetra-test-bucket",
-      "vetra.aws.s3.presigned-url-expiry-minutes=15",
-      "vetra.ai.enabled=false",
-      "vetra.ai.default-provider=NONE"
+      "vetra.aws.s3.presigned-url-expiry-minutes=15"
     })
 class AIScanServiceTest {
 
@@ -70,18 +67,17 @@ class AIScanServiceTest {
   @Autowired private AnimalService animalService;
   @Autowired private AuthService authService;
   @Autowired private NoOpAIProvider noOpAIProvider;
-  @Autowired private AIProperties aiProperties;
   @Autowired private AIMetricsService metricsService;
 
   @Test
   void testNoOpAIProviderBehavior() {
     assertEquals("noop", noOpAIProvider.providerName());
-    assertFalse(noOpAIProvider.health());
-    AIProviderUnavailableException ex =
-        assertThrows(
-            AIProviderUnavailableException.class,
-            () -> noOpAIProvider.analyze("https://s3.amazonaws.com/vetra/sample.jpg"));
-    assertEquals("noop", ex.getProvider());
+    assertTrue(noOpAIProvider.isAvailable()); // NoOp is always available for routing
+    app.vetra.ai.model.AIRequest request = new app.vetra.ai.model.AIRequest("prompt", java.util.Map.of(), null, false, java.util.Set.of(), null);
+    app.vetra.ai.model.AIResponse response = noOpAIProvider.execute(request, "dummy");
+    assertNotNull(response);
+    assertEquals("noop", response.provider());
+    assertEquals(0, response.completionTokens());
   }
 
   @Test
@@ -176,8 +172,7 @@ class AIScanServiceTest {
   }
 
   @Test
-  void testAIPropertiesAndMetricsTracking() {
-    assertFalse(aiProperties.isEnabled());
+  void testMetricsTracking() {
     assertEquals(0, metricsService.getTotalRequests());
   }
 }

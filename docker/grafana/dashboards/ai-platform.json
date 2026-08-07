@@ -1,0 +1,169 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Executive Overview & Production SLAs",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 2 },
+      "id": 2,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(ai_requests_total)", "refId": "A" }],
+      "title": "Total Gateway Requests",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 2 },
+      "id": 3,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(rate(ai_requests_total{status=\"success\"}[5m])) / sum(rate(ai_requests_total[5m]))", "refId": "A" }],
+      "title": "Request Success Rate (SLO)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 2 },
+      "id": 4,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(ai_request_duration_seconds_bucket[5m])) by (le))", "refId": "A" }],
+      "title": "p95 Gateway Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 2 },
+      "id": 5,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(ai_estimated_cost_total)", "refId": "A" }],
+      "title": "Total Spend (USD)",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 6 },
+      "id": 6,
+      "title": "Provider Performance & SLA Comparison",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "id": 7,
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(ai_provider_latency_seconds_bucket[5m])) by (le, provider))", "legendFormat": "{{provider}} p95", "refId": "A" }],
+      "title": "Provider p95 Latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+      "id": 8,
+      "targets": [{ "expr": "sum(rate(ai_provider_requests_total[5m])) by (provider, status)", "legendFormat": "{{provider}} - {{status}}", "refId": "A" }],
+      "title": "Provider Throughput & Status",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 14 },
+      "id": 9,
+      "title": "Cache Efficiency & Cost Savings",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 16 },
+      "id": 10,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(rate(ai_cache_lookup_total{result=~\"hit|stampede_hit\"}[5m])) / sum(rate(ai_cache_lookup_total[5m]))", "refId": "A" }],
+      "title": "Cache Hit Ratio",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 16 },
+      "id": 11,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(ai_token_saved_total)", "refId": "A" }],
+      "title": "Tokens Saved",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 16 },
+      "id": 12,
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(ai_cost_saved_total)", "refId": "A" }],
+      "title": "Cost Saved (USD)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 16 },
+      "id": 13,
+      "targets": [{ "expr": "sum(rate(ai_cache_lookup_total[5m])) by (result)", "legendFormat": "{{result}}", "refId": "A" }],
+      "title": "Cache Lookups by Result",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 20 },
+      "id": 14,
+      "title": "Governance & Resilience Telemetry",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 22 },
+      "id": 15,
+      "targets": [{ "expr": "sum(rate(ai_governance_rejections_total[5m])) by (governance_type)", "legendFormat": "{{governance_type}}", "refId": "A" }],
+      "title": "Governance Rejections by Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 22 },
+      "id": 16,
+      "targets": [
+        { "expr": "sum(rate(ai_resilience_retry_total[5m]))", "legendFormat": "Retries", "refId": "A" },
+        { "expr": "sum(rate(ai_resilience_failover_total[5m]))", "legendFormat": "Failovers", "refId": "B" },
+        { "expr": "sum(rate(ai_resilience_circuit_breaker_open_total[5m]))", "legendFormat": "Circuit Opens", "refId": "C" }
+      ],
+      "title": "Retries, Failovers & Circuit Breakers",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["vetra", "ai", "observability", "stage13"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Vetra AI Platform Dashboard",
+  "uid": "vetra-ai-platform"
+}

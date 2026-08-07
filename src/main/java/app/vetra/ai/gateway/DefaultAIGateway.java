@@ -1,5 +1,7 @@
 package app.vetra.ai.gateway;
 
+import app.vetra.ai.cache.AICacheManager;
+import app.vetra.ai.cache.CacheKeyGenerator;
 import app.vetra.ai.exception.AIConfigurationException;
 import app.vetra.ai.gateway.governance.AIGovernancePipeline;
 import app.vetra.ai.model.AICapability;
@@ -18,8 +20,9 @@ import org.springframework.stereotype.Service;
 /**
  * Pure orchestration facade for the AI Gateway.
  *
- * <p>Validates requests, resolves prompt templates, renders context variables, and passes execution
- * through {@link AIGovernancePipeline} before delegating provider resilience to {@link FailoverManager}.
+ * <p>Validates requests, resolves prompt templates, renders context variables, evaluates enterprise
+ * governance, checks Redis cache with single-flight stampede protection, and delegates provider
+ * resilience to {@link FailoverManager}.
  */
 @Service
 public class DefaultAIGateway implements AIGateway {
@@ -30,6 +33,8 @@ public class DefaultAIGateway implements AIGateway {
   private final PromptRenderer promptRenderer;
   private final FailoverManager failoverManager;
   private final AIGovernancePipeline governancePipeline;
+  private final AICacheManager aiCacheManager;
+  private final CacheKeyGenerator cacheKeyGenerator;
 
   /**
    * Constructs the gateway with required dependencies.
@@ -38,16 +43,22 @@ public class DefaultAIGateway implements AIGateway {
    * @param promptRenderer template renderer
    * @param failoverManager failover and resilience manager
    * @param governancePipeline governance execution pipeline
+   * @param aiCacheManager AI cache manager
+   * @param cacheKeyGenerator cache key generator
    */
   public DefaultAIGateway(
       PromptRegistry promptRegistry,
       PromptRenderer promptRenderer,
       FailoverManager failoverManager,
-      AIGovernancePipeline governancePipeline) {
+      AIGovernancePipeline governancePipeline,
+      AICacheManager aiCacheManager,
+      CacheKeyGenerator cacheKeyGenerator) {
     this.promptRegistry = promptRegistry;
     this.promptRenderer = promptRenderer;
     this.failoverManager = failoverManager;
     this.governancePipeline = governancePipeline;
+    this.aiCacheManager = aiCacheManager;
+    this.cacheKeyGenerator = cacheKeyGenerator;
   }
 
   @Override
@@ -86,16 +97,25 @@ public class DefaultAIGateway implements AIGateway {
         execContext.tenantId(),
         execContext.correlationId());
 
-    // 4. Delegate to governance pipeline before failover manager execution
+    // 4. Generate deterministic SHA-256 cache key
+    String cacheKey = cacheKeyGenerator.generateKey(routedRequest, renderedPrompt, descriptor);
+
+    // 5. Governance pipeline ALWAYS evaluates safety, policy, and budget checks first.
+    // The downstream execution chain attempts Redis cache lookup with single-flight stampede protection.
     AIResponse rawResponse =
         governancePipeline.execute(
             routedRequest,
             renderedPrompt,
             descriptor,
             execContext,
-            () -> failoverManager.executeWithFailover(routedRequest, renderedPrompt, descriptor));
+            () ->
+                aiCacheManager.getOrCompute(
+                    cacheKey,
+                    descriptor.version(),
+                    request.cacheBypass(),
+                    () -> failoverManager.executeWithFailover(routedRequest, renderedPrompt, descriptor)));
 
-    // 5. Normalize response tracking fields
+    // 6. Normalize response tracking fields
     return normalizeResponse(rawResponse, descriptor);
   }
 

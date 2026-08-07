@@ -59,8 +59,20 @@ class AIGovernanceIntegrationTest {
     governancePipeline =
         new DefaultAIGovernancePipeline(safetyFilter, policyEngine, budgetManager, auditService);
 
+    org.springframework.cache.CacheManager cacheManager =
+        new org.springframework.cache.concurrent.ConcurrentMapCacheManager(app.vetra.infrastructure.cache.CacheNames.AI_DIAGNOSIS);
+    app.vetra.ai.cache.AICacheManager aiCacheManager =
+        new app.vetra.ai.cache.AICacheManager(cacheManager, properties, null, null);
+    app.vetra.ai.cache.CacheKeyGenerator cacheKeyGenerator = new app.vetra.ai.cache.CacheKeyGenerator();
+
     gateway =
-        new DefaultAIGateway(promptRegistry, promptRenderer, failoverManager, governancePipeline);
+        new DefaultAIGateway(
+            promptRegistry,
+            promptRenderer,
+            failoverManager,
+            governancePipeline,
+            aiCacheManager,
+            cacheKeyGenerator);
 
     PromptDescriptor descriptor =
         new PromptDescriptor(
