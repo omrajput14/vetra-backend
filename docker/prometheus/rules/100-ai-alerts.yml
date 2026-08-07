@@ -1,0 +1,73 @@
+# Prometheus Alert Rules — Vetra AI Platform (Stage 13.0.8)
+groups:
+  - name: ai_platform_alerts
+    rules:
+      - alert: AISuccessRateLow
+        expr: sum(rate(ai_requests_total{status="success"}[5m])) / sum(rate(ai_requests_total[5m])) < 0.95
+        for: 3m
+        labels:
+          severity: critical
+          tier: ai_platform
+        annotations:
+          summary: "AI Gateway success rate dropped below 95% SLA"
+          description: "Current 5m request success rate is {{ $value | humanizePercentage }}."
+
+      - alert: AIProviderUnavailable
+        expr: sum(rate(ai_provider_requests_total{status="failure"}[3m])) by (provider) > 5
+        for: 2m
+        labels:
+          severity: critical
+          tier: ai_platform
+        annotations:
+          summary: "AI Provider {{ $labels.provider }} experiencing repeated failures"
+          description: "Provider {{ $labels.provider }} failed more than 5 requests in 3 minutes."
+
+      - alert: AICircuitBreakerOpen
+        expr: sum(rate(ai_resilience_circuit_breaker_open_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+          tier: ai_platform
+        annotations:
+          summary: "AI Circuit Breaker opened for provider"
+          description: "Circuit breaker tripped open due to provider failure rate threshold breach."
+
+      - alert: AIRetrySpike
+        expr: sum(rate(ai_resilience_retry_total[5m])) > 10
+        for: 3m
+        labels:
+          severity: warning
+          tier: ai_platform
+        annotations:
+          summary: "Spike in AI request retries detected"
+          description: "AI request retries exceeded 10 per 5m."
+
+      - alert: AICacheHitRatioLow
+        expr: sum(rate(ai_cache_lookup_total{result=~"hit|stampede_hit"}[10m])) / sum(rate(ai_cache_lookup_total[10m])) < 0.20
+        for: 10m
+        labels:
+          severity: warning
+          tier: ai_platform
+        annotations:
+          summary: "AI Cache hit ratio dropped below 20%"
+          description: "Current cache hit ratio is {{ $value | humanizePercentage }}."
+
+      - alert: AIGovernanceRejectionSpike
+        expr: sum(rate(ai_governance_rejections_total[5m])) > 15
+        for: 3m
+        labels:
+          severity: warning
+          tier: ai_platform
+        annotations:
+          summary: "Spike in AI governance rejections"
+          description: "Governance rejections (safety/policy/budget) exceeded 15 per 5m."
+
+      - alert: AIP95LatencyHigh
+        expr: histogram_quantile(0.95, sum(rate(ai_request_duration_seconds_bucket[5m])) by (le)) > 5.0
+        for: 5m
+        labels:
+          severity: warning
+          tier: ai_platform
+        annotations:
+          summary: "p95 AI Gateway request latency exceeds 5 seconds"
+          description: "95th percentile request latency is {{ $value }}s."

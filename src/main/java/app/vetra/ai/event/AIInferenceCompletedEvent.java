@@ -1,12 +1,11 @@
 package app.vetra.ai.event;
 
-import app.vetra.ai.provider.AIInferenceResult;
 import java.util.UUID;
 
 /**
- * Event published when an AI provider inference completes successfully.
+ * Domain event published when an AI diagnostic inference completes successfully.
  *
- * @param scanId scan UUID
- * @param result inference result payload
+ * <p>This event carries the scanId allowing asynchronous consumers (like Notification)
+ * to react without coupling to AI provider details.
  */
-public record AIInferenceCompletedEvent(UUID scanId, AIInferenceResult result) {}
+public record AIInferenceCompletedEvent(UUID scanId) {}

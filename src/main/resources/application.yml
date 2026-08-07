@@ -176,12 +176,6 @@ vetra:
 
   # AI Platform Orchestration
   ai:
-    enabled: ${AI_ENABLED:false}
-    default-provider: ${AI_DEFAULT_PROVIDER:NONE}
-    timeout: ${AI_TIMEOUT:30s}
-    retry:
-      max-attempts: ${AI_RETRY_MAX_ATTEMPTS:3}
-      backoff: ${AI_RETRY_BACKOFF:2s}
     gemini:
       enabled: ${GEMINI_ENABLED:false}
       api-key: ${GEMINI_API_KEY:}
@@ -198,6 +192,11 @@ vetra:
       default-provider: ${AI_GATEWAY_DEFAULT_PROVIDER:noop}
       default-model: ${AI_GATEWAY_DEFAULT_MODEL:noop-default}
       timeout: ${AI_GATEWAY_TIMEOUT:10s}
+      cache:
+        enabled: ${AI_GATEWAY_CACHE_ENABLED:true}
+        ttl: ${AI_GATEWAY_CACHE_TTL:24h}
+        key-prefix: "vetra:ai:cache:"
+        stampede-lock-timeout: 10s
       providers:
         - name: noop
           enabled: true
@@ -221,6 +220,7 @@ vetra:
         noop-default:
           provider: noop
           model-id: noop-v1
+          capabilities: [VISION, JSON_MODE]
           context-window: 1
           max-output-tokens: 1
           enabled: true

@@ -1,7 +1,4 @@
 package app.vetra.ai.provider;
-
-import app.vetra.ai.entity.AIProviderType;
-import app.vetra.ai.exception.AIProviderUnavailableException;
 import app.vetra.ai.model.AICapability;
 import app.vetra.ai.model.AIRequest;
 import app.vetra.ai.model.AIResponse;
@@ -22,30 +19,6 @@ public class NoOpAIProvider implements AIProvider {
 
   private static final String PROVIDER_NAME = "noop";
 
-  @Override
-  @Deprecated
-  public boolean supports(AIProviderType type) {
-    return type == AIProviderType.NONE;
-  }
-
-  @Override
-  @Deprecated
-  public AIInferenceResult analyze(String imageUrl) {
-    throw new AIProviderUnavailableException(
-        "AI provider is not configured. NoOpAIProvider does not perform inference.", PROVIDER_NAME);
-  }
-
-  @Override
-  @Deprecated
-  public AIProviderType providerType() {
-    return AIProviderType.NONE;
-  }
-
-  @Override
-  @Deprecated
-  public String model() {
-    return "noop-v1";
-  }
 
   @Override
   public String providerName() {
@@ -98,13 +71,13 @@ public class NoOpAIProvider implements AIProvider {
   }
 
   /**
-   * NoOp supports no real capabilities. This ensures it is not selected for capability-specific
-   * requests unless explicitly configured as the default.
+   * NoOp supports VISION and JSON_MODE capabilities to allow gateway routing to succeed during
+   * tests.
    *
-   * @return an empty capability set
+   * @return capability set
    */
   @Override
   public Set<AICapability> supportedCapabilities() {
-    return Set.of();
+    return Set.of(AICapability.VISION, AICapability.JSON_MODE);
   }
 }

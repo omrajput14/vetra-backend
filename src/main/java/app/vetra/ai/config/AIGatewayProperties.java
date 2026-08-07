@@ -22,6 +22,7 @@ public final class AIGatewayProperties {
   private final List<ProviderConfig> providers;
   private final Map<String, ModelConfig> models;
   private final GovernanceProperties governance;
+  private final CacheProperties cache;
 
   /**
    * Spring-constructor-binding constructor.
@@ -33,6 +34,7 @@ public final class AIGatewayProperties {
    * @param providers list of provider configs
    * @param models map of model configs
    * @param governance governance configuration
+   * @param cache cache configuration
    */
   public AIGatewayProperties(
       @DefaultValue("false") boolean enabled,
@@ -41,7 +43,8 @@ public final class AIGatewayProperties {
       @DefaultValue("10s") Duration timeout,
       @DefaultValue List<ProviderConfig> providers,
       @DefaultValue Map<String, ModelConfig> models,
-      @DefaultValue GovernanceProperties governance) {
+      @DefaultValue GovernanceProperties governance,
+      @DefaultValue CacheProperties cache) {
     this.enabled = enabled;
     this.defaultProvider = defaultProvider;
     this.defaultModel = defaultModel;
@@ -49,69 +52,47 @@ public final class AIGatewayProperties {
     this.providers = providers != null ? List.copyOf(providers) : List.of();
     this.models = models != null ? Map.copyOf(models) : Map.of();
     this.governance = governance != null ? governance : new GovernanceProperties();
+    this.cache = cache != null ? cache : new CacheProperties();
   }
 
-  /**
-   * Returns true if gateway is enabled.
-   *
-   * @return true if enabled
-   */
+  /** Returns true if gateway is enabled. */
   public boolean isEnabled() {
     return enabled;
   }
 
-  /**
-   * Returns default provider.
-   *
-   * @return default provider name
-   */
+  /** Returns default provider. */
   public String getDefaultProvider() {
     return defaultProvider;
   }
 
-  /**
-   * Returns default model.
-   *
-   * @return default model name
-   */
+  /** Returns default model. */
   public String getDefaultModel() {
     return defaultModel;
   }
 
-  /**
-   * Returns timeout.
-   *
-   * @return timeout duration
-   */
+  /** Returns timeout. */
   public Duration getTimeout() {
     return timeout;
   }
 
-  /**
-   * Returns provider configs.
-   *
-   * @return list of provider configs
-   */
+  /** Returns provider configs. */
   public List<ProviderConfig> getProviders() {
     return providers;
   }
 
-  /**
-   * Returns model configs.
-   *
-   * @return map of model configs
-   */
+  /** Returns model configs. */
   public Map<String, ModelConfig> getModels() {
     return models;
   }
 
-  /**
-   * Returns governance properties.
-   *
-   * @return governance properties object
-   */
+  /** Returns governance properties. */
   public GovernanceProperties getGovernance() {
     return governance;
+  }
+
+  /** Returns cache properties. */
+  public CacheProperties getCache() {
+    return cache;
   }
 
   // ── Nested: ProviderConfig ────────────────────────────────────────────────
@@ -127,74 +108,42 @@ public final class AIGatewayProperties {
     /** Default constructor. */
     public ProviderConfig() {}
 
-    /**
-     * Returns provider name.
-     *
-     * @return provider name
-     */
+    /** Returns provider name. */
     public String getName() {
       return name;
     }
 
-    /**
-     * Sets provider name.
-     *
-     * @param name provider name
-     */
+    /** Sets provider name. */
     public void setName(String name) {
       this.name = name;
     }
 
-    /**
-     * Returns whether provider is enabled.
-     *
-     * @return true if enabled
-     */
+    /** Returns whether provider is enabled. */
     public boolean isEnabled() {
       return enabled;
     }
 
-    /**
-     * Sets enabled status.
-     *
-     * @param enabled true to enable
-     */
+    /** Sets enabled status. */
     public void setEnabled(boolean enabled) {
       this.enabled = enabled;
     }
 
-    /**
-     * Returns priority.
-     *
-     * @return priority value
-     */
+    /** Returns priority. */
     public int getPriority() {
       return priority;
     }
 
-    /**
-     * Sets priority.
-     *
-     * @param priority priority value
-     */
+    /** Sets priority. */
     public void setPriority(int priority) {
       this.priority = priority;
     }
 
-    /**
-     * Returns resilience config.
-     *
-     * @return resilience config
-     */
+    /** Returns resilience config. */
     public ResilienceConfig getResilience() {
       return resilience;
     }
 
-    /**
-     * Sets resilience config.
-     *
-     * @param resilience resilience config
-     */
+    /** Sets resilience config. */
     public void setResilience(ResilienceConfig resilience) {
       this.resilience = resilience != null ? resilience : new ResilienceConfig();
     }
@@ -400,6 +349,7 @@ public final class AIGatewayProperties {
     private List<ProviderConfig> providers = new ArrayList<>();
     private Map<String, ModelConfig> models = new LinkedHashMap<>();
     private GovernanceProperties governance = new GovernanceProperties();
+    private CacheProperties cache = new CacheProperties();
 
     /** Default constructor. */
     public Builder() {}
@@ -483,13 +433,24 @@ public final class AIGatewayProperties {
     }
 
     /**
+     * Sets cache properties.
+     *
+     * @param cache cache properties object
+     * @return builder instance
+     */
+    public Builder cache(CacheProperties cache) {
+      this.cache = cache;
+      return this;
+    }
+
+    /**
      * Builds AIGatewayProperties.
      *
      * @return constructed properties
      */
     public AIGatewayProperties build() {
       return new AIGatewayProperties(
-          enabled, defaultProvider, defaultModel, timeout, providers, models, governance);
+          enabled, defaultProvider, defaultModel, timeout, providers, models, governance, cache);
     }
   }
 }

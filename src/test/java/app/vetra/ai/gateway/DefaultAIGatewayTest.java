@@ -31,6 +31,8 @@ class DefaultAIGatewayTest {
   @Mock private PromptRenderer promptRenderer;
   @Mock private FailoverManager failoverManager;
   @Mock private AIGovernancePipeline governancePipeline;
+  @Mock private app.vetra.ai.cache.AICacheManager aiCacheManager;
+  @Mock private app.vetra.ai.cache.CacheKeyGenerator cacheKeyGenerator;
 
   @InjectMocks private DefaultAIGateway aiGateway;
 
@@ -60,6 +62,9 @@ class DefaultAIGatewayTest {
     when(promptRegistry.getPrompt("test.v1")).thenReturn(mockDescriptor);
     when(promptRenderer.render(mockDescriptor.template(), request.variables()))
         .thenReturn("Template val");
+    when(cacheKeyGenerator.generateKey(any(), any(), any())).thenReturn("test-key");
+    when(aiCacheManager.getOrCompute(eq("test-key"), eq("v1"), eq(false), any()))
+        .thenReturn(new AIResponse("content", "test.v1", "noop-provider", "noop-model", 10, 20, "stop"));
 
     AIResponse mockResponse =
         new AIResponse("content", "test.v1", "noop-provider", "noop-model", 10, 20, "stop");
@@ -73,7 +78,7 @@ class DefaultAIGatewayTest {
         .thenAnswer(
             invocation -> {
               Supplier<AIResponse> supplier = invocation.getArgument(4);
-              return mockResponse;
+              return supplier.get();
             });
 
     AIResponse response = aiGateway.execute(request, context);
