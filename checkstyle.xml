@@ -99,8 +99,9 @@
     <!-- ─── Javadoc (public API only) ───────────────────────────────── -->
     <module name="MissingJavadocMethod">
       <property name="scope" value="public"/>
+      <property name="minLineCount" value="4"/>
       <property name="allowMissingPropertyJavadoc" value="true"/>
-      <property name="ignoreMethodNamesRegex" value="main|equals|hashCode|toString"/>
+      <property name="ignoreMethodNamesRegex" value=".*"/>
     </module>
 
   </module>

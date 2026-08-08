@@ -130,6 +130,72 @@ public class AIMetricsCollector {
   }
 
   /**
+   * Records semantic search query execution, retrieved chunk counts, and retrieval latency.
+   *
+   * @param chunksRetrieved number of chunks retrieved
+   * @param avgSimilarity average cosine similarity score
+   * @param latencyNanos retrieval duration in nanoseconds
+   */
+  public void recordRagQuery(int chunksRetrieved, double avgSimilarity, long latencyNanos) {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_RAG_QUERIES_TOTAL)
+          .description("Total veterinary RAG search queries executed")
+          .register(meterRegistry)
+          .increment();
+
+      Timer.builder(AIDashboardMetadata.METRIC_RAG_RETRIEVAL_LATENCY)
+          .description("RAG semantic retrieval latency timer")
+          .publishPercentiles(0.5, 0.95, 0.99)
+          .register(meterRegistry)
+          .record(latencyNanos, TimeUnit.NANOSECONDS);
+
+      if (chunksRetrieved > 0) {
+        Counter.builder(AIDashboardMetadata.METRIC_RAG_RETRIEVED_CHUNKS)
+            .description("Total chunks retrieved across RAG queries")
+            .register(meterRegistry)
+            .increment(chunksRetrieved);
+      }
+    }
+  }
+
+  /**
+   * Records documents and chunks indexed into the vector store.
+   *
+   * @param documentsCount number of documents ingested
+   * @param chunksCount number of chunks generated and stored
+   */
+  public void recordRagIngestion(int documentsCount, int chunksCount) {
+    if (meterRegistry != null) {
+      if (documentsCount > 0) {
+        Counter.builder(AIDashboardMetadata.METRIC_RAG_DOCUMENTS_INDEXED_TOTAL)
+            .description("Total veterinary literature documents indexed")
+            .register(meterRegistry)
+            .increment(documentsCount);
+      }
+      if (chunksCount > 0) {
+        Counter.builder(AIDashboardMetadata.METRIC_RAG_CHUNKS_INDEXED_TOTAL)
+            .description("Total veterinary literature chunks indexed")
+            .register(meterRegistry)
+            .increment(chunksCount);
+      }
+    }
+  }
+
+  /**
+   * Records RAG context token volume injected into prompts.
+   *
+   * @param contextTokens token length of injected context
+   */
+  public void recordRagTokens(int contextTokens) {
+    if (meterRegistry != null && contextTokens > 0) {
+      Counter.builder(AIDashboardMetadata.METRIC_RAG_CONTEXT_TOKENS_TOTAL)
+          .description("Total RAG context tokens injected into prompts")
+          .register(meterRegistry)
+          .increment(contextTokens);
+    }
+  }
+
+  /**
    * Records a governance check rejection.
    *
    * @param governanceType safety, policy, or budget

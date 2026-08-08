@@ -56,4 +56,151 @@ public class Animal extends BaseEntity {
 
   @Column(name = "photo_url")
   private String photoUrl;
+
+  public FarmerProfile getFarmer() {
+    return farmer;
+  }
+
+  public void setFarmer(FarmerProfile farmer) {
+    this.farmer = farmer;
+  }
+
+  public String getAnimalName() {
+    return animalName;
+  }
+
+  public void setAnimalName(String animalName) {
+    this.animalName = animalName;
+  }
+
+  public String getTagNumber() {
+    return tagNumber;
+  }
+
+  public void setTagNumber(String tagNumber) {
+    this.tagNumber = tagNumber;
+  }
+
+  public String getQrCodeId() {
+    return qrCodeId;
+  }
+
+  public void setQrCodeId(String qrCodeId) {
+    this.qrCodeId = qrCodeId;
+  }
+
+  public Species getSpecies() {
+    return species;
+  }
+
+  public void setSpecies(Species species) {
+    this.species = species;
+  }
+
+  public String getBreed() {
+    return breed;
+  }
+
+  public void setBreed(String breed) {
+    this.breed = breed;
+  }
+
+  public AnimalGender getGender() {
+    return gender;
+  }
+
+  public void setGender(AnimalGender gender) {
+    this.gender = gender;
+  }
+
+  public LocalDate getBirthDate() {
+    return birthDate;
+  }
+
+  public void setBirthDate(LocalDate birthDate) {
+    this.birthDate = birthDate;
+  }
+
+  public String getPhotoUrl() {
+    return photoUrl;
+  }
+
+  public void setPhotoUrl(String photoUrl) {
+    this.photoUrl = photoUrl;
+  }
+
+  public static AnimalBuilder builder() {
+    return new AnimalBuilder();
+  }
+
+  public static class AnimalBuilder {
+    private FarmerProfile farmer;
+    private String animalName;
+    private String tagNumber;
+    private String qrCodeId;
+    private Species species;
+    private String breed;
+    private AnimalGender gender;
+    private LocalDate birthDate;
+    private String photoUrl;
+
+    public AnimalBuilder farmer(FarmerProfile farmer) {
+      this.farmer = farmer;
+      return this;
+    }
+
+    public AnimalBuilder animalName(String animalName) {
+      this.animalName = animalName;
+      return this;
+    }
+
+    public AnimalBuilder tagNumber(String tagNumber) {
+      this.tagNumber = tagNumber;
+      return this;
+    }
+
+    public AnimalBuilder qrCodeId(String qrCodeId) {
+      this.qrCodeId = qrCodeId;
+      return this;
+    }
+
+    public AnimalBuilder species(Species species) {
+      this.species = species;
+      return this;
+    }
+
+    public AnimalBuilder breed(String breed) {
+      this.breed = breed;
+      return this;
+    }
+
+    public AnimalBuilder gender(AnimalGender gender) {
+      this.gender = gender;
+      return this;
+    }
+
+    public AnimalBuilder birthDate(LocalDate birthDate) {
+      this.birthDate = birthDate;
+      return this;
+    }
+
+    public AnimalBuilder photoUrl(String photoUrl) {
+      this.photoUrl = photoUrl;
+      return this;
+    }
+
+    public Animal build() {
+      Animal animal = new Animal();
+      animal.setFarmer(this.farmer);
+      animal.setAnimalName(this.animalName);
+      animal.setTagNumber(this.tagNumber);
+      animal.setQrCodeId(this.qrCodeId);
+      animal.setSpecies(this.species);
+      animal.setBreed(this.breed);
+      animal.setGender(this.gender);
+      animal.setBirthDate(this.birthDate);
+      animal.setPhotoUrl(this.photoUrl);
+      return animal;
+    }
+  }
 }

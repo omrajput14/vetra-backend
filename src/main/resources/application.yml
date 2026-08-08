@@ -232,6 +232,23 @@ vetra:
         #   max-output-tokens: 8192
         #   enabled: ${GEMINI_ENABLED:false}
 
+    # Enterprise Multi-Agent Framework
+    agents:
+      diagnosis-prompt-id: diagnosis.visual.v1
+      treatment-prompt-id: treatment.recommendation.v1
+      knowledge-prompt-id: knowledge.disease.v1
+      report-prompt-id: report.summary.v1
+
+    # Enterprise Veterinary Knowledge Platform (RAG)
+    rag:
+      enabled: ${VETRA_RAG_ENABLED:true}
+      top-k: ${VETRA_RAG_TOP_K:3}
+      similarity-threshold: ${VETRA_RAG_SIMILARITY_THRESHOLD:0.65}
+      chunk-size: ${VETRA_RAG_CHUNK_SIZE:500}
+      overlap: ${VETRA_RAG_OVERLAP:50}
+      embedding-provider: ${VETRA_RAG_EMBEDDING_PROVIDER:local}
+      vector-store-provider: ${VETRA_RAG_VECTOR_STORE_PROVIDER:in-memory}
+
   # Redis Infrastructure Foundation
   redis:
     host: ${REDIS_HOST:localhost}

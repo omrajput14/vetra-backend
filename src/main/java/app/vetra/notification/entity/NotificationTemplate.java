@@ -38,4 +38,44 @@ public class NotificationTemplate extends BaseEntity {
   @Column(name = "default_channel", nullable = false, length = 32)
   @Builder.Default
   private NotificationChannel defaultChannel = NotificationChannel.PUSH;
+
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getSubjectTemplate() {
+    return subjectTemplate;
+  }
+
+  public void setSubjectTemplate(String subjectTemplate) {
+    this.subjectTemplate = subjectTemplate;
+  }
+
+  public String getBodyTemplate() {
+    return bodyTemplate;
+  }
+
+  public void setBodyTemplate(String bodyTemplate) {
+    this.bodyTemplate = bodyTemplate;
+  }
+
+  public NotificationChannel getDefaultChannel() {
+    return defaultChannel;
+  }
+
+  public void setDefaultChannel(NotificationChannel defaultChannel) {
+    this.defaultChannel = defaultChannel;
+  }
 }

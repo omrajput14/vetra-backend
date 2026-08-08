@@ -57,4 +57,99 @@ public class RefreshToken {
   @CreatedDate
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
+
+  public UUID getId() {
+    return id;
+  }
+
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  public String getTokenHash() {
+    return tokenHash;
+  }
+
+  public void setTokenHash(String tokenHash) {
+    this.tokenHash = tokenHash;
+  }
+
+  public Instant getExpiryDate() {
+    return expiryDate;
+  }
+
+  public void setExpiryDate(Instant expiryDate) {
+    this.expiryDate = expiryDate;
+  }
+
+  public boolean isRevoked() {
+    return revoked;
+  }
+
+  public void setRevoked(boolean revoked) {
+    this.revoked = revoked;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public static RefreshTokenBuilder builder() {
+    return new RefreshTokenBuilder();
+  }
+
+  public static class RefreshTokenBuilder {
+    private User user;
+    private String tokenHash;
+    private Instant expiryDate;
+    private boolean revoked = false;
+    private Instant createdAt = Instant.now();
+
+    public RefreshTokenBuilder user(User user) {
+      this.user = user;
+      return this;
+    }
+
+    public RefreshTokenBuilder tokenHash(String tokenHash) {
+      this.tokenHash = tokenHash;
+      return this;
+    }
+
+    public RefreshTokenBuilder expiryDate(Instant expiryDate) {
+      this.expiryDate = expiryDate;
+      return this;
+    }
+
+    public RefreshTokenBuilder revoked(boolean revoked) {
+      this.revoked = revoked;
+      return this;
+    }
+
+    public RefreshTokenBuilder createdAt(Instant createdAt) {
+      this.createdAt = createdAt;
+      return this;
+    }
+
+    public RefreshToken build() {
+      RefreshToken token = new RefreshToken();
+      token.setUser(this.user);
+      token.setTokenHash(this.tokenHash);
+      token.setExpiryDate(this.expiryDate);
+      token.setRevoked(this.revoked);
+      token.setCreatedAt(this.createdAt);
+      return token;
+    }
+  }
 }
