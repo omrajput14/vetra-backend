@@ -44,6 +44,14 @@ public final class AIDashboardMetadata {
   public static final String METRIC_CLINICAL_ACTION_TOTAL = "clinical_action_total";
   public static final String METRIC_CLINICAL_ACTION_ESCALATION_TOTAL = "clinical_action_escalation_total";
   public static final String METRIC_CLINICAL_ACTION_VETERINARIAN_REVIEW_TOTAL = "clinical_action_veterinarian_review_total";
+  public static final String METRIC_CLINICAL_CASES_TOTAL = "clinical_cases_total";
+  public static final String METRIC_CLINICAL_ENCOUNTERS_TOTAL = "clinical_encounters_total";
+  public static final String METRIC_CLINICAL_CASE_DURATION = "clinical_case_duration_seconds";
+  public static final String METRIC_CLINICAL_FOLLOWUPS_TOTAL = "clinical_followups_total";
+  public static final String METRIC_CLINICAL_FOLLOWUP_OVERDUE_TOTAL = "clinical_followup_overdue_total";
+  public static final String METRIC_TREATMENT_RESPONSE_TOTAL = "treatment_response_total";
+  public static final String METRIC_CLINICAL_CONDITION_WORSENED_TOTAL = "clinical_condition_worsened_total";
+  public static final String METRIC_CLINICAL_CASE_RESOLUTION_TOTAL = "clinical_case_resolution_total";
 
   // ── OpenTelemetry Span Events ─────────────────────────────────────────────
   public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";
@@ -68,6 +76,13 @@ public final class AIDashboardMetadata {
   public static final String SPAN_EVENT_ACTION_VETERINARIAN_REVIEW_REQUIRED = "action.veterinarian.review.required";
   public static final String SPAN_EVENT_ACTION_PLAN_COMPLETED = "action.plan.completed";
   public static final String SPAN_EVENT_REPORT_GENERATED = "report generated";
+  public static final String SPAN_EVENT_CASE_CREATED = "case.created";
+  public static final String SPAN_EVENT_ENCOUNTER_RECORDED = "encounter.recorded";
+  public static final String SPAN_EVENT_CLINICAL_TIMELINE_UPDATED = "clinical.timeline.updated";
+  public static final String SPAN_EVENT_FOLLOWUP_ASSESSMENT_STARTED = "followup.assessment.started";
+  public static final String SPAN_EVENT_TREATMENT_RESPONSE_ASSESSED = "treatment.response.assessed";
+  public static final String SPAN_EVENT_CLINICAL_CONDITION_WORSENED = "clinical.condition.worsened";
+  public static final String SPAN_EVENT_CLINICAL_CASE_RESOLVED = "clinical.case.resolved";
 
   // ── Tag Keys ──────────────────────────────────────────────────────────────
   public static final String TAG_PROVIDER = "provider";

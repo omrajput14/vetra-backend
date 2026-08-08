@@ -112,6 +112,31 @@ public class ClinicalWorkflowEventListener {
         event.actionCount());
   }
 
+  @EventListener
+  public void onCaseCreated(app.vetra.ai.event.ClinicalCaseCreatedEvent event) {
+    log.info("Clinical Case CREATED: caseId={} animalId={}", event.caseId(), event.animalId());
+  }
+
+  @EventListener
+  public void onEncounterRecorded(app.vetra.ai.event.ClinicalEncounterRecordedEvent event) {
+    log.info("Clinical Encounter RECORDED: caseId={} encounterId={} scanId={}", event.caseId(), event.encounterId(), event.scanId());
+  }
+
+  @EventListener
+  public void onTreatmentResponseRecorded(app.vetra.ai.event.TreatmentResponseRecordedEvent event) {
+    log.info("Treatment Response RECORDED: caseId={} responseStatus={}", event.caseId(), event.responseStatus());
+  }
+
+  @EventListener
+  public void onConditionWorsened(app.vetra.ai.event.ClinicalConditionWorsenedEvent event) {
+    log.warn("Clinical Condition WORSENED: caseId={} encounterId={} urgency={}", event.caseId(), event.encounterId(), event.urgency());
+  }
+
+  @EventListener
+  public void onCaseResolved(app.vetra.ai.event.ClinicalCaseResolvedEvent event) {
+    log.info("Clinical Case RESOLVED: caseId={}", event.caseId());
+  }
+
   /**
    * Handles workflow failure event.
    *

@@ -129,54 +129,38 @@ public class AIMetricsCollector {
     }
   }
 
-  /**
-   * Records semantic search query execution, retrieved chunk counts, and retrieval latency.
-   *
-   * @param chunksRetrieved number of chunks retrieved
-   * @param avgSimilarity average cosine similarity score
-   * @param latencyNanos retrieval duration in nanoseconds
-   */
+  /** Records semantic search query execution, retrieved chunk counts, and retrieval latency. */
   public void recordRagQuery(int chunksRetrieved, double avgSimilarity, long latencyNanos) {
     if (meterRegistry != null) {
       Counter.builder(AIDashboardMetadata.METRIC_RAG_QUERIES_TOTAL)
           .description("Total veterinary RAG search queries executed")
-          .register(meterRegistry)
-          .increment();
+          .register(meterRegistry).increment();
 
       Timer.builder(AIDashboardMetadata.METRIC_RAG_RETRIEVAL_LATENCY)
           .description("RAG semantic retrieval latency timer")
           .publishPercentiles(0.5, 0.95, 0.99)
-          .register(meterRegistry)
-          .record(latencyNanos, TimeUnit.NANOSECONDS);
+          .register(meterRegistry).record(latencyNanos, TimeUnit.NANOSECONDS);
 
       if (chunksRetrieved > 0) {
         Counter.builder(AIDashboardMetadata.METRIC_RAG_RETRIEVED_CHUNKS)
             .description("Total chunks retrieved across RAG queries")
-            .register(meterRegistry)
-            .increment(chunksRetrieved);
+            .register(meterRegistry).increment(chunksRetrieved);
       }
     }
   }
 
-  /**
-   * Records documents and chunks indexed into the vector store.
-   *
-   * @param documentsCount number of documents ingested
-   * @param chunksCount number of chunks generated and stored
-   */
+  /** Records documents and chunks indexed into the vector store. */
   public void recordRagIngestion(int documentsCount, int chunksCount) {
     if (meterRegistry != null) {
       if (documentsCount > 0) {
         Counter.builder(AIDashboardMetadata.METRIC_RAG_DOCUMENTS_INDEXED_TOTAL)
             .description("Total veterinary literature documents indexed")
-            .register(meterRegistry)
-            .increment(documentsCount);
+            .register(meterRegistry).increment(documentsCount);
       }
       if (chunksCount > 0) {
         Counter.builder(AIDashboardMetadata.METRIC_RAG_CHUNKS_INDEXED_TOTAL)
             .description("Total veterinary literature chunks indexed")
-            .register(meterRegistry)
-            .increment(chunksCount);
+            .register(meterRegistry).increment(chunksCount);
       }
     }
   }
@@ -452,12 +436,6 @@ public class AIMetricsCollector {
     }
   }
 
-  /**
-   * Records clinical action plan synthesis metrics.
-   *
-   * @param urgency calculated triage urgency string
-   * @param vetRequired true if veterinarian review is required
-   */
   public void recordClinicalActionPlan(String urgency, boolean vetRequired) {
     String urg = normalizeTagValue(urgency, "UNKNOWN");
     if (meterRegistry != null) {
@@ -465,15 +443,49 @@ public class AIMetricsCollector {
           .description("Total clinical action plans synthesized")
           .tag(AIDashboardMetadata.TAG_URGENCY, urg)
           .tag("review_required", String.valueOf(vetRequired))
-          .register(meterRegistry)
-          .increment();
+          .register(meterRegistry).increment();
+    }
+  }
+
+  public void recordClinicalCase(String status) {
+    String st = normalizeTagValue(status, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CASES_TOTAL)
+          .description("Total clinical cases managed by status")
+          .tag("case_status", st).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordClinicalEncounter(String type, String urgency) {
+    String tp = normalizeTagValue(type, "UNKNOWN");
+    String urg = normalizeTagValue(urgency, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_ENCOUNTERS_TOTAL)
+          .description("Total clinical encounters attached by type and urgency")
+          .tag("encounter_type", tp).tag(AIDashboardMetadata.TAG_URGENCY, urg)
+          .register(meterRegistry).increment();
+    }
+  }
+
+  public void recordTreatmentResponse(String responseStatus) {
+    String st = normalizeTagValue(responseStatus, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_TREATMENT_RESPONSE_TOTAL)
+          .description("Total treatment responses evaluated by status")
+          .tag("response_status", st).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordConditionWorsened(String urgency) {
+    String urg = normalizeTagValue(urgency, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CONDITION_WORSENED_TOTAL)
+          .description("Total clinical condition worsening escalations")
+          .tag(AIDashboardMetadata.TAG_URGENCY, urg).register(meterRegistry).increment();
     }
   }
 
   private String normalizeTagValue(String val, String fallback) {
-    if (val == null || val.isBlank()) {
-      return fallback;
-    }
-    return val.trim().toLowerCase();
+    return (val == null || val.isBlank()) ? fallback : val.trim().toLowerCase();
   }
 }
