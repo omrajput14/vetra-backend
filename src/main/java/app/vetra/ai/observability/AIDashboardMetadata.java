@@ -25,6 +25,17 @@ public final class AIDashboardMetadata {
   public static final String METRIC_RAG_CONTEXT_TOKENS_TOTAL = "rag_context_tokens_total";
   public static final String METRIC_RAG_AVG_SIMILARITY = "rag_avg_similarity_score";
   public static final String METRIC_RAG_RETRIEVED_CHUNKS = "rag_retrieved_chunks_total";
+  public static final String METRIC_CLINICAL_WORKFLOW_TOTAL = "clinical_workflow_total";
+  public static final String METRIC_CLINICAL_WORKFLOW_DURATION = "clinical_workflow_duration_seconds";
+  public static final String METRIC_DISEASE_RANKING_TOTAL = "disease_ranking_total";
+  public static final String METRIC_TREATMENT_GENERATION_TOTAL = "treatment_generation_total";
+
+  // ── OpenTelemetry Span Events ─────────────────────────────────────────────
+  public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";
+  public static final String SPAN_EVENT_RETRIEVAL_COMPLETED = "retrieval completed";
+  public static final String SPAN_EVENT_RANKING_COMPLETED = "ranking completed";
+  public static final String SPAN_EVENT_TREATMENT_COMPLETED = "treatment completed";
+  public static final String SPAN_EVENT_REPORT_GENERATED = "report generated";
 
   // ── Tag Keys ──────────────────────────────────────────────────────────────
   public static final String TAG_PROVIDER = "provider";

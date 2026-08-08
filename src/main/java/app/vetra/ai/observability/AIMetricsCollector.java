@@ -275,6 +275,62 @@ public class AIMetricsCollector {
     }
   }
 
+  /**
+   * Records a clinical diagnosis workflow execution attempt, status, and duration.
+   *
+   * @param status execution status (SUCCESS, FAILED, PARTIAL)
+   * @param durationNanos duration in nanoseconds
+   */
+  public void recordClinicalWorkflow(String status, long durationNanos) {
+    String st = normalizeTagValue(status, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_WORKFLOW_TOTAL)
+          .description("Total multi-agent clinical diagnosis workflows executed")
+          .tag(AIDashboardMetadata.TAG_STATUS, st)
+          .register(meterRegistry)
+          .increment();
+
+      Timer.builder(AIDashboardMetadata.METRIC_CLINICAL_WORKFLOW_DURATION)
+          .description("Clinical workflow end-to-end latency SLA timer")
+          .tag(AIDashboardMetadata.TAG_STATUS, st)
+          .publishPercentiles(0.5, 0.95, 0.99)
+          .register(meterRegistry)
+          .record(durationNanos, TimeUnit.NANOSECONDS);
+    }
+  }
+
+  /**
+   * Records disease ranking and confidence normalization execution.
+   *
+   * @param status execution status (SUCCESS, FAILED)
+   */
+  public void recordDiseaseRanking(String status) {
+    String st = normalizeTagValue(status, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_DISEASE_RANKING_TOTAL)
+          .description("Total disease candidate ranking operations")
+          .tag(AIDashboardMetadata.TAG_STATUS, st)
+          .register(meterRegistry)
+          .increment();
+    }
+  }
+
+  /**
+   * Records treatment recommendation generation attempt.
+   *
+   * @param status execution status (SUCCESS, FAILED)
+   */
+  public void recordTreatmentGeneration(String status) {
+    String st = normalizeTagValue(status, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_TREATMENT_GENERATION_TOTAL)
+          .description("Total treatment generation operations")
+          .tag(AIDashboardMetadata.TAG_STATUS, st)
+          .register(meterRegistry)
+          .increment();
+    }
+  }
+
   private String normalizeTagValue(String val, String fallback) {
     if (val == null || val.isBlank()) {
       return fallback;
