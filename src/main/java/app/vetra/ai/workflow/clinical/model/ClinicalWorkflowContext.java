@@ -3,6 +3,7 @@ package app.vetra.ai.workflow.clinical.model;
 import app.vetra.ai.agent.model.AgentResponse;
 import app.vetra.ai.rag.model.RetrievedContext;
 import app.vetra.ai.workflow.clinical.model.evidence.UnifiedClinicalEvidence;
+import app.vetra.ai.workflow.clinical.model.explainability.ClinicalDecisionSupport;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,6 +31,7 @@ public class ClinicalWorkflowContext {
   private List<DiseaseCandidate> rankedDiseases;
   private TriageAssessment triageAssessment;
   private TreatmentPlan treatmentPlan;
+  private ClinicalDecisionSupport decisionSupport;
   private ClinicalDiagnosisReport report;
   private long totalDurationMs;
 
@@ -111,6 +113,14 @@ public class ClinicalWorkflowContext {
 
   public void setTreatmentPlan(TreatmentPlan treatmentPlan) {
     this.treatmentPlan = treatmentPlan;
+  }
+
+  public ClinicalDecisionSupport getDecisionSupport() {
+    return decisionSupport;
+  }
+
+  public void setDecisionSupport(ClinicalDecisionSupport decisionSupport) {
+    this.decisionSupport = decisionSupport;
   }
 
   public ClinicalDiagnosisReport getReport() {

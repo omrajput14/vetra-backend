@@ -74,11 +74,16 @@ class WorkflowStepTest {
     assertEquals("triage", triageStep.stepName());
     assertEquals(5, triageStep.order());
 
+    DecisionSupportStep decisionSupportStep = new DecisionSupportStep(new app.vetra.ai.workflow.clinical.explainability.ClinicalDecisionSupportEngine(), null, null);
+
     assertEquals("treatment", treatmentStep.stepName());
     assertEquals(6, treatmentStep.order());
 
+    assertEquals("decision_support", decisionSupportStep.stepName());
+    assertEquals(7, decisionSupportStep.order());
+
     assertEquals("report", reportStep.stepName());
-    assertEquals(7, reportStep.order());
+    assertEquals(8, reportStep.order());
   }
 
   @Test

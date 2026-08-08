@@ -2,6 +2,7 @@ package app.vetra.ai.workflow.clinical.model;
 
 import app.vetra.ai.rag.model.Citation;
 import app.vetra.ai.workflow.clinical.model.evidence.MultiModalEvidenceSummary;
+import app.vetra.ai.workflow.clinical.model.explainability.ClinicalDecisionSupport;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.UUID;
  * @param monitoringAdvice ongoing observation and care advice
  * @param references grounded literature citations
  * @param evidenceSummary multi-modal evidence summary breakdown (optional)
+ * @param decisionSupport decision support, traceability, and review flag (optional)
  * @param timestamp creation timestamp
  * @param agentExecutionSummary summary of agents involved and performance
  * @param totalDurationMs total workflow latency in milliseconds
@@ -47,6 +49,7 @@ public record ClinicalDiagnosisReport(
     List<String> monitoringAdvice,
     List<Citation> references,
     MultiModalEvidenceSummary evidenceSummary,
+    ClinicalDecisionSupport decisionSupport,
     Instant timestamp,
     Map<String, Object> agentExecutionSummary,
     long totalDurationMs,
@@ -88,6 +91,52 @@ public record ClinicalDiagnosisReport(
         immediateActions,
         monitoringAdvice,
         references,
+        null,
+        null,
+        timestamp,
+        agentExecutionSummary,
+        totalDurationMs,
+        status);
+  }
+
+  /** Backward-compatible 19-argument constructor. */
+  @SuppressWarnings("checkstyle:ParameterNumber")
+  public ClinicalDiagnosisReport(
+      UUID reportId,
+      UUID scanId,
+      UUID animalId,
+      String animalInformation,
+      List<String> symptoms,
+      List<DiseaseCandidate> mostLikelyDiseases,
+      String primaryDiagnosis,
+      BigDecimal confidenceScore,
+      String supportingEvidence,
+      String retrievedLiterature,
+      String treatmentRecommendation,
+      List<String> immediateActions,
+      List<String> monitoringAdvice,
+      List<Citation> references,
+      MultiModalEvidenceSummary evidenceSummary,
+      Instant timestamp,
+      Map<String, Object> agentExecutionSummary,
+      long totalDurationMs,
+      WorkflowStatus status) {
+    this(
+        reportId,
+        scanId,
+        animalId,
+        animalInformation,
+        symptoms,
+        mostLikelyDiseases,
+        primaryDiagnosis,
+        confidenceScore,
+        supportingEvidence,
+        retrievedLiterature,
+        treatmentRecommendation,
+        immediateActions,
+        monitoringAdvice,
+        references,
+        evidenceSummary,
         null,
         timestamp,
         agentExecutionSummary,

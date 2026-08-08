@@ -402,6 +402,56 @@ public class AIMetricsCollector {
     }
   }
 
+  /**
+   * Records clinical decision support explanation execution metrics.
+   *
+   * @param reviewRequired true if veterinarian review is required
+   * @param uncertaintyLevel calculated uncertainty tier string
+   */
+  public void recordClinicalExplanation(boolean reviewRequired, String uncertaintyLevel) {
+    String unc = normalizeTagValue(uncertaintyLevel, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_EXPLANATION_TOTAL)
+          .description("Total clinical decision support explanations generated")
+          .tag("review_required", String.valueOf(reviewRequired))
+          .tag("uncertainty_level", unc)
+          .register(meterRegistry)
+          .increment();
+    }
+  }
+
+  /**
+   * Records clinical uncertainty metrics.
+   *
+   * @param level uncertainty level string
+   */
+  public void recordClinicalUncertainty(String level) {
+    String unc = normalizeTagValue(level, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_UNCERTAINTY_TOTAL)
+          .description("Total clinical uncertainty evaluations by tier")
+          .tag("level", unc)
+          .register(meterRegistry)
+          .increment();
+    }
+  }
+
+  /**
+   * Records veterinarian review requirement triggers.
+   *
+   * @param reasonCategory structured reason category string
+   */
+  public void recordClinicalReviewRequired(String reasonCategory) {
+    String cat = normalizeTagValue(reasonCategory, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_REVIEW_REQUIRED_TOTAL)
+          .description("Total veterinarian review requirements triggered by category")
+          .tag("reason_category", cat)
+          .register(meterRegistry)
+          .increment();
+    }
+  }
+
   private String normalizeTagValue(String val, String fallback) {
     if (val == null || val.isBlank()) {
       return fallback;

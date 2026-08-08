@@ -18,6 +18,7 @@ import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.observability.AIMetricsCollector;
 import app.vetra.ai.observability.AIObservationConvention;
 import app.vetra.ai.workflow.clinical.evidence.ClinicalEvidenceAggregator;
+import app.vetra.ai.workflow.clinical.explainability.ClinicalDecisionSupportEngine;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowRequest;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowResult;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
@@ -65,11 +66,14 @@ class ClinicalWorkflowEngineTest {
     RankingStep rankingStep = new RankingStep(diseaseRanker);
     ClinicalTriageStep triageStep = new ClinicalTriageStep(triageEngine, eventPublisher);
     TreatmentStep treatmentStep = new TreatmentStep(agentGateway);
+    ClinicalDecisionSupportEngine cdsEngine = new ClinicalDecisionSupportEngine();
+    app.vetra.ai.workflow.clinical.step.DecisionSupportStep decisionSupportStep =
+        new app.vetra.ai.workflow.clinical.step.DecisionSupportStep(cdsEngine, eventPublisher, metricsCollector);
     ReportStep reportStep = new ReportStep(reportBuilder);
 
     workflowEngine =
         new ClinicalWorkflowEngine(
-            List.of(diagnosisStep, aggregationStep, knowledgeStep, rankingStep, triageStep, treatmentStep, reportStep),
+            List.of(diagnosisStep, aggregationStep, knowledgeStep, rankingStep, triageStep, treatmentStep, decisionSupportStep, reportStep),
             metricsCollector,
             observationConvention,
             eventPublisher);

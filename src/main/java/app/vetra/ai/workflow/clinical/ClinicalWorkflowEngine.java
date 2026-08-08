@@ -158,6 +158,7 @@ public class ClinicalWorkflowEngine {
       case RankingStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_RANKING_COMPLETED);
       case ClinicalTriageStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_TRIAGE_COMPLETED);
       case TreatmentStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_TREATMENT_COMPLETED);
+      case app.vetra.ai.workflow.clinical.step.DecisionSupportStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_DECISION_SUPPORT_STARTED);
       case ReportStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_REPORT_GENERATED);
       default -> observationConvention.recordSpanEvent(stepName + " completed");
     }

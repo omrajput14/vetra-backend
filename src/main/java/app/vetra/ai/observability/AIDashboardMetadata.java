@@ -36,6 +36,9 @@ public final class AIDashboardMetadata {
   public static final String METRIC_MULTI_MODAL_EVIDENCE_TOTAL = "multi_modal_evidence_total";
   public static final String METRIC_MULTI_MODAL_EVIDENCE_DURATION = "multi_modal_evidence_processing_duration_seconds";
   public static final String METRIC_CLINICAL_EVIDENCE_CONFLICTS_TOTAL = "clinical_evidence_conflicts_total";
+  public static final String METRIC_CLINICAL_EXPLANATION_TOTAL = "clinical_explanation_total";
+  public static final String METRIC_CLINICAL_UNCERTAINTY_TOTAL = "clinical_uncertainty_total";
+  public static final String METRIC_CLINICAL_REVIEW_REQUIRED_TOTAL = "clinical_review_required_total";
 
   // ── OpenTelemetry Span Events ─────────────────────────────────────────────
   public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";
@@ -49,6 +52,11 @@ public final class AIDashboardMetadata {
   public static final String SPAN_EVENT_TRIAGE_EMERGENCY = "triage.emergency";
   public static final String SPAN_EVENT_TRIAGE_ESCALATION = "triage.escalation_required";
   public static final String SPAN_EVENT_TREATMENT_COMPLETED = "treatment completed";
+  public static final String SPAN_EVENT_DECISION_SUPPORT_STARTED = "decision.support.started";
+  public static final String SPAN_EVENT_DIAGNOSIS_EXPLANATION_GENERATED = "diagnosis.explanation.generated";
+  public static final String SPAN_EVENT_TRIAGE_EXPLANATION_GENERATED = "triage.explanation.generated";
+  public static final String SPAN_EVENT_UNCERTAINTY_DETECTED = "uncertainty.detected";
+  public static final String SPAN_EVENT_VETERINARIAN_REVIEW_REQUIRED = "veterinarian.review.required";
   public static final String SPAN_EVENT_REPORT_GENERATED = "report generated";
 
   // ── Tag Keys ──────────────────────────────────────────────────────────────

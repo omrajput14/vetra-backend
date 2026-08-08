@@ -81,6 +81,21 @@ public class ClinicalWorkflowEventListener {
   }
 
   /**
+   * Handles decision support generation event.
+   *
+   * @param event decision support generated domain event
+   */
+  @EventListener
+  public void onDecisionSupportGenerated(app.vetra.ai.event.ClinicalDecisionSupportGeneratedEvent event) {
+    log.info(
+        "Clinical Decision Support GENERATED: scanId={} animalId={} requiresReview={} uncertainty={}",
+        event.scanId(),
+        event.animalId(),
+        event.requiresReview(),
+        event.uncertaintyLevel());
+  }
+
+  /**
    * Handles workflow failure event.
    *
    * @param event failure domain event
