@@ -32,6 +32,7 @@ public class ClinicalWorkflowContext {
   private TriageAssessment triageAssessment;
   private TreatmentPlan treatmentPlan;
   private ClinicalDecisionSupport decisionSupport;
+  private app.vetra.ai.workflow.clinical.model.action.ClinicalActionPlan actionPlan;
   private ClinicalDiagnosisReport report;
   private long totalDurationMs;
 
@@ -121,6 +122,14 @@ public class ClinicalWorkflowContext {
 
   public void setDecisionSupport(ClinicalDecisionSupport decisionSupport) {
     this.decisionSupport = decisionSupport;
+  }
+
+  public app.vetra.ai.workflow.clinical.model.action.ClinicalActionPlan getActionPlan() {
+    return actionPlan;
+  }
+
+  public void setActionPlan(app.vetra.ai.workflow.clinical.model.action.ClinicalActionPlan actionPlan) {
+    this.actionPlan = actionPlan;
   }
 
   public ClinicalDiagnosisReport getReport() {

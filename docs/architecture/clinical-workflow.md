@@ -2,13 +2,13 @@
 
 ## Executive Summary
 
-Stage 13.1.1 establishes the **Enterprise Clinical Diagnosis Workflow** layer in Vetra AI Platform v1.1. Stage 13.1.4 extends this workflow to an 8-step multi-modal intelligence & explainability pipeline.
+Stage 13.1.1 establishes the **Enterprise Clinical Diagnosis Workflow** layer in Vetra AI Platform v1.1. Stage 13.1.5 extends this workflow to a 9-step multi-modal intelligence, explainability, & care-plan orchestration pipeline.
 
 The underlying **AI Platform v1.1 execution pipeline** (`DefaultAIGateway` → `AIGovernancePipeline` → `AICacheManager` → `FailoverManager` → `ProviderRouter` → `AIProvider`) and the **Multi-Agent Framework** (`AgentGateway` → `AgentRegistry` → `AIAgent`) remain **100% frozen, immutable, and preserved**.
 
 ---
 
-## 1. 8-Step Multi-Modal Workflow Sequence
+## 1. 9-Step Multi-Modal Workflow Sequence
 
 ```mermaid
 sequenceDiagram
@@ -25,6 +25,7 @@ sequenceDiagram
     participant Triage as ClinicalTriageEngine
     participant Treatment as TreatmentAgent
     participant CDSEngine as ClinicalDecisionSupportEngine
+    participant ActionEngine as ClinicalActionPlanEngine
     participant ReportBuilder as ClinicalReportBuilder
     participant EventPub as ApplicationEventPublisher
 
@@ -95,9 +96,17 @@ sequenceDiagram
         Engine->>Context: setDecisionSupport(decisionSupport)
     end
 
-    %% Step 8: Report Synthesis
+    %% Step 8: Clinical Action & Care Plan Orchestration
+    rect rgb(235, 255, 255)
+        note over Engine,ActionEngine: Step 8: ActionPlanStep
+        Engine->>ActionEngine: synthesizePlan(Context)
+        ActionEngine-->>Engine: ClinicalActionPlan
+        Engine->>Context: setActionPlan(actionPlan)
+    end
+
+    %% Step 9: Report Synthesis
     rect rgb(255, 255, 240)
-        note over Engine,ReportBuilder: Step 8: ReportStep
+        note over Engine,ReportBuilder: Step 9: ReportStep
         Engine->>ReportBuilder: buildReport(context)
         ReportBuilder-->>Engine: ClinicalDiagnosisReport
         Engine->>Context: setReport(report)
@@ -122,7 +131,9 @@ sequenceDiagram
 | **`ClinicalTriageStep`** | `app.vetra.ai.workflow.clinical.step` | Step 5: Assesses case urgency via Layer 1 deterministic safety rules and Layer 2 `TriageAgent`. |
 | **`TreatmentStep`** | `app.vetra.ai.workflow.clinical.step` | Step 6: Dispatches evidence-based treatment regimens via `TreatmentAgent`. |
 | **`DecisionSupportStep`** | `app.vetra.ai.workflow.clinical.step` | Step 7: Deterministically synthesizes `ClinicalDecisionSupport`, evidence traceability, uncertainty, and vet review flags. |
-| **`ReportStep`** | `app.vetra.ai.workflow.clinical.step` | Step 8: Invokes `ClinicalReportBuilder` to assemble the structured `ClinicalDiagnosisReport` with `ClinicalDecisionSupport`. |
+| **`ActionPlanStep`** | `app.vetra.ai.workflow.clinical.step` | Step 8: Deterministically synthesizes auditable `ClinicalActionPlan` and prioritized care actions. |
+| **`ReportStep`** | `app.vetra.ai.workflow.clinical.step` | Step 9: Invokes `ClinicalReportBuilder` to assemble `ClinicalDiagnosisReport` with `ClinicalActionPlan`. |
+| **`ClinicalActionPlanEngine`** | `app.vetra.ai.workflow.clinical.action` | Deterministic non-AI action plan synthesis, safety precedence enforcement, and action deduplication. |
 | **`DiseaseRanker`** | `app.vetra.ai.workflow.clinical` | Multi-modal weighted candidate ranking with active modality normalization. |
 | **`ClinicalTriageEngine`** | `app.vetra.ai.workflow.clinical.triage` | Evaluates deterministic safety rules + AI reasoning for urgency classification. |
 | **`ClinicalDecisionSupportEngine`** | `app.vetra.ai.workflow.clinical.explainability` | Deterministic synthesis of evidence traceability, triage trigger explanation, uncertainty, and review flags. |

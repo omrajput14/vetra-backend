@@ -60,6 +60,6 @@ public class ReportStep implements WorkflowStep {
 
   @Override
   public int order() {
-    return 8;
+    return 9;
   }
 }

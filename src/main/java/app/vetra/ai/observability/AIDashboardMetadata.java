@@ -39,6 +39,11 @@ public final class AIDashboardMetadata {
   public static final String METRIC_CLINICAL_EXPLANATION_TOTAL = "clinical_explanation_total";
   public static final String METRIC_CLINICAL_UNCERTAINTY_TOTAL = "clinical_uncertainty_total";
   public static final String METRIC_CLINICAL_REVIEW_REQUIRED_TOTAL = "clinical_review_required_total";
+  public static final String METRIC_CLINICAL_ACTION_PLAN_TOTAL = "clinical_action_plan_total";
+  public static final String METRIC_CLINICAL_ACTION_PLAN_DURATION = "clinical_action_plan_duration_seconds";
+  public static final String METRIC_CLINICAL_ACTION_TOTAL = "clinical_action_total";
+  public static final String METRIC_CLINICAL_ACTION_ESCALATION_TOTAL = "clinical_action_escalation_total";
+  public static final String METRIC_CLINICAL_ACTION_VETERINARIAN_REVIEW_TOTAL = "clinical_action_veterinarian_review_total";
 
   // ── OpenTelemetry Span Events ─────────────────────────────────────────────
   public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";
@@ -57,6 +62,11 @@ public final class AIDashboardMetadata {
   public static final String SPAN_EVENT_TRIAGE_EXPLANATION_GENERATED = "triage.explanation.generated";
   public static final String SPAN_EVENT_UNCERTAINTY_DETECTED = "uncertainty.detected";
   public static final String SPAN_EVENT_VETERINARIAN_REVIEW_REQUIRED = "veterinarian.review.required";
+  public static final String SPAN_EVENT_ACTION_PLAN_STARTED = "action.plan.started";
+  public static final String SPAN_EVENT_ACTION_PLAN_GENERATED = "action.plan.generated";
+  public static final String SPAN_EVENT_ACTION_ESCALATION_REQUIRED = "action.escalation.required";
+  public static final String SPAN_EVENT_ACTION_VETERINARIAN_REVIEW_REQUIRED = "action.veterinarian.review.required";
+  public static final String SPAN_EVENT_ACTION_PLAN_COMPLETED = "action.plan.completed";
   public static final String SPAN_EVENT_REPORT_GENERATED = "report generated";
 
   // ── Tag Keys ──────────────────────────────────────────────────────────────

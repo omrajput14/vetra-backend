@@ -452,6 +452,24 @@ public class AIMetricsCollector {
     }
   }
 
+  /**
+   * Records clinical action plan synthesis metrics.
+   *
+   * @param urgency calculated triage urgency string
+   * @param vetRequired true if veterinarian review is required
+   */
+  public void recordClinicalActionPlan(String urgency, boolean vetRequired) {
+    String urg = normalizeTagValue(urgency, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_ACTION_PLAN_TOTAL)
+          .description("Total clinical action plans synthesized")
+          .tag(AIDashboardMetadata.TAG_URGENCY, urg)
+          .tag("review_required", String.valueOf(vetRequired))
+          .register(meterRegistry)
+          .increment();
+    }
+  }
+
   private String normalizeTagValue(String val, String fallback) {
     if (val == null || val.isBlank()) {
       return fallback;

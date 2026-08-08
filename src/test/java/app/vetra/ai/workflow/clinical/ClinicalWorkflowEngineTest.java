@@ -69,11 +69,14 @@ class ClinicalWorkflowEngineTest {
     ClinicalDecisionSupportEngine cdsEngine = new ClinicalDecisionSupportEngine();
     app.vetra.ai.workflow.clinical.step.DecisionSupportStep decisionSupportStep =
         new app.vetra.ai.workflow.clinical.step.DecisionSupportStep(cdsEngine, eventPublisher, metricsCollector);
+    app.vetra.ai.workflow.clinical.action.ClinicalActionPlanEngine actionPlanEngine = new app.vetra.ai.workflow.clinical.action.ClinicalActionPlanEngine();
+    app.vetra.ai.workflow.clinical.step.ActionPlanStep actionPlanStep =
+        new app.vetra.ai.workflow.clinical.step.ActionPlanStep(actionPlanEngine, eventPublisher, metricsCollector);
     ReportStep reportStep = new ReportStep(reportBuilder);
 
     workflowEngine =
         new ClinicalWorkflowEngine(
-            List.of(diagnosisStep, aggregationStep, knowledgeStep, rankingStep, triageStep, treatmentStep, decisionSupportStep, reportStep),
+            List.of(diagnosisStep, aggregationStep, knowledgeStep, rankingStep, triageStep, treatmentStep, decisionSupportStep, actionPlanStep, reportStep),
             metricsCollector,
             observationConvention,
             eventPublisher);

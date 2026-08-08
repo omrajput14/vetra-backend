@@ -112,6 +112,7 @@ public class ClinicalReportBuilder {
         citations,
         evidenceSummary,
         context.getDecisionSupport(),
+        context.getActionPlan(),
         Instant.now(),
         summary,
         durationMs,

@@ -96,6 +96,23 @@ public class ClinicalWorkflowEventListener {
   }
 
   /**
+   * Handles action plan generation event.
+   *
+   * @param event action plan generated domain event
+   */
+  @EventListener
+  public void onActionPlanGenerated(app.vetra.ai.event.ClinicalActionPlanGeneratedEvent event) {
+    log.info(
+        "Clinical Action Plan GENERATED: scanId={} animalId={} planId={} urgency={} vetRequired={} actionCount={}",
+        event.scanId(),
+        event.animalId(),
+        event.planId(),
+        event.urgency(),
+        event.veterinarianReviewRequired(),
+        event.actionCount());
+  }
+
+  /**
    * Handles workflow failure event.
    *
    * @param event failure domain event
