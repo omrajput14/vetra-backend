@@ -16,6 +16,8 @@ public final class AIDashboardMetadata {
   public static final String METRIC_COMPLETION_TOKENS_TOTAL = "ai_completion_tokens_total";
   public static final String METRIC_ESTIMATED_COST_TOTAL = "ai_estimated_cost_total";
   public static final String METRIC_MODEL_REQUESTS_TOTAL = "ai_model_requests_total";
+  public static final String METRIC_AGENT_REQUESTS_TOTAL = "ai_agent_requests_total";
+  public static final String METRIC_AGENT_DURATION = "ai_agent_duration_seconds";
 
   // ── Tag Keys ──────────────────────────────────────────────────────────────
   public static final String TAG_PROVIDER = "provider";
@@ -25,6 +27,9 @@ public final class AIDashboardMetadata {
   public static final String TAG_CACHE_RESULT = "cache_result";
   public static final String TAG_GOVERNANCE_TYPE = "governance_type";
   public static final String TAG_STATUS = "status";
+  public static final String TAG_AGENT = "agent";
+  public static final String TAG_CAPABILITY = "capability";
+  public static final String TAG_RESULT = "result";
 
   // ── Tag Values ────────────────────────────────────────────────────────────
   public static final String STATUS_SUCCESS = "success";

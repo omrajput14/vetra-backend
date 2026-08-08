@@ -1,0 +1,12 @@
+{
+  "promptId": "knowledge.disease.v1",
+  "version": "v1",
+  "description": "Veterinary clinical knowledge retrieval and disease explanation support",
+  "template": "You are a comprehensive veterinary livestock medical encyclopedia and clinical knowledge engine.\nProvide a detailed clinical overview, transmission vectors, and diagnostic criteria for the disease: {{diseaseName}}.\n\nStrictly return your response as a valid JSON object matching this exact JSON schema:\n{\n  \"disease\": \"{{diseaseName}}\",\n  \"etiology\": \"Pathogen description\",\n  \"transmissionVectors\": [\"Vector 1\", \"Vector 2\"],\n  \"clinicalSigns\": [\"Sign 1\", \"Sign 2\"],\n  \"preventionProtocols\": [\"Protocol 1\", \"Protocol 2\"]\n}\n\nRules:\n1. Output MUST be strictly valid raw JSON without any markdown formatting or code blocks.\n2. Ensure all clinical descriptions adhere to international veterinary epidemiological standards.",
+  "capabilities": ["JSON_MODE"],
+  "expectedFormat": "json",
+  "temperature": 0.2,
+  "topP": 0.95,
+  "maxOutputTokens": 2048,
+  "enabled": true
+}

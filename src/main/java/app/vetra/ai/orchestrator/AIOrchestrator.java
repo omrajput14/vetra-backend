@@ -1,5 +1,9 @@
 package app.vetra.ai.orchestrator;
 
+import app.vetra.ai.agent.gateway.AgentGateway;
+import app.vetra.ai.agent.model.AgentCapability;
+import app.vetra.ai.agent.model.AgentRequest;
+import app.vetra.ai.agent.model.AgentResponse;
 import app.vetra.ai.config.AIGatewayProperties;
 import app.vetra.ai.entity.AIProviderType;
 import app.vetra.ai.entity.AIScan;
@@ -8,10 +12,7 @@ import app.vetra.ai.entity.AIScanStatus;
 import app.vetra.ai.event.AIInferenceCompletedEvent;
 import app.vetra.ai.event.AIInferenceFailedEvent;
 import app.vetra.ai.exception.AIInferenceException;
-import app.vetra.ai.gateway.AIGateway;
-import app.vetra.ai.model.AICapability;
 import app.vetra.ai.model.AIExecutionContext;
-import app.vetra.ai.model.AIRequest;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.repository.AIScanRepository;
 import app.vetra.ai.repository.AIScanResultRepository;
@@ -19,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,14 +28,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Enterprise orchestrator coordinating AI provider selection, inference execution, latency
- * measurement, result persistence, metrics tracking, and event publishing via the AI Gateway.
+ * measurement, result persistence, metrics tracking, and event publishing via the Agent Gateway.
  */
 @Service
 public class AIOrchestrator {
 
   private static final Logger log = LoggerFactory.getLogger(AIOrchestrator.class);
 
-  private final AIGateway aiGateway;
+  private final AgentGateway agentGateway;
   private final AIGatewayProperties properties;
   private final AIScanRepository aiScanRepository;
   private final AIScanResultRepository aiScanResultRepository;
@@ -46,13 +45,13 @@ public class AIOrchestrator {
 
   /** Constructor injection. */
   public AIOrchestrator(
-      AIGateway aiGateway,
+      AgentGateway agentGateway,
       AIGatewayProperties properties,
       AIScanRepository aiScanRepository,
       AIScanResultRepository aiScanResultRepository,
       AIMetricsService metricsService,
       ApplicationEventPublisher eventPublisher) {
-    this.aiGateway = aiGateway;
+    this.agentGateway = agentGateway;
     this.properties = properties;
     this.aiScanRepository = aiScanRepository;
     this.aiScanResultRepository = aiScanResultRepository;
@@ -67,7 +66,7 @@ public class AIOrchestrator {
   }
 
   /**
-   * Orchestrates inference execution for a scan using the AI Gateway.
+   * Orchestrates inference execution for a scan using the Agent Gateway.
    *
    * @param scan target AIScan entity
    * @param requestedProvider optional provider type override
@@ -87,25 +86,22 @@ public class AIOrchestrator {
       scan.setStatus(AIScanStatus.PROCESSING);
       AIScan savedScan = aiScanRepository.save(scan);
 
-      AIRequest request = new AIRequest(
-          "diagnosis.visual.v1",
-          Map.of(),
-          targetImageUrl,
-          false,
-          Set.of(AICapability.VISION, AICapability.JSON_MODE),
-          requestedProvider
-      );
-      
-      AIExecutionContext context = AIExecutionContext.of("default", scan.getUploadedBy().getId().toString());
+      AIExecutionContext context =
+          AIExecutionContext.of("default", scan.getUploadedBy().getId().toString());
 
-      AIResponse result = aiGateway.execute(request, context);
+      AgentRequest agentRequest =
+          AgentRequest.ofVision(AgentCapability.DIAGNOSIS, targetImageUrl, context);
+
+      AgentResponse agentResponse = agentGateway.execute(agentRequest);
+      AIResponse result = agentResponse.rawResponse();
       long latencyMs = System.currentTimeMillis() - startTime;
-      
+
       DiagnosticParsedResult parsedResult = parseResponseContent(result.content());
 
       log.info(
-          "AI Inference Success scanId={} provider={} model={} latencyMs={}",
+          "AI Inference Success scanId={} agent={} provider={} model={} latencyMs={}",
           savedScan.getId(),
+          agentResponse.agentName(),
           result.provider(),
           result.model(),
           latencyMs);

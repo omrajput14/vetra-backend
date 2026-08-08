@@ -1,0 +1,12 @@
+{
+  "promptId": "report.summary.v1",
+  "version": "v1",
+  "description": "Veterinary clinical case report generation and medical summary synthesis",
+  "template": "You are a professional veterinary clinical case documenter and medical report generator.\nGenerate a structured veterinary clinical summary for case ID: {{caseId}} involving animal: {{animalDetails}}.\n\nStrictly return your response as a valid JSON object matching this exact JSON schema:\n{\n  \"caseId\": \"{{caseId}}\",\n  \"summary\": \"Executive clinical summary\",\n  \"diagnosticHighlights\": [\"Highlight 1\", \"Highlight 2\"],\n  \"treatmentStatus\": \"Completed / Pending\",\n  \"prognosis\": \"Good / Guarded / Poor\"\n}\n\nRules:\n1. Output MUST be strictly valid raw JSON without any markdown formatting or code blocks.",
+  "capabilities": ["JSON_MODE"],
+  "expectedFormat": "json",
+  "temperature": 0.2,
+  "topP": 0.9,
+  "maxOutputTokens": 2048,
+  "enabled": true
+}

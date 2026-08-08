@@ -96,6 +96,40 @@ public class AIMetricsCollector {
   }
 
   /**
+   * Records an agent execution attempt, capability, result, and latency.
+   *
+   * @param agent agent name
+   * @param capability capability executed
+   * @param result result status (SUCCESS, CACHE_HIT, FAILED_PROVIDER, FAILED_GOVERNANCE, etc.)
+   * @param latencyNanos duration in nanoseconds
+   */
+  public void recordAgentExecution(
+      String agent, String capability, String result, long latencyNanos) {
+
+    String ag = normalizeTagValue(agent, "UNKNOWN");
+    String cap = normalizeTagValue(capability, "UNKNOWN");
+    String res = normalizeTagValue(result, "UNKNOWN");
+
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_AGENT_REQUESTS_TOTAL)
+          .description("Total AI agent requests by agent, capability, and result")
+          .tag(AIDashboardMetadata.TAG_AGENT, ag)
+          .tag(AIDashboardMetadata.TAG_CAPABILITY, cap)
+          .tag(AIDashboardMetadata.TAG_RESULT, res)
+          .register(meterRegistry)
+          .increment();
+
+      Timer.builder(AIDashboardMetadata.METRIC_AGENT_DURATION)
+          .description("AI agent execution latency timer")
+          .tag(AIDashboardMetadata.TAG_AGENT, ag)
+          .tag(AIDashboardMetadata.TAG_CAPABILITY, cap)
+          .publishPercentiles(0.5, 0.95, 0.99)
+          .register(meterRegistry)
+          .record(latencyNanos, TimeUnit.NANOSECONDS);
+    }
+  }
+
+  /**
    * Records a governance check rejection.
    *
    * @param governanceType safety, policy, or budget
