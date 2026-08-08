@@ -50,6 +50,21 @@ public class ClinicalWorkflowEventListener {
   }
 
   /**
+   * Handles triage step completion event.
+   *
+   * @param event triage completion domain event
+   */
+  @EventListener
+  public void onTriageCompleted(app.vetra.ai.event.ClinicalTriageCompletedEvent event) {
+    log.info(
+        "Clinical Triage COMPLETED: scanId={} animalId={} urgency={} durationMs={}",
+        event.scanId(),
+        event.animalId(),
+        event.urgency(),
+        event.durationMs());
+  }
+
+  /**
    * Handles workflow failure event.
    *
    * @param event failure domain event

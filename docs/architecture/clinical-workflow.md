@@ -61,9 +61,18 @@ sequenceDiagram
         Engine->>Engine: recordSpanEvent("ranking completed")
     end
 
-    %% Step 4: Treatment Coordination
+    %% Step 4: Clinical Triage & Urgency Assessment
+    rect rgb(255, 235, 235)
+        note over Engine,Gateway: Step 4: ClinicalTriageStep
+        Engine->>Gateway: assessTriage(TriageRequest)
+        Gateway-->>Engine: TriageAssessment (urgency, rationale, warningSigns)
+        Engine->>Context: setTriageAssessment(assessment)
+        Engine->>Engine: recordSpanEvent("triage.completed")
+    end
+
+    %% Step 5: Treatment Coordination
     rect rgb(255, 245, 255)
-        note over Engine,Treatment: Step 4: TreatmentStep
+        note over Engine,Treatment: Step 5: TreatmentStep
         Engine->>Gateway: execute(AgentRequest.TREATMENT, TreatmentRequest)
         Gateway->>Treatment: execute()
         Treatment-->>Gateway: AgentResponse (prescriptions, precautions, monitoring)
@@ -72,9 +81,9 @@ sequenceDiagram
         Engine->>Engine: recordSpanEvent("treatment completed")
     end
 
-    %% Step 5: Report Synthesis
+    %% Step 6: Report Synthesis
     rect rgb(255, 255, 240)
-        note over Engine,ReportBuilder: Step 5: ReportStep
+        note over Engine,ReportBuilder: Step 6: ReportStep
         Engine->>ReportBuilder: buildReport(context)
         ReportBuilder-->>Engine: ClinicalDiagnosisReport
         Engine->>Context: setReport(report)
@@ -96,9 +105,11 @@ sequenceDiagram
 | **`DiagnosisStep`** | `app.vetra.ai.workflow.clinical.step` | Step 1: Dispatches visual pathology and anomaly detection via `DiagnosisAgent`. |
 | **`KnowledgeStep`** | `app.vetra.ai.workflow.clinical.step` | Step 2: Executes RAG retrieval via `KnowledgeAgent` with species metadata filtering. |
 | **`RankingStep`** | `app.vetra.ai.workflow.clinical.step` | Step 3: Invokes `DiseaseRanker` to merge observations, normalize confidence scores, and deduplicate conditions. |
-| **`TreatmentStep`** | `app.vetra.ai.workflow.clinical.step` | Step 4: Dispatches evidence-based treatment regimens via `TreatmentAgent`. |
-| **`ReportStep`** | `app.vetra.ai.workflow.clinical.step` | Step 5: Invokes `ClinicalReportBuilder` to assemble the structured `ClinicalDiagnosisReport`. |
+| **`ClinicalTriageStep`** | `app.vetra.ai.workflow.clinical.step` | Step 4: Assesses case urgency via Layer 1 deterministic safety rules and Layer 2 `TriageAgent`. |
+| **`TreatmentStep`** | `app.vetra.ai.workflow.clinical.step` | Step 5: Dispatches evidence-based treatment regimens via `TreatmentAgent`. |
+| **`ReportStep`** | `app.vetra.ai.workflow.clinical.step` | Step 6: Invokes `ClinicalReportBuilder` to assemble the structured `ClinicalDiagnosisReport`. |
 | **`DiseaseRanker`** | `app.vetra.ai.workflow.clinical` | Merges visual diagnosis with literature citations and normalizes scores to `[0.00, 1.00]`. |
+| **`ClinicalTriageEngine`** | `app.vetra.ai.workflow.clinical.triage` | Evaluates deterministic safety rules + AI reasoning for urgency classification. |
 | **`ClinicalReportBuilder`** | `app.vetra.ai.workflow.clinical` | Pure report assembly component synthesizing outputs without containing business logic. |
 | **`ClinicalWorkflowEventListener`** | `app.vetra.ai.workflow.clinical` | Asynchronous decoupled listener for workflow lifecycle domain events. |
 

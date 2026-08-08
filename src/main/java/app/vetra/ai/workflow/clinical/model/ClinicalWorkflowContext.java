@@ -26,6 +26,7 @@ public class ClinicalWorkflowContext {
   private AgentResponse diagnosisResponse;
   private RetrievedContext retrievedContext;
   private List<DiseaseCandidate> rankedDiseases;
+  private TriageAssessment triageAssessment;
   private TreatmentPlan treatmentPlan;
   private ClinicalDiagnosisReport report;
   private long totalDurationMs;
@@ -84,6 +85,14 @@ public class ClinicalWorkflowContext {
 
   public void setRankedDiseases(List<DiseaseCandidate> rankedDiseases) {
     this.rankedDiseases = rankedDiseases != null ? new ArrayList<>(rankedDiseases) : new ArrayList<>();
+  }
+
+  public TriageAssessment getTriageAssessment() {
+    return triageAssessment;
+  }
+
+  public void setTriageAssessment(TriageAssessment triageAssessment) {
+    this.triageAssessment = triageAssessment;
   }
 
   public TreatmentPlan getTreatmentPlan() {

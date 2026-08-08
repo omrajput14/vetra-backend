@@ -29,11 +29,19 @@ public final class AIDashboardMetadata {
   public static final String METRIC_CLINICAL_WORKFLOW_DURATION = "clinical_workflow_duration_seconds";
   public static final String METRIC_DISEASE_RANKING_TOTAL = "disease_ranking_total";
   public static final String METRIC_TREATMENT_GENERATION_TOTAL = "treatment_generation_total";
+  public static final String METRIC_CLINICAL_TRIAGE_TOTAL = "clinical_triage_total";
+  public static final String METRIC_CLINICAL_TRIAGE_DURATION = "clinical_triage_duration_seconds";
+  public static final String METRIC_CLINICAL_TRIAGE_URGENCY_TOTAL = "clinical_triage_urgency_total";
+  public static final String METRIC_CLINICAL_TRIAGE_ESCALATIONS_TOTAL = "clinical_triage_escalations_total";
 
   // ── OpenTelemetry Span Events ─────────────────────────────────────────────
   public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";
   public static final String SPAN_EVENT_RETRIEVAL_COMPLETED = "retrieval completed";
   public static final String SPAN_EVENT_RANKING_COMPLETED = "ranking completed";
+  public static final String SPAN_EVENT_TRIAGE_STARTED = "triage.started";
+  public static final String SPAN_EVENT_TRIAGE_COMPLETED = "triage.completed";
+  public static final String SPAN_EVENT_TRIAGE_EMERGENCY = "triage.emergency";
+  public static final String SPAN_EVENT_TRIAGE_ESCALATION = "triage.escalation_required";
   public static final String SPAN_EVENT_TREATMENT_COMPLETED = "treatment completed";
   public static final String SPAN_EVENT_REPORT_GENERATED = "report generated";
 
@@ -48,6 +56,7 @@ public final class AIDashboardMetadata {
   public static final String TAG_AGENT = "agent";
   public static final String TAG_CAPABILITY = "capability";
   public static final String TAG_RESULT = "result";
+  public static final String TAG_URGENCY = "urgency";
 
   // ── Tag Values ────────────────────────────────────────────────────────────
   public static final String STATUS_SUCCESS = "success";

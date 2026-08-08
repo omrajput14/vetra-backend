@@ -11,6 +11,7 @@ import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowContext;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowRequest;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowResult;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
+import app.vetra.ai.workflow.clinical.step.ClinicalTriageStep;
 import app.vetra.ai.workflow.clinical.step.DiagnosisStep;
 import app.vetra.ai.workflow.clinical.step.KnowledgeStep;
 import app.vetra.ai.workflow.clinical.step.RankingStep;
@@ -155,6 +156,7 @@ public class ClinicalWorkflowEngine {
       case DiagnosisStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_DIAGNOSIS_COMPLETED);
       case KnowledgeStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_RETRIEVAL_COMPLETED);
       case RankingStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_RANKING_COMPLETED);
+      case ClinicalTriageStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_TRIAGE_COMPLETED);
       case TreatmentStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_TREATMENT_COMPLETED);
       case ReportStep.STEP_NAME -> observationConvention.recordSpanEvent(AIDashboardMetadata.SPAN_EVENT_REPORT_GENERATED);
       default -> observationConvention.recordSpanEvent(stepName + " completed");

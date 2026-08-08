@@ -331,6 +331,48 @@ public class AIMetricsCollector {
     }
   }
 
+  /**
+   * Records clinical triage assessment metrics.
+   *
+   * @param urgency determined urgency level (EMERGENCY, URGENT, PRIORITY, ROUTINE)
+   * @param status execution status (SUCCESS, FAILED)
+   * @param durationNanos execution duration in nanoseconds
+   */
+  public void recordClinicalTriage(String urgency, String status, long durationNanos) {
+    String urg = normalizeTagValue(urgency, "UNKNOWN");
+    String st = normalizeTagValue(status, "UNKNOWN");
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_TRIAGE_TOTAL)
+          .description("Total clinical triage assessments executed")
+          .tag(AIDashboardMetadata.TAG_URGENCY, urg)
+          .tag(AIDashboardMetadata.TAG_STATUS, st)
+          .register(meterRegistry)
+          .increment();
+
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_TRIAGE_URGENCY_TOTAL)
+          .description("Total triage assessments by urgency classification")
+          .tag(AIDashboardMetadata.TAG_URGENCY, urg)
+          .register(meterRegistry)
+          .increment();
+
+      if ("emergency".equals(urg) || "urgent".equals(urg)) {
+        Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_TRIAGE_ESCALATIONS_TOTAL)
+            .description("Total urgent/emergency clinical escalations")
+            .tag(AIDashboardMetadata.TAG_URGENCY, urg)
+            .register(meterRegistry)
+            .increment();
+      }
+
+      Timer.builder(AIDashboardMetadata.METRIC_CLINICAL_TRIAGE_DURATION)
+          .description("Clinical triage execution duration timer")
+          .tag(AIDashboardMetadata.TAG_URGENCY, urg)
+          .tag(AIDashboardMetadata.TAG_STATUS, st)
+          .publishPercentiles(0.5, 0.95, 0.99)
+          .register(meterRegistry)
+          .record(durationNanos, TimeUnit.NANOSECONDS);
+    }
+  }
+
   private String normalizeTagValue(String val, String fallback) {
     if (val == null || val.isBlank()) {
       return fallback;

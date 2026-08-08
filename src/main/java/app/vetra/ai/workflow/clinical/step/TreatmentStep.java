@@ -192,6 +192,6 @@ public class TreatmentStep implements WorkflowStep {
 
   @Override
   public int order() {
-    return 4;
+    return 5;
   }
 }

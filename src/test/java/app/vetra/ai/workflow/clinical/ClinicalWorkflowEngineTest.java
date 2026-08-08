@@ -20,11 +20,14 @@ import app.vetra.ai.observability.AIObservationConvention;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowRequest;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowResult;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
+import app.vetra.ai.workflow.clinical.step.ClinicalTriageStep;
 import app.vetra.ai.workflow.clinical.step.DiagnosisStep;
 import app.vetra.ai.workflow.clinical.step.KnowledgeStep;
 import app.vetra.ai.workflow.clinical.step.RankingStep;
 import app.vetra.ai.workflow.clinical.step.ReportStep;
 import app.vetra.ai.workflow.clinical.step.TreatmentStep;
+import app.vetra.ai.workflow.clinical.triage.ClinicalTriageEngine;
+import app.vetra.ai.workflow.clinical.triage.ClinicalTriageRules;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,16 +53,19 @@ class ClinicalWorkflowEngineTest {
 
     DiseaseRanker diseaseRanker = new DiseaseRanker();
     ClinicalReportBuilder reportBuilder = new ClinicalReportBuilder();
+    ClinicalTriageRules triageRules = new ClinicalTriageRules();
+    ClinicalTriageEngine triageEngine = new ClinicalTriageEngine(triageRules, agentGateway);
 
     DiagnosisStep diagnosisStep = new DiagnosisStep(agentGateway);
     KnowledgeStep knowledgeStep = new KnowledgeStep(agentGateway);
     RankingStep rankingStep = new RankingStep(diseaseRanker);
+    ClinicalTriageStep triageStep = new ClinicalTriageStep(triageEngine, eventPublisher);
     TreatmentStep treatmentStep = new TreatmentStep(agentGateway);
     ReportStep reportStep = new ReportStep(reportBuilder);
 
     workflowEngine =
         new ClinicalWorkflowEngine(
-            List.of(diagnosisStep, knowledgeStep, rankingStep, treatmentStep, reportStep),
+            List.of(diagnosisStep, knowledgeStep, rankingStep, triageStep, treatmentStep, reportStep),
             metricsCollector,
             observationConvention,
             eventPublisher);
@@ -93,6 +99,11 @@ class ClinicalWorkflowEngineTest {
     AIResponse knowRaw = new AIResponse(knowText, "1.0", "gemini", "gemini-1.5-pro", 50, 90, "STOP");
     AgentResponse knowResp = new AgentResponse(knowRaw, "KnowledgeAgent", AgentCapability.KNOWLEDGE, Map.of("avgSimilarity", "0.91"));
 
+    // Mock Triage response
+    String triageJson = "{\"urgency\":\"URGENT\",\"confidence\":0.90,\"rationale\":\"FMD risk\",\"warningSigns\":[\"Fever\"],\"recommendedActions\":[\"Isolate\"],\"requiresImmediateVeterinaryReview\":true}";
+    AIResponse triageRaw = new AIResponse(triageJson, "1.0", "gemini", "gemini-1.5-pro", 30, 70, "STOP");
+    AgentResponse triageResp = new AgentResponse(triageRaw, "TriageAgent", AgentCapability.TRIAGE, Map.of());
+
     // Mock Treatment response
     String treatJson = "{\"treatmentPlan\":\"Isolate herd and supportive wash.\",\"prescriptions\":[\"Flunixin\"],\"precautions\":[\"Quarantine\"],\"monitoring\":[\"Feed intake\"],\"followUpDays\":3}";
     AIResponse treatRaw = new AIResponse(treatJson, "1.0", "gemini", "gemini-1.5-pro", 60, 100, "STOP");
@@ -101,6 +112,7 @@ class ClinicalWorkflowEngineTest {
     when(agentGateway.execute(any(AgentRequest.class)))
         .thenReturn(diagResp)
         .thenReturn(knowResp)
+        .thenReturn(triageResp)
         .thenReturn(treatResp);
 
     ClinicalWorkflowResult result = workflowEngine.executeWorkflow(request);

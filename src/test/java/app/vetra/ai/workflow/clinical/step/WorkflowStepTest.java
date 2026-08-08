@@ -59,10 +59,10 @@ class WorkflowStepTest {
     assertEquals(3, rankingStep.order());
 
     assertEquals("treatment", treatmentStep.stepName());
-    assertEquals(4, treatmentStep.order());
+    assertEquals(5, treatmentStep.order());
 
     assertEquals("report", reportStep.stepName());
-    assertEquals(5, reportStep.order());
+    assertEquals(6, reportStep.order());
   }
 
   @Test

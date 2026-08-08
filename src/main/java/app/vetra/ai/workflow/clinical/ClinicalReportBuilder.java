@@ -4,6 +4,7 @@ import app.vetra.ai.rag.model.Citation;
 import app.vetra.ai.workflow.clinical.model.ClinicalDiagnosisReport;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowContext;
 import app.vetra.ai.workflow.clinical.model.DiseaseCandidate;
+import app.vetra.ai.workflow.clinical.model.TriageAssessment;
 import app.vetra.ai.workflow.clinical.model.TreatmentPlan;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
 import java.math.BigDecimal;
@@ -85,22 +86,9 @@ public class ClinicalReportBuilder {
                 ? ""
                 : "\nMedications: " + String.join(", ", treatmentPlan.medications()));
 
-    List<String> immediateActions = new ArrayList<>(treatmentPlan.precautions());
-    if (topCandidate.requiresUrgentReview() && !immediateActions.contains("Requires urgent veterinarian review")) {
-      immediateActions.add(0, "Requires urgent veterinarian review");
-    }
-
+    List<String> immediateActions = assembleImmediateActions(context, treatmentPlan, topCandidate);
     List<String> monitoringAdvice = new ArrayList<>(treatmentPlan.monitoringAdvice());
-
-    // Agent execution summary
-    Map<String, Object> summary = new HashMap<>();
-    summary.put("stepTimings", context.getStepTimings());
-    summary.put("stepStatuses", context.getStepStatuses());
-    summary.put("totalCandidatesRanked", candidates.size());
-    summary.put("hasGroundedLiterature", context.getRetrievedContext() != null && context.getRetrievedContext().totalChunks() > 0);
-    if (!context.getErrors().isEmpty()) {
-      summary.put("errorsEncountered", context.getErrors());
-    }
+    Map<String, Object> summary = assembleExecutionSummary(context, candidates);
 
     long durationMs = (System.nanoTime() - context.getStartTimeNanos()) / 1_000_000L;
     WorkflowStatus finalStatus = context.getStatus() != null ? context.getStatus() : WorkflowStatus.SUCCESS;
@@ -124,5 +112,50 @@ public class ClinicalReportBuilder {
         summary,
         durationMs,
         finalStatus);
+  }
+
+  private List<String> assembleImmediateActions(
+      ClinicalWorkflowContext context, TreatmentPlan treatmentPlan, DiseaseCandidate topCandidate) {
+
+    List<String> immediateActions = new ArrayList<>(treatmentPlan.precautions());
+    if (context.getTriageAssessment() != null) {
+      TriageAssessment triage = context.getTriageAssessment();
+      String triageHeader = "CLINICAL TRIAGE URGENCY: " + triage.urgency();
+      if (!immediateActions.contains(triageHeader)) {
+        immediateActions.add(0, triageHeader);
+      }
+      for (String action : triage.recommendedActions()) {
+        if (!immediateActions.contains(action)) {
+          immediateActions.add(action);
+        }
+      }
+    } else if (topCandidate.requiresUrgentReview() && !immediateActions.contains("Requires urgent veterinarian review")) {
+      immediateActions.add(0, "Requires urgent veterinarian review");
+    }
+    return immediateActions;
+  }
+
+  private Map<String, Object> assembleExecutionSummary(
+      ClinicalWorkflowContext context, List<DiseaseCandidate> candidates) {
+
+    Map<String, Object> summary = new HashMap<>();
+    summary.put("stepTimings", context.getStepTimings());
+    summary.put("stepStatuses", context.getStepStatuses());
+    summary.put("totalCandidatesRanked", candidates.size());
+    summary.put("hasGroundedLiterature", context.getRetrievedContext() != null && context.getRetrievedContext().totalChunks() > 0);
+
+    if (context.getTriageAssessment() != null) {
+      TriageAssessment triage = context.getTriageAssessment();
+      summary.put("triageUrgency", triage.urgency().name());
+      summary.put("triageConfidence", triage.confidence());
+      summary.put("triageRationale", triage.rationale());
+      summary.put("triageWarningSigns", triage.warningSigns());
+      summary.put("triageImmediateReviewRequired", triage.requiresImmediateVeterinaryReview());
+    }
+
+    if (!context.getErrors().isEmpty()) {
+      summary.put("errorsEncountered", context.getErrors());
+    }
+    return summary;
   }
 }
