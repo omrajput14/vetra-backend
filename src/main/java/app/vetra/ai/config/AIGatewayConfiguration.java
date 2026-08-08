@@ -8,5 +8,9 @@ import org.springframework.context.annotation.Configuration;
  * from the {@code vetra.ai.gateway} YAML namespace.
  */
 @Configuration
-@EnableConfigurationProperties({AIGatewayProperties.class, AgentProperties.class})
+@EnableConfigurationProperties({
+  AIGatewayProperties.class,
+  AgentProperties.class,
+  RagProperties.class
+})
 public class AIGatewayConfiguration {}

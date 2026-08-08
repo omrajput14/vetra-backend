@@ -75,5 +75,191 @@ public class Appointment extends BaseEntity {
 
   @Version
   @Column(name = "version", nullable = false)
-  private Long version;
+  @Builder.Default
+  private Long version = 0L;
+
+  public FarmerProfile getFarmer() {
+    return farmer;
+  }
+
+  public void setFarmer(FarmerProfile farmer) {
+    this.farmer = farmer;
+  }
+
+  public VetProfile getVeterinarian() {
+    return veterinarian;
+  }
+
+  public void setVeterinarian(VetProfile veterinarian) {
+    this.veterinarian = veterinarian;
+  }
+
+  public Animal getAnimal() {
+    return animal;
+  }
+
+  public void setAnimal(Animal animal) {
+    this.animal = animal;
+  }
+
+  public LocalDate getAppointmentDate() {
+    return appointmentDate;
+  }
+
+  public void setAppointmentDate(LocalDate appointmentDate) {
+    this.appointmentDate = appointmentDate;
+  }
+
+  public LocalTime getAppointmentTime() {
+    return appointmentTime;
+  }
+
+  public void setAppointmentTime(LocalTime appointmentTime) {
+    this.appointmentTime = appointmentTime;
+  }
+
+  public VisitType getVisitType() {
+    return visitType;
+  }
+
+  public void setVisitType(VisitType visitType) {
+    this.visitType = visitType;
+  }
+
+  public AppointmentStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(AppointmentStatus status) {
+    this.status = status;
+  }
+
+  public String getReason() {
+    return reason;
+  }
+
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
+
+  public String getVeterinarianNotes() {
+    return veterinarianNotes;
+  }
+
+  public void setVeterinarianNotes(String veterinarianNotes) {
+    this.veterinarianNotes = veterinarianNotes;
+  }
+
+  public String getNotes() {
+    return veterinarianNotes;
+  }
+
+  public void setNotes(String notes) {
+    this.veterinarianNotes = notes;
+  }
+
+  public String getCancellationReason() {
+    return cancellationReason;
+  }
+
+  public void setCancellationReason(String cancellationReason) {
+    this.cancellationReason = cancellationReason;
+  }
+
+  public Long getVersion() {
+    return version;
+  }
+
+  public void setVersion(Long version) {
+    this.version = version;
+  }
+
+  public static AppointmentBuilder builder() {
+    return new AppointmentBuilder();
+  }
+
+  public static class AppointmentBuilder {
+    private FarmerProfile farmer;
+    private VetProfile veterinarian;
+    private Animal animal;
+    private LocalDate appointmentDate;
+    private LocalTime appointmentTime;
+    private VisitType visitType;
+    private String reason;
+    private AppointmentStatus status;
+    private String veterinarianNotes;
+    private String cancellationReason;
+    private Long version = 0L;
+
+    public AppointmentBuilder farmer(FarmerProfile farmer) {
+      this.farmer = farmer;
+      return this;
+    }
+
+    public AppointmentBuilder veterinarian(VetProfile veterinarian) {
+      this.veterinarian = veterinarian;
+      return this;
+    }
+
+    public AppointmentBuilder animal(Animal animal) {
+      this.animal = animal;
+      return this;
+    }
+
+    public AppointmentBuilder appointmentDate(LocalDate appointmentDate) {
+      this.appointmentDate = appointmentDate;
+      return this;
+    }
+
+    public AppointmentBuilder appointmentTime(LocalTime appointmentTime) {
+      this.appointmentTime = appointmentTime;
+      return this;
+    }
+
+    public AppointmentBuilder visitType(VisitType visitType) {
+      this.visitType = visitType;
+      return this;
+    }
+
+    public AppointmentBuilder reason(String reason) {
+      this.reason = reason;
+      return this;
+    }
+
+    public AppointmentBuilder status(AppointmentStatus status) {
+      this.status = status;
+      return this;
+    }
+
+    public AppointmentBuilder veterinarianNotes(String veterinarianNotes) {
+      this.veterinarianNotes = veterinarianNotes;
+      return this;
+    }
+
+    public AppointmentBuilder cancellationReason(String cancellationReason) {
+      this.cancellationReason = cancellationReason;
+      return this;
+    }
+
+    public AppointmentBuilder version(Long version) {
+      this.version = version;
+      return this;
+    }
+
+    public Appointment build() {
+      Appointment appointment = new Appointment();
+      appointment.setFarmer(this.farmer);
+      appointment.setVeterinarian(this.veterinarian);
+      appointment.setAnimal(this.animal);
+      appointment.setAppointmentDate(this.appointmentDate);
+      appointment.setAppointmentTime(this.appointmentTime);
+      appointment.setVisitType(this.visitType);
+      appointment.setReason(this.reason);
+      appointment.setStatus(this.status);
+      appointment.setVeterinarianNotes(this.veterinarianNotes);
+      appointment.setCancellationReason(this.cancellationReason);
+      appointment.setVersion(this.version);
+      return appointment;
+    }
+  }
 }

@@ -47,4 +47,106 @@ public class NotificationPreference extends BaseEntity {
   @Column(name = "marketing_notifications", nullable = false)
   @Builder.Default
   private boolean marketingNotifications = false;
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  public boolean isAppointmentNotifications() {
+    return appointmentNotifications;
+  }
+
+  public void setAppointmentNotifications(boolean appointmentNotifications) {
+    this.appointmentNotifications = appointmentNotifications;
+  }
+
+  public boolean isVaccinationNotifications() {
+    return vaccinationNotifications;
+  }
+
+  public void setVaccinationNotifications(boolean vaccinationNotifications) {
+    this.vaccinationNotifications = vaccinationNotifications;
+  }
+
+  public boolean isAiNotifications() {
+    return aiNotifications;
+  }
+
+  public void setAiNotifications(boolean aiNotifications) {
+    this.aiNotifications = aiNotifications;
+  }
+
+  public boolean isOutbreakNotifications() {
+    return outbreakNotifications;
+  }
+
+  public void setOutbreakNotifications(boolean outbreakNotifications) {
+    this.outbreakNotifications = outbreakNotifications;
+  }
+
+  public boolean isMarketingNotifications() {
+    return marketingNotifications;
+  }
+
+  public void setMarketingNotifications(boolean marketingNotifications) {
+    this.marketingNotifications = marketingNotifications;
+  }
+
+  public static NotificationPreferenceBuilder builder() {
+    return new NotificationPreferenceBuilder();
+  }
+
+  public static class NotificationPreferenceBuilder {
+    private User user;
+    private boolean appointmentNotifications = true;
+    private boolean vaccinationNotifications = true;
+    private boolean aiNotifications = true;
+    private boolean outbreakNotifications = true;
+    private boolean marketingNotifications = false;
+
+    public NotificationPreferenceBuilder user(User user) {
+      this.user = user;
+      return this;
+    }
+
+    public NotificationPreferenceBuilder appointmentNotifications(boolean appointmentNotifications) {
+      this.appointmentNotifications = appointmentNotifications;
+      return this;
+    }
+
+    public NotificationPreferenceBuilder vaccinationNotifications(boolean vaccinationNotifications) {
+      this.vaccinationNotifications = vaccinationNotifications;
+      return this;
+    }
+
+    public NotificationPreferenceBuilder aiNotifications(boolean aiNotifications) {
+      this.aiNotifications = aiNotifications;
+      return this;
+    }
+
+    public NotificationPreferenceBuilder outbreakNotifications(boolean outbreakNotifications) {
+      this.outbreakNotifications = outbreakNotifications;
+      return this;
+    }
+
+    public NotificationPreferenceBuilder marketingNotifications(boolean marketingNotifications) {
+      this.marketingNotifications = marketingNotifications;
+      return this;
+    }
+
+    public NotificationPreference build() {
+      NotificationPreference pref = new NotificationPreference();
+      pref.setUser(this.user);
+      pref.setAppointmentNotifications(this.appointmentNotifications);
+      pref.setVaccinationNotifications(this.vaccinationNotifications);
+      pref.setAiNotifications(this.aiNotifications);
+      pref.setOutbreakNotifications(this.outbreakNotifications);
+      pref.setMarketingNotifications(this.marketingNotifications);
+      return pref;
+    }
+  }
 }

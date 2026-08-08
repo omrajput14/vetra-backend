@@ -55,4 +55,129 @@ public class NotificationDeliveryLog {
   @Column(name = "created_at", nullable = false, updatable = false)
   @Builder.Default
   private Instant createdAt = Instant.now();
+
+  public UUID getId() {
+    return id;
+  }
+
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
+  public Notification getNotification() {
+    return notification;
+  }
+
+  public void setNotification(Notification notification) {
+    this.notification = notification;
+  }
+
+  public String getProvider() {
+    return provider;
+  }
+
+  public void setProvider(String provider) {
+    this.provider = provider;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public String getResponsePayload() {
+    return responsePayload;
+  }
+
+  public void setResponsePayload(String responsePayload) {
+    this.responsePayload = responsePayload;
+  }
+
+  public String getErrorMessage() {
+    return errorMessage;
+  }
+
+  public void setErrorMessage(String errorMessage) {
+    this.errorMessage = errorMessage;
+  }
+
+  public Integer getAttemptNumber() {
+    return attemptNumber;
+  }
+
+  public void setAttemptNumber(Integer attemptNumber) {
+    this.attemptNumber = attemptNumber;
+  }
+
+  public Instant getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(Instant createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public static NotificationDeliveryLogBuilder builder() {
+    return new NotificationDeliveryLogBuilder();
+  }
+
+  public static class NotificationDeliveryLogBuilder {
+    private Notification notification;
+    private String provider;
+    private String status;
+    private String responsePayload;
+    private String errorMessage;
+    private Integer attemptNumber = 1;
+    private Instant createdAt = Instant.now();
+
+    public NotificationDeliveryLogBuilder notification(Notification notification) {
+      this.notification = notification;
+      return this;
+    }
+
+    public NotificationDeliveryLogBuilder provider(String provider) {
+      this.provider = provider;
+      return this;
+    }
+
+    public NotificationDeliveryLogBuilder status(String status) {
+      this.status = status;
+      return this;
+    }
+
+    public NotificationDeliveryLogBuilder responsePayload(String responsePayload) {
+      this.responsePayload = responsePayload;
+      return this;
+    }
+
+    public NotificationDeliveryLogBuilder errorMessage(String errorMessage) {
+      this.errorMessage = errorMessage;
+      return this;
+    }
+
+    public NotificationDeliveryLogBuilder attemptNumber(Integer attemptNumber) {
+      this.attemptNumber = attemptNumber;
+      return this;
+    }
+
+    public NotificationDeliveryLogBuilder createdAt(Instant createdAt) {
+      this.createdAt = createdAt;
+      return this;
+    }
+
+    public NotificationDeliveryLog build() {
+      NotificationDeliveryLog log = new NotificationDeliveryLog();
+      log.setNotification(this.notification);
+      log.setProvider(this.provider);
+      log.setStatus(this.status);
+      log.setResponsePayload(this.responsePayload);
+      log.setErrorMessage(this.errorMessage);
+      log.setAttemptNumber(this.attemptNumber);
+      log.setCreatedAt(this.createdAt);
+      return log;
+    }
+  }
 }

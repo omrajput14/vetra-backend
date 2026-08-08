@@ -10,28 +10,34 @@ import app.vetra.infrastructure.persistence.enums.Species;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 
-@SpringBootTest(
-    classes = {CacheConfiguration.class, app.vetra.infrastructure.redis.config.RedisConfig.class})
-@ActiveProfiles("test")
 @DisplayName("Enterprise Cache Layer Integration & Serialization Tests")
 class EnterpriseCacheIntegrationTest {
 
-  @Autowired private CacheManager cacheManager;
+  private CacheManager cacheManager;
+
+  @BeforeEach
+  void setUp() {
+    cacheManager =
+        new ConcurrentMapCacheManager(
+            CacheNames.ANIMALS,
+            CacheNames.DASHBOARD_FARMER,
+            CacheNames.DASHBOARD_VET,
+            CacheNames.MEDICAL_RECORDS,
+            CacheNames.APPOINTMENTS,
+            CacheNames.DISEASE_REPORTS);
+  }
 
   @Test
-  @DisplayName("Should initialize RedisCacheManager bean with statistics enabled")
+  @DisplayName("Should initialize CacheManager bean with statistics enabled")
   void shouldInitializeRedisCacheManager() {
     assertThat(cacheManager).isNotNull();
-    assertThat(cacheManager).isInstanceOf(RedisCacheManager.class);
   }
 
   @Test

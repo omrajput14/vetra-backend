@@ -18,6 +18,13 @@ public final class AIDashboardMetadata {
   public static final String METRIC_MODEL_REQUESTS_TOTAL = "ai_model_requests_total";
   public static final String METRIC_AGENT_REQUESTS_TOTAL = "ai_agent_requests_total";
   public static final String METRIC_AGENT_DURATION = "ai_agent_duration_seconds";
+  public static final String METRIC_RAG_QUERIES_TOTAL = "rag_queries_total";
+  public static final String METRIC_RAG_RETRIEVAL_LATENCY = "rag_retrieval_latency_seconds";
+  public static final String METRIC_RAG_DOCUMENTS_INDEXED_TOTAL = "rag_documents_indexed_total";
+  public static final String METRIC_RAG_CHUNKS_INDEXED_TOTAL = "rag_chunks_indexed_total";
+  public static final String METRIC_RAG_CONTEXT_TOKENS_TOTAL = "rag_context_tokens_total";
+  public static final String METRIC_RAG_AVG_SIMILARITY = "rag_avg_similarity_score";
+  public static final String METRIC_RAG_RETRIEVED_CHUNKS = "rag_retrieved_chunks_total";
 
   // ── Tag Keys ──────────────────────────────────────────────────────────────
   public static final String TAG_PROVIDER = "provider";
