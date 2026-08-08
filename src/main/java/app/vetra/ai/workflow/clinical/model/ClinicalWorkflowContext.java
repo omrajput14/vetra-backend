@@ -2,6 +2,7 @@ package app.vetra.ai.workflow.clinical.model;
 
 import app.vetra.ai.agent.model.AgentResponse;
 import app.vetra.ai.rag.model.RetrievedContext;
+import app.vetra.ai.workflow.clinical.model.evidence.UnifiedClinicalEvidence;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -24,6 +25,7 @@ public class ClinicalWorkflowContext {
 
   private WorkflowStatus status;
   private AgentResponse diagnosisResponse;
+  private UnifiedClinicalEvidence unifiedEvidence;
   private RetrievedContext retrievedContext;
   private List<DiseaseCandidate> rankedDiseases;
   private TriageAssessment triageAssessment;
@@ -69,6 +71,14 @@ public class ClinicalWorkflowContext {
 
   public void setDiagnosisResponse(AgentResponse diagnosisResponse) {
     this.diagnosisResponse = diagnosisResponse;
+  }
+
+  public UnifiedClinicalEvidence getUnifiedEvidence() {
+    return unifiedEvidence;
+  }
+
+  public void setUnifiedEvidence(UnifiedClinicalEvidence unifiedEvidence) {
+    this.unifiedEvidence = unifiedEvidence;
   }
 
   public RetrievedContext getRetrievedContext() {

@@ -104,7 +104,12 @@ public class ClinicalTriageEngine {
       topCondition = top.diseaseName() + " (Confidence: " + top.confidence() + ")";
     }
     vars.put("condition", topCondition);
-    vars.put("evidence", request.retrievedEvidence());
+
+    String evidence = request.retrievedEvidence();
+    if (request.unifiedEvidence() != null) {
+      evidence = request.unifiedEvidence().toClinicalSummaryText() + " | RAG: " + evidence;
+    }
+    vars.put("evidence", evidence);
     return vars;
   }
 

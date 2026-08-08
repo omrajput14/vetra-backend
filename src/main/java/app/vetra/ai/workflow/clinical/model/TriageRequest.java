@@ -1,6 +1,7 @@
 package app.vetra.ai.workflow.clinical.model;
 
 import app.vetra.ai.model.AIExecutionContext;
+import app.vetra.ai.workflow.clinical.model.evidence.UnifiedClinicalEvidence;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import java.util.Map;
  * @param diagnosisObservations visual pathology observations from DiagnosisStep
  * @param rankedDiseases candidate diseases from RankingStep
  * @param retrievedEvidence literature context from KnowledgeStep (RAG)
+ * @param unifiedEvidence unified multi-modal evidence collection (optional)
  * @param metadata optional context metadata
  * @param executionContext AI execution context
  */
@@ -23,8 +25,31 @@ public record TriageRequest(
     List<String> diagnosisObservations,
     List<DiseaseCandidate> rankedDiseases,
     String retrievedEvidence,
+    UnifiedClinicalEvidence unifiedEvidence,
     Map<String, String> metadata,
     AIExecutionContext executionContext) {
+
+  /** Backward-compatible 8-argument constructor. */
+  public TriageRequest(
+      String species,
+      String breed,
+      List<String> symptoms,
+      List<String> diagnosisObservations,
+      List<DiseaseCandidate> rankedDiseases,
+      String retrievedEvidence,
+      Map<String, String> metadata,
+      AIExecutionContext executionContext) {
+    this(
+        species,
+        breed,
+        symptoms,
+        diagnosisObservations,
+        rankedDiseases,
+        retrievedEvidence,
+        null,
+        metadata,
+        executionContext);
+  }
 
   /** Canonical constructor with non-null defaults. */
   public TriageRequest {

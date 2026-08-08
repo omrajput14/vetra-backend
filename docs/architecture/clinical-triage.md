@@ -2,9 +2,7 @@
 
 ## Executive Summary
 
-Stage 13.1.2 introduces **Enterprise Clinical Triage & Urgency Assessment** to the Vetra Clinical Intelligence module. Triage evaluates clinical observations, symptoms, visual findings, and disease candidates to answer:
-
-> *"How urgently does this animal require professional veterinary attention?"*
+Stage 13.1.2 introduces **Enterprise Clinical Triage & Urgency Assessment** to the Vetra Clinical Intelligence module. Stage 13.1.3 extends triage to evaluate multi-modal evidence (critical lab results and critical vital signs).
 
 The underlying **AI Platform v1.1 execution pipeline** (`DefaultAIGateway` → `AIGovernancePipeline` → `AICacheManager` → `FailoverManager` → `ProviderRouter` → `AIProvider`) and **Multi-Agent Framework** (`AgentGateway` → `AgentRegistry` → `AIAgent`) remain **100% frozen, immutable, and preserved**.
 
@@ -16,9 +14,9 @@ Triage uses a strict 2-layer safety evaluation model:
 
 ```mermaid
 flowchart TD
-    Request[Clinical Context & Symptoms] --> Layer1[Layer 1: ClinicalTriageRules<br/>Deterministic Safety Rules]
+    Request[Multi-Modal Evidence Context] --> Layer1[Layer 1: ClinicalTriageRules<br/>Deterministic Safety Rules]
     
-    Layer1 -->|Critical Indicator Detected<br/>e.g. respiratory distress, collapse, severe bleeding| Emergency[EMERGENCY Assessment<br/>Requires Immediate Vet Intervention]
+    Layer1 -->|Critical Indicator Detected<br/>e.g. respiratory distress, collapse, CRITICAL labs/vitals| Emergency[EMERGENCY Assessment<br/>Requires Immediate Vet Intervention]
     
     Layer1 -->|No Emergency Rules Triggered| Layer2[Layer 2: ClinicalTriageEngine<br/>AI TriageAgent via AgentGateway]
     
@@ -27,9 +25,9 @@ flowchart TD
 ```
 
 ### Safety Precedence Rules
-1. **Deterministic Rule Precedence**: If a Layer 1 critical indicator triggers (respiratory distress, severe bleeding, seizures, collapse), the system immediately returns `EMERGENCY` without invoking `TriageAgent` or `AgentGateway`.
+1. **Deterministic Rule Precedence**: If a Layer 1 critical indicator triggers (respiratory distress, severe bleeding, seizures, collapse, or `AbnormalityStatus.CRITICAL` lab/vital signs), the system immediately returns `EMERGENCY` without invoking `TriageAgent` or `AgentGateway`.
 2. **Negation Precedence**: Symptoms with negating prefixes (e.g. *"no respiratory distress"*, *"denies collapse"*, *"without bleeding"*) do **NOT** trigger emergency rules.
-3. **Severe Disease vs Current Indicators**: High-severity disease candidates alone do not automatically trigger an emergency; classification depends on the animal's observed clinical indicators.
+3. **Severe Disease vs Current Indicators**: High-severity disease candidates alone do not automatically trigger an emergency; classification depends on observable clinical indicators and vital/lab findings.
 4. **Conservative Fallback Policy**: If AI reasoning fails or produces malformed JSON without a deterministic emergency, the engine returns a conservative `URGENT` assessment with `requiresImmediateVeterinaryReview = true` rather than defaulting to `ROUTINE`.
 
 ---
@@ -45,16 +43,17 @@ flowchart TD
 
 ---
 
-## 3. Workflow Integration (Order 4)
+## 3. Workflow Integration (Order 5)
 
-`ClinicalTriageStep` executes at Order 4 in the clinical diagnosis pipeline:
+`ClinicalTriageStep` executes at Order 5 in the 7-step clinical diagnosis pipeline:
 
 1. **`DiagnosisStep`** (Order 1) → Visual pathology & anomaly detection.
-2. **`KnowledgeStep`** (Order 2) → Grounded literature retrieval (RAG).
-3. **`RankingStep`** (Order 3) → Disease candidate ranking & confidence normalization.
-4. **`ClinicalTriageStep`** (Order 4) → Deterministic rules + AI Triage assessment.
-5. **`TreatmentStep`** (Order 5) → Treatment protocols respecting triage urgency.
-6. **`ReportStep`** (Order 6) → Synthesis of `ClinicalDiagnosisReport` with Triage section.
+2. **`EvidenceAggregationStep`** (Order 2) → Multi-modal evidence normalization & conflict detection.
+3. **`KnowledgeStep`** (Order 3) → Grounded literature retrieval (RAG).
+4. **`RankingStep`** (Order 4) → Multi-modal disease candidate ranking & confidence normalization.
+5. **`ClinicalTriageStep`** (Order 5) → Deterministic rules + AI Triage assessment.
+6. **`TreatmentStep`** (Order 6) → Treatment protocols respecting triage urgency.
+7. **`ReportStep`** (Order 7) → Synthesis of `ClinicalDiagnosisReport` with Triage section.
 
 ---
 

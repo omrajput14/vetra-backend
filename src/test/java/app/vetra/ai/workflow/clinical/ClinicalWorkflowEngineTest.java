@@ -17,11 +17,13 @@ import app.vetra.ai.event.ClinicalWorkflowStartedEvent;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.observability.AIMetricsCollector;
 import app.vetra.ai.observability.AIObservationConvention;
+import app.vetra.ai.workflow.clinical.evidence.ClinicalEvidenceAggregator;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowRequest;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowResult;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
 import app.vetra.ai.workflow.clinical.step.ClinicalTriageStep;
 import app.vetra.ai.workflow.clinical.step.DiagnosisStep;
+import app.vetra.ai.workflow.clinical.step.EvidenceAggregationStep;
 import app.vetra.ai.workflow.clinical.step.KnowledgeStep;
 import app.vetra.ai.workflow.clinical.step.RankingStep;
 import app.vetra.ai.workflow.clinical.step.ReportStep;
@@ -55,8 +57,10 @@ class ClinicalWorkflowEngineTest {
     ClinicalReportBuilder reportBuilder = new ClinicalReportBuilder();
     ClinicalTriageRules triageRules = new ClinicalTriageRules();
     ClinicalTriageEngine triageEngine = new ClinicalTriageEngine(triageRules, agentGateway);
+    ClinicalEvidenceAggregator aggregator = new ClinicalEvidenceAggregator();
 
     DiagnosisStep diagnosisStep = new DiagnosisStep(agentGateway);
+    EvidenceAggregationStep aggregationStep = new EvidenceAggregationStep(aggregator, eventPublisher, metricsCollector);
     KnowledgeStep knowledgeStep = new KnowledgeStep(agentGateway);
     RankingStep rankingStep = new RankingStep(diseaseRanker);
     ClinicalTriageStep triageStep = new ClinicalTriageStep(triageEngine, eventPublisher);
@@ -65,7 +69,7 @@ class ClinicalWorkflowEngineTest {
 
     workflowEngine =
         new ClinicalWorkflowEngine(
-            List.of(diagnosisStep, knowledgeStep, rankingStep, triageStep, treatmentStep, reportStep),
+            List.of(diagnosisStep, aggregationStep, knowledgeStep, rankingStep, triageStep, treatmentStep, reportStep),
             metricsCollector,
             observationConvention,
             eventPublisher);

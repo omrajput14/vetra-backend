@@ -49,10 +49,16 @@ public class KnowledgeStep implements WorkflowStep {
       String queryCondition = extractQueryCondition(context);
       String species = context.getRequest().species();
 
+      String clinicalSummary =
+          context.getUnifiedEvidence() != null
+              ? context.getUnifiedEvidence().toClinicalSummaryText()
+              : String.join(", ", context.getRequest().symptoms());
+
       Map<String, Object> inputVars = new HashMap<>();
       inputVars.put("diseaseName", queryCondition);
       inputVars.put("species", species);
       inputVars.put("symptoms", String.join(", ", context.getRequest().symptoms()));
+      inputVars.put("clinicalSummary", clinicalSummary);
 
       AgentRequest agentRequest =
           new AgentRequest(
@@ -155,6 +161,6 @@ public class KnowledgeStep implements WorkflowStep {
 
   @Override
   public int order() {
-    return 2;
+    return 3;
   }
 }

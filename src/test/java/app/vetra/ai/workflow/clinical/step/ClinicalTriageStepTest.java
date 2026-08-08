@@ -38,7 +38,7 @@ class ClinicalTriageStepTest {
   @Test
   void testStepProperties() {
     assertEquals("triage", triageStep.stepName());
-    assertEquals(4, triageStep.order());
+    assertEquals(5, triageStep.order());
   }
 
   @Test

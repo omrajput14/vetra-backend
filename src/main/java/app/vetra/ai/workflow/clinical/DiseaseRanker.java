@@ -4,6 +4,9 @@ import app.vetra.ai.agent.model.AgentResponse;
 import app.vetra.ai.rag.model.Citation;
 import app.vetra.ai.rag.model.RetrievedContext;
 import app.vetra.ai.workflow.clinical.model.DiseaseCandidate;
+import app.vetra.ai.workflow.clinical.model.evidence.ClinicalEvidence;
+import app.vetra.ai.workflow.clinical.model.evidence.EvidenceType;
+import app.vetra.ai.workflow.clinical.model.evidence.UnifiedClinicalEvidence;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -16,11 +19,21 @@ import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Merges diagnostic outputs with literature evidence, eliminates duplicate conditions,
- * normalizes confidence scores to [0.00, 1.00], and produces sorted DiseaseCandidate rankings.
+ * Multi-modal disease ranking engine. Merges diagnostic outputs, literature, laboratory,
+ * vital signs, and symptoms, normalizing active modality weights dynamically when evidence is missing.
+ *
+ * <p>Engineering default weights (configurable via application properties):
+ * <ul>
+ *   <li>Vision Weight: 0.35</li>
+ *   <li>Lab Weight: 0.25</li>
+ *   <li>Vital Weight: 0.15</li>
+ *   <li>Symptom Weight: 0.15</li>
+ *   <li>RAG Weight: 0.10</li>
+ * </ul>
  */
 @Component
 public class DiseaseRanker {
@@ -28,20 +41,53 @@ public class DiseaseRanker {
   private static final Logger log = LoggerFactory.getLogger(DiseaseRanker.class);
   private final ObjectMapper objectMapper;
 
+  private final double visionWeight;
+  private final double labWeight;
+  private final double vitalWeight;
+  private final double symptomWeight;
+  private final double ragWeight;
+
   public DiseaseRanker() {
+    this(0.35, 0.25, 0.15, 0.15, 0.10);
+  }
+
+  public DiseaseRanker(
+      @Value("${vetra.ai.ranking.weights.vision:0.35}") double visionWeight,
+      @Value("${vetra.ai.ranking.weights.lab:0.25}") double labWeight,
+      @Value("${vetra.ai.ranking.weights.vital:0.15}") double vitalWeight,
+      @Value("${vetra.ai.ranking.weights.symptom:0.15}") double symptomWeight,
+      @Value("${vetra.ai.ranking.weights.rag:0.10}") double ragWeight) {
+
     this.objectMapper = new ObjectMapper();
+    this.visionWeight = validateWeight(visionWeight, 0.35);
+    this.labWeight = validateWeight(labWeight, 0.25);
+    this.vitalWeight = validateWeight(vitalWeight, 0.15);
+    this.symptomWeight = validateWeight(symptomWeight, 0.15);
+    this.ragWeight = validateWeight(ragWeight, 0.10);
+  }
+
+  private double validateWeight(double weight, double defaultValue) {
+    if (weight < 0.0 || weight > 1.0) {
+      log.warn("Invalid weight configured: {}. Falling back to default: {}", weight, defaultValue);
+      return defaultValue;
+    }
+    return weight;
   }
 
   /**
-   * Ranks and deduplicates candidate diseases based on diagnosis observations and retrieved evidence.
+   * Ranks candidate diseases taking into account all available multi-modal evidence.
    *
-   * @param diagnosisResponse output from DiagnosisAgent
-   * @param retrievedContext grounded context and citations from KnowledgeAgent (RAG)
-   * @param symptoms observed clinical symptoms
-   * @return sorted list of {@link DiseaseCandidate} in descending confidence order
+   * @param diagnosisResponse visual diagnosis output
+   * @param retrievedContext grounded context from KnowledgeAgent
+   * @param symptoms symptoms list
+   * @param unifiedEvidence unified evidence collection (optional)
+   * @return sorted list of {@link DiseaseCandidate}
    */
   public List<DiseaseCandidate> rankDiseases(
-      AgentResponse diagnosisResponse, RetrievedContext retrievedContext, List<String> symptoms) {
+      AgentResponse diagnosisResponse,
+      RetrievedContext retrievedContext,
+      List<String> symptoms,
+      UnifiedClinicalEvidence unifiedEvidence) {
 
     List<DiseaseCandidate> rawCandidates = new ArrayList<>();
     List<Citation> citations =
@@ -58,7 +104,6 @@ public class DiseaseRanker {
       extractFromDiagnosis(diagnosisResponse.rawResponse().content(), citations, evidenceText, rawCandidates);
     }
 
-    // If no candidate was extracted from raw response, synthesize from symptoms
     if (rawCandidates.isEmpty()) {
       String fallbackCondition =
           (symptoms != null && !symptoms.isEmpty())
@@ -73,7 +118,94 @@ public class DiseaseRanker {
               true));
     }
 
-    return deduplicateAndSort(rawCandidates);
+    // Apply dynamic weight normalization across active modalities for each candidate
+    List<DiseaseCandidate> weightedCandidates = new ArrayList<>();
+    for (DiseaseCandidate candidate : rawCandidates) {
+      BigDecimal score = calculateWeightedScore(candidate, symptoms, retrievedContext, unifiedEvidence);
+      weightedCandidates.add(
+          new DiseaseCandidate(
+              candidate.diseaseName(),
+              normalizeConfidence(score),
+              candidate.evidence(),
+              candidate.citations(),
+              candidate.requiresUrgentReview()));
+    }
+
+    return deduplicateAndSort(weightedCandidates);
+  }
+
+  /** Overloaded method maintaining backward compatibility. */
+  public List<DiseaseCandidate> rankDiseases(
+      AgentResponse diagnosisResponse, RetrievedContext retrievedContext, List<String> symptoms) {
+    return rankDiseases(diagnosisResponse, retrievedContext, symptoms, null);
+  }
+
+  private BigDecimal calculateWeightedScore(
+      DiseaseCandidate candidate,
+      List<String> symptoms,
+      RetrievedContext retrievedContext,
+      UnifiedClinicalEvidence unifiedEvidence) {
+
+    if (unifiedEvidence == null) {
+      return candidate.confidence();
+    }
+    double activeWeightSum = 0.0;
+    double weightedScoreSum = 0.0;
+
+    // 1. Vision modality
+    double visionScore = candidate.confidence().doubleValue();
+    activeWeightSum += visionWeight;
+    weightedScoreSum += visionScore * visionWeight;
+
+    // 2. Symptoms modality
+    if (symptoms != null && !symptoms.isEmpty()) {
+      double symptomScore = 0.70;
+      activeWeightSum += symptomWeight;
+      weightedScoreSum += symptomScore * symptomWeight;
+    }
+
+    // 3. Lab modality
+    if (unifiedEvidence != null && !unifiedEvidence.findByType(EvidenceType.LAB_RESULT).isEmpty()) {
+      List<ClinicalEvidence> labs = unifiedEvidence.findByType(EvidenceType.LAB_RESULT);
+      double labScore = calculateModalityScoreForCandidate(candidate.diseaseName(), labs);
+      activeWeightSum += labWeight;
+      weightedScoreSum += labScore * labWeight;
+    }
+
+    // 4. Vital modality
+    if (unifiedEvidence != null && !unifiedEvidence.findByType(EvidenceType.VITAL_SIGN).isEmpty()) {
+      List<ClinicalEvidence> vitals = unifiedEvidence.findByType(EvidenceType.VITAL_SIGN);
+      double vitalScore = calculateModalityScoreForCandidate(candidate.diseaseName(), vitals);
+      activeWeightSum += vitalWeight;
+      weightedScoreSum += vitalScore * vitalWeight;
+    }
+
+    // 5. RAG literature modality
+    if (retrievedContext != null && retrievedContext.totalChunks() > 0) {
+      double rScore = retrievedContext.avgSimilarityScore() > 0 ? retrievedContext.avgSimilarityScore() : 0.80;
+      activeWeightSum += ragWeight;
+      weightedScoreSum += rScore * ragWeight;
+    }
+
+    if (activeWeightSum <= 0.0) {
+      return candidate.confidence();
+    }
+
+    // Normalize by active weights sum so missing modalities do not depress score
+    double finalScore = weightedScoreSum / activeWeightSum;
+    return BigDecimal.valueOf(finalScore);
+  }
+
+  private double calculateModalityScoreForCandidate(String diseaseName, List<ClinicalEvidence> evidenceList) {
+    String term = diseaseName.toLowerCase();
+    boolean matches = false;
+    for (ClinicalEvidence e : evidenceList) {
+      if (e.summary().toLowerCase().contains(term) || e.observations().stream().anyMatch(o -> o.toLowerCase().contains(term))) {
+        matches = true;
+        break;
+      }
+    }
+    return matches ? 0.85 : 0.50;
   }
 
   private void extractFromDiagnosis(
@@ -103,7 +235,6 @@ public class DiseaseRanker {
               citations,
               urgent));
 
-      // Extract secondary observations / differential diagnoses if present
       if (node.has("observations") && node.get("observations").isArray()) {
         for (JsonNode obsNode : node.get("observations")) {
           String obsText = obsNode.asText().trim();
@@ -131,12 +262,6 @@ public class DiseaseRanker {
     }
   }
 
-  /**
-   * Normalizes any numerical confidence value into a calibrated [0.00, 1.00] range with 2 decimal places.
-   *
-   * @param score raw score
-   * @return normalized score
-   */
   public BigDecimal normalizeConfidence(BigDecimal score) {
     if (score == null) {
       return BigDecimal.valueOf(0.50).setScale(2, RoundingMode.HALF_UP);

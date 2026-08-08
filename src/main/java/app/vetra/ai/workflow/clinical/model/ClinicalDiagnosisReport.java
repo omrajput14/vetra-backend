@@ -1,6 +1,7 @@
 package app.vetra.ai.workflow.clinical.model;
 
 import app.vetra.ai.rag.model.Citation;
+import app.vetra.ai.workflow.clinical.model.evidence.MultiModalEvidenceSummary;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.UUID;
  * @param immediateActions immediate clinical/biosecurity actions
  * @param monitoringAdvice ongoing observation and care advice
  * @param references grounded literature citations
+ * @param evidenceSummary multi-modal evidence summary breakdown (optional)
  * @param timestamp creation timestamp
  * @param agentExecutionSummary summary of agents involved and performance
  * @param totalDurationMs total workflow latency in milliseconds
@@ -44,12 +46,57 @@ public record ClinicalDiagnosisReport(
     List<String> immediateActions,
     List<String> monitoringAdvice,
     List<Citation> references,
+    MultiModalEvidenceSummary evidenceSummary,
     Instant timestamp,
     Map<String, Object> agentExecutionSummary,
     long totalDurationMs,
     WorkflowStatus status) {
 
+  /** Backward-compatible 18-argument constructor. */
+  @SuppressWarnings("checkstyle:ParameterNumber")
+  public ClinicalDiagnosisReport(
+      UUID reportId,
+      UUID scanId,
+      UUID animalId,
+      String animalInformation,
+      List<String> symptoms,
+      List<DiseaseCandidate> mostLikelyDiseases,
+      String primaryDiagnosis,
+      BigDecimal confidenceScore,
+      String supportingEvidence,
+      String retrievedLiterature,
+      String treatmentRecommendation,
+      List<String> immediateActions,
+      List<String> monitoringAdvice,
+      List<Citation> references,
+      Instant timestamp,
+      Map<String, Object> agentExecutionSummary,
+      long totalDurationMs,
+      WorkflowStatus status) {
+    this(
+        reportId,
+        scanId,
+        animalId,
+        animalInformation,
+        symptoms,
+        mostLikelyDiseases,
+        primaryDiagnosis,
+        confidenceScore,
+        supportingEvidence,
+        retrievedLiterature,
+        treatmentRecommendation,
+        immediateActions,
+        monitoringAdvice,
+        references,
+        null,
+        timestamp,
+        agentExecutionSummary,
+        totalDurationMs,
+        status);
+  }
+
   /** Canonical constructor with non-null defaults. */
+  @SuppressWarnings("checkstyle:ParameterNumber")
   public ClinicalDiagnosisReport {
     reportId = reportId != null ? reportId : UUID.randomUUID();
     symptoms = symptoms != null ? List.copyOf(symptoms) : List.of();

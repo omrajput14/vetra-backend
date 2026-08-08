@@ -4,9 +4,10 @@ import app.vetra.ai.rag.model.Citation;
 import app.vetra.ai.workflow.clinical.model.ClinicalDiagnosisReport;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowContext;
 import app.vetra.ai.workflow.clinical.model.DiseaseCandidate;
-import app.vetra.ai.workflow.clinical.model.TriageAssessment;
 import app.vetra.ai.workflow.clinical.model.TreatmentPlan;
+import app.vetra.ai.workflow.clinical.model.TriageAssessment;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
+import app.vetra.ai.workflow.clinical.model.evidence.MultiModalEvidenceSummary;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -88,6 +89,7 @@ public class ClinicalReportBuilder {
 
     List<String> immediateActions = assembleImmediateActions(context, treatmentPlan, topCandidate);
     List<String> monitoringAdvice = new ArrayList<>(treatmentPlan.monitoringAdvice());
+    MultiModalEvidenceSummary evidenceSummary = assembleEvidenceSummary(context);
     Map<String, Object> summary = assembleExecutionSummary(context, candidates);
 
     long durationMs = (System.nanoTime() - context.getStartTimeNanos()) / 1_000_000L;
@@ -108,10 +110,43 @@ public class ClinicalReportBuilder {
         immediateActions,
         monitoringAdvice,
         citations,
+        evidenceSummary,
         Instant.now(),
         summary,
         durationMs,
         finalStatus);
+  }
+
+  private app.vetra.ai.workflow.clinical.model.evidence.MultiModalEvidenceSummary assembleEvidenceSummary(
+      ClinicalWorkflowContext context) {
+    if (context.getUnifiedEvidence() == null) {
+      return null;
+    }
+    var u = context.getUnifiedEvidence();
+    int lab = u.findByType(app.vetra.ai.workflow.clinical.model.evidence.EvidenceType.LAB_RESULT).size();
+    int vital = u.findByType(app.vetra.ai.workflow.clinical.model.evidence.EvidenceType.VITAL_SIGN).size();
+    int sensor = u.findByType(app.vetra.ai.workflow.clinical.model.evidence.EvidenceType.SENSOR_OBSERVATION).size();
+    int history = u.findByType(app.vetra.ai.workflow.clinical.model.evidence.EvidenceType.CLINICAL_HISTORY).size();
+    int vision = u.findByType(app.vetra.ai.workflow.clinical.model.evidence.EvidenceType.IMAGE).size();
+    int rag = context.getRetrievedContext() != null ? context.getRetrievedContext().totalChunks() : 0;
+
+    List<String> criticals =
+        u.items().stream()
+            .filter(i -> i.status() == app.vetra.ai.workflow.clinical.model.evidence.AbnormalityStatus.CRITICAL)
+            .map(i -> i.summary())
+            .toList();
+
+    return new app.vetra.ai.workflow.clinical.model.evidence.MultiModalEvidenceSummary(
+        u.items().size(),
+        lab,
+        vital,
+        sensor,
+        history,
+        vision,
+        rag,
+        criticals,
+        u.conflicts(),
+        u.toClinicalSummaryText());
   }
 
   private List<String> assembleImmediateActions(

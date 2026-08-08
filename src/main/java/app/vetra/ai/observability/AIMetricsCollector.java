@@ -373,6 +373,35 @@ public class AIMetricsCollector {
     }
   }
 
+  /**
+   * Records multi-modal evidence processing metrics.
+   *
+   * @param itemCount total evidence items aggregated
+   * @param conflictCount total measurement conflicts detected
+   * @param durationMs processing latency in milliseconds
+   */
+  public void recordEvidenceProcessing(int itemCount, int conflictCount, long durationMs) {
+    if (meterRegistry != null) {
+      if (itemCount > 0) {
+        Counter.builder(AIDashboardMetadata.METRIC_MULTI_MODAL_EVIDENCE_TOTAL)
+            .description("Total multi-modal evidence items aggregated")
+            .register(meterRegistry)
+            .increment(itemCount);
+      }
+      if (conflictCount > 0) {
+        Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_EVIDENCE_CONFLICTS_TOTAL)
+            .description("Total evidence measurement conflicts detected")
+            .register(meterRegistry)
+            .increment(conflictCount);
+      }
+      Timer.builder(AIDashboardMetadata.METRIC_MULTI_MODAL_EVIDENCE_DURATION)
+          .description("Multi-modal evidence aggregation latency timer")
+          .publishPercentiles(0.5, 0.95, 0.99)
+          .register(meterRegistry)
+          .record(durationMs, TimeUnit.MILLISECONDS);
+    }
+  }
+
   private String normalizeTagValue(String val, String fallback) {
     if (val == null || val.isBlank()) {
       return fallback;

@@ -33,9 +33,15 @@ public final class AIDashboardMetadata {
   public static final String METRIC_CLINICAL_TRIAGE_DURATION = "clinical_triage_duration_seconds";
   public static final String METRIC_CLINICAL_TRIAGE_URGENCY_TOTAL = "clinical_triage_urgency_total";
   public static final String METRIC_CLINICAL_TRIAGE_ESCALATIONS_TOTAL = "clinical_triage_escalations_total";
+  public static final String METRIC_MULTI_MODAL_EVIDENCE_TOTAL = "multi_modal_evidence_total";
+  public static final String METRIC_MULTI_MODAL_EVIDENCE_DURATION = "multi_modal_evidence_processing_duration_seconds";
+  public static final String METRIC_CLINICAL_EVIDENCE_CONFLICTS_TOTAL = "clinical_evidence_conflicts_total";
 
   // ── OpenTelemetry Span Events ─────────────────────────────────────────────
   public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";
+  public static final String SPAN_EVENT_EVIDENCE_AGGREGATION_STARTED = "evidence.aggregation.started";
+  public static final String SPAN_EVENT_EVIDENCE_AGGREGATION_COMPLETED = "evidence.aggregation.completed";
+  public static final String SPAN_EVENT_EVIDENCE_CONFLICT_DETECTED = "evidence.conflict.detected";
   public static final String SPAN_EVENT_RETRIEVAL_COMPLETED = "retrieval completed";
   public static final String SPAN_EVENT_RANKING_COMPLETED = "ranking completed";
   public static final String SPAN_EVENT_TRIAGE_STARTED = "triage.started";

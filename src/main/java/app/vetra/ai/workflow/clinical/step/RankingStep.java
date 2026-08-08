@@ -40,7 +40,8 @@ public class RankingStep implements WorkflowStep {
           diseaseRanker.rankDiseases(
               context.getDiagnosisResponse(),
               context.getRetrievedContext(),
-              context.getRequest().symptoms());
+              context.getRequest().symptoms(),
+              context.getUnifiedEvidence());
 
       context.setRankedDiseases(ranked);
 
@@ -70,6 +71,6 @@ public class RankingStep implements WorkflowStep {
 
   @Override
   public int order() {
-    return 3;
+    return 4;
   }
 }

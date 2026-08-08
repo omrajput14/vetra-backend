@@ -13,9 +13,11 @@ import app.vetra.ai.agent.model.AgentResponse;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.workflow.clinical.ClinicalReportBuilder;
 import app.vetra.ai.workflow.clinical.DiseaseRanker;
+import app.vetra.ai.workflow.clinical.evidence.ClinicalEvidenceAggregator;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowContext;
 import app.vetra.ai.workflow.clinical.model.ClinicalWorkflowRequest;
 import app.vetra.ai.workflow.clinical.model.WorkflowStatus;
+import app.vetra.ai.workflow.clinical.triage.ClinicalTriageEngine;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,10 +29,14 @@ class WorkflowStepTest {
   private AgentGateway agentGateway;
   private DiseaseRanker diseaseRanker;
   private ClinicalReportBuilder reportBuilder;
+  private ClinicalEvidenceAggregator aggregator;
+  private ClinicalTriageEngine triageEngine;
 
   private DiagnosisStep diagnosisStep;
+  private EvidenceAggregationStep aggregationStep;
   private KnowledgeStep knowledgeStep;
   private RankingStep rankingStep;
+  private ClinicalTriageStep triageStep;
   private TreatmentStep treatmentStep;
   private ReportStep reportStep;
 
@@ -39,10 +45,14 @@ class WorkflowStepTest {
     agentGateway = mock(AgentGateway.class);
     diseaseRanker = new DiseaseRanker();
     reportBuilder = new ClinicalReportBuilder();
+    aggregator = new ClinicalEvidenceAggregator();
+    triageEngine = mock(ClinicalTriageEngine.class);
 
     diagnosisStep = new DiagnosisStep(agentGateway);
+    aggregationStep = new EvidenceAggregationStep(aggregator, null, null);
     knowledgeStep = new KnowledgeStep(agentGateway);
     rankingStep = new RankingStep(diseaseRanker);
+    triageStep = new ClinicalTriageStep(triageEngine, null);
     treatmentStep = new TreatmentStep(agentGateway);
     reportStep = new ReportStep(reportBuilder);
   }
@@ -52,17 +62,23 @@ class WorkflowStepTest {
     assertEquals("diagnosis", diagnosisStep.stepName());
     assertEquals(1, diagnosisStep.order());
 
+    assertEquals("evidence_aggregation", aggregationStep.stepName());
+    assertEquals(2, aggregationStep.order());
+
     assertEquals("knowledge", knowledgeStep.stepName());
-    assertEquals(2, knowledgeStep.order());
+    assertEquals(3, knowledgeStep.order());
 
     assertEquals("ranking", rankingStep.stepName());
-    assertEquals(3, rankingStep.order());
+    assertEquals(4, rankingStep.order());
+
+    assertEquals("triage", triageStep.stepName());
+    assertEquals(5, triageStep.order());
 
     assertEquals("treatment", treatmentStep.stepName());
-    assertEquals(5, treatmentStep.order());
+    assertEquals(6, treatmentStep.order());
 
     assertEquals("report", reportStep.stepName());
-    assertEquals(6, reportStep.order());
+    assertEquals(7, reportStep.order());
   }
 
   @Test

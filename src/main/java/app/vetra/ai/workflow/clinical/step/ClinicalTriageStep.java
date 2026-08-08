@@ -108,6 +108,7 @@ public class ClinicalTriageStep implements WorkflowStep {
         List.of(),
         context.getRankedDiseases(),
         retrievedEvidence,
+        context.getUnifiedEvidence(),
         context.getRequest().metadata(),
         context.getRequest().executionContext());
   }
@@ -119,6 +120,6 @@ public class ClinicalTriageStep implements WorkflowStep {
 
   @Override
   public int order() {
-    return 4;
+    return 5;
   }
 }

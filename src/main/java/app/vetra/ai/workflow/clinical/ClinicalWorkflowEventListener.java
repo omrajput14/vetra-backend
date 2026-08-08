@@ -65,6 +65,22 @@ public class ClinicalWorkflowEventListener {
   }
 
   /**
+   * Handles evidence aggregation completion event.
+   *
+   * @param event evidence aggregated domain event
+   */
+  @EventListener
+  public void onEvidenceAggregated(app.vetra.ai.event.ClinicalEvidenceAggregatedEvent event) {
+    log.info(
+        "Clinical Evidence AGGREGATED: scanId={} animalId={} items={} conflicts={} warnings={}",
+        event.scanId(),
+        event.animalId(),
+        event.totalEvidenceItems(),
+        event.conflictCount(),
+        event.warningCount());
+  }
+
+  /**
    * Handles workflow failure event.
    *
    * @param event failure domain event

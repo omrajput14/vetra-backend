@@ -3,6 +3,8 @@ package app.vetra.ai.workflow.clinical.triage;
 import app.vetra.ai.workflow.clinical.model.TriageAssessment;
 import app.vetra.ai.workflow.clinical.model.TriageRequest;
 import app.vetra.ai.workflow.clinical.model.TriageUrgency;
+import app.vetra.ai.workflow.clinical.model.evidence.AbnormalityStatus;
+import app.vetra.ai.workflow.clinical.model.evidence.ClinicalEvidence;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,8 +18,8 @@ import org.springframework.stereotype.Component;
 /**
  * Layer 1 Deterministic Triage Safety Rules.
  *
- * <p>Evaluates observable clinical symptoms and diagnostic findings against critical emergency
- * indicators with strict negation handling (e.g. "no respiratory distress" does not trigger an emergency).
+ * <p>Evaluates observable clinical symptoms, diagnostic findings, laboratory results, and vital signs
+ * against critical emergency indicators with strict negation handling (e.g. "no respiratory distress" does not trigger an emergency).
  *
  * <p>Deterministic emergency rules take absolute precedence over AI output. If a critical indicator
  * is detected, this component returns an EMERGENCY assessment immediately without invoking AI agents.
@@ -55,17 +57,29 @@ public class ClinicalTriageRules {
 
     List<String> detectedWarningSigns = new ArrayList<>();
 
-    // Evaluate symptoms
+    // 1. Evaluate symptoms
     if (request.symptoms() != null) {
       for (String symptom : request.symptoms()) {
         checkTextForEmergencyIndicators(symptom, detectedWarningSigns);
       }
     }
 
-    // Evaluate visual pathology observations
+    // 2. Evaluate visual pathology observations
     if (request.diagnosisObservations() != null) {
       for (String obs : request.diagnosisObservations()) {
         checkTextForEmergencyIndicators(obs, detectedWarningSigns);
+      }
+    }
+
+    // 3. Evaluate unified clinical evidence for CRITICAL status (Labs, Vitals, Sensors)
+    if (request.unifiedEvidence() != null && request.unifiedEvidence().items() != null) {
+      for (ClinicalEvidence item : request.unifiedEvidence().items()) {
+        if (item.status() == AbnormalityStatus.CRITICAL) {
+          String warningLabel = "Critical Multi-Modal Finding: " + item.summary();
+          if (!detectedWarningSigns.contains(warningLabel)) {
+            detectedWarningSigns.add(warningLabel);
+          }
+        }
       }
     }
 
@@ -100,7 +114,6 @@ public class ClinicalTriageRules {
       return;
     }
 
-    // Split input into clauses to check negation locally per clause
     String[] clauses = input.split("[,;.|\\n]");
     for (String clause : clauses) {
       String trimmed = clause.trim().toLowerCase();
