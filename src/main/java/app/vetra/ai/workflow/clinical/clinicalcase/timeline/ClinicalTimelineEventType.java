@@ -1,0 +1,25 @@
+package app.vetra.ai.workflow.clinical.clinicalcase.timeline;
+
+/** Domain event type classification for longitudinal clinical timelines. */
+public enum ClinicalTimelineEventType {
+  CASE_OPENED,
+  ENCOUNTER_RECORDED,
+  DIAGNOSIS_RECORDED,
+  TREATMENT_STARTED,
+  ACTION_PLAN_CREATED,
+  FOLLOW_UP_SCHEDULED,
+  FOLLOW_UP_COMPLETED,
+  CLINICAL_STATUS_CHANGED,
+  TREATMENT_RESPONSE_RECORDED,
+  VETERINARIAN_REVIEW,
+  REFERRAL,
+  CASE_RESOLVED,
+  CARE_TASK_CREATED,
+  CARE_TASK_ASSIGNED,
+  CARE_TASK_STARTED,
+  CARE_TASK_COMPLETED,
+  CARE_TASK_OVERDUE,
+  CARE_TASK_ESCALATED,
+  FOLLOW_UP_DUE,
+  FOLLOW_UP_MISSED
+}

@@ -7,5 +7,6 @@ public enum AgentCapability {
   REPORT,
   IMAGE_ANALYSIS,
   KNOWLEDGE,
-  SUMMARIZATION
+  SUMMARIZATION,
+  TRIAGE
 }
