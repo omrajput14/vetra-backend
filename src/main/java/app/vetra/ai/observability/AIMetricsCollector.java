@@ -204,58 +204,30 @@ public class AIMetricsCollector {
     }
   }
 
-  /**
-   * Records prompt and completion token consumption.
-   *
-   * @param provider provider name
-   * @param model model alias
-   * @param promptTokens input prompt token count
-   * @param completionTokens output completion token count
-   */
-  public void recordTokenUsage(
-      String provider, String model, int promptTokens, int completionTokens) {
-
+  /** Records prompt and completion token consumption. */
+  public void recordTokenUsage(String provider, String model, int promptTokens, int completionTokens) {
     String p = normalizeTagValue(provider, "UNKNOWN");
     String m = normalizeTagValue(model, "UNKNOWN");
-
     if (meterRegistry != null) {
       if (promptTokens > 0) {
-        Counter.builder(AIDashboardMetadata.METRIC_PROMPT_TOKENS_TOTAL)
-            .description("Total AI prompt input tokens consumed")
-            .tag(AIDashboardMetadata.TAG_PROVIDER, p)
-            .tag(AIDashboardMetadata.TAG_MODEL, m)
-            .register(meterRegistry)
-            .increment(promptTokens);
+        Counter.builder(AIDashboardMetadata.METRIC_PROMPT_TOKENS_TOTAL).description("Total AI prompt input tokens consumed").tag(AIDashboardMetadata.TAG_PROVIDER, p).tag(AIDashboardMetadata.TAG_MODEL, m).register(meterRegistry).increment(promptTokens);
       }
       if (completionTokens > 0) {
-        Counter.builder(AIDashboardMetadata.METRIC_COMPLETION_TOKENS_TOTAL)
-            .description("Total AI completion output tokens consumed")
-            .tag(AIDashboardMetadata.TAG_PROVIDER, p)
-            .tag(AIDashboardMetadata.TAG_MODEL, m)
-            .register(meterRegistry)
-            .increment(completionTokens);
+        Counter.builder(AIDashboardMetadata.METRIC_COMPLETION_TOKENS_TOTAL).description("Total AI completion output tokens consumed").tag(AIDashboardMetadata.TAG_PROVIDER, p).tag(AIDashboardMetadata.TAG_MODEL, m).register(meterRegistry).increment(completionTokens);
       }
     }
   }
 
-  /**
-   * Records estimated inference cost in USD.
-   *
-   * @param provider provider name
-   * @param model model alias
-   * @param costUSD estimated cost in USD
-   */
+  /** Records estimated inference cost in USD. */
   public void recordCost(String provider, String model, double costUSD) {
     String p = normalizeTagValue(provider, "UNKNOWN");
     String m = normalizeTagValue(model, "UNKNOWN");
-
     if (meterRegistry != null && costUSD > 0.0) {
       Counter.builder(AIDashboardMetadata.METRIC_ESTIMATED_COST_TOTAL)
-          .description("Total estimated AI spend in USD")
+          .description("Estimated AI inference cost in USD")
           .tag(AIDashboardMetadata.TAG_PROVIDER, p)
           .tag(AIDashboardMetadata.TAG_MODEL, m)
-          .register(meterRegistry)
-          .increment(costUSD);
+          .register(meterRegistry).increment(costUSD);
     }
   }
 
@@ -437,51 +409,82 @@ public class AIMetricsCollector {
   }
 
   public void recordClinicalActionPlan(String urgency, boolean vetRequired) {
-    String urg = normalizeTagValue(urgency, "UNKNOWN");
     if (meterRegistry != null) {
       Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_ACTION_PLAN_TOTAL)
           .description("Total clinical action plans synthesized")
-          .tag(AIDashboardMetadata.TAG_URGENCY, urg)
-          .tag("review_required", String.valueOf(vetRequired))
-          .register(meterRegistry).increment();
+          .tag(AIDashboardMetadata.TAG_URGENCY, normalizeTagValue(urgency, "UNKNOWN"))
+          .tag("review_required", String.valueOf(vetRequired)).register(meterRegistry).increment();
     }
   }
 
   public void recordClinicalCase(String status) {
-    String st = normalizeTagValue(status, "UNKNOWN");
     if (meterRegistry != null) {
       Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CASES_TOTAL)
           .description("Total clinical cases managed by status")
-          .tag("case_status", st).register(meterRegistry).increment();
+          .tag("case_status", normalizeTagValue(status, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 
   public void recordClinicalEncounter(String type, String urgency) {
-    String tp = normalizeTagValue(type, "UNKNOWN");
-    String urg = normalizeTagValue(urgency, "UNKNOWN");
     if (meterRegistry != null) {
       Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_ENCOUNTERS_TOTAL)
           .description("Total clinical encounters attached by type and urgency")
-          .tag("encounter_type", tp).tag(AIDashboardMetadata.TAG_URGENCY, urg)
-          .register(meterRegistry).increment();
+          .tag("encounter_type", normalizeTagValue(type, "UNKNOWN"))
+          .tag(AIDashboardMetadata.TAG_URGENCY, normalizeTagValue(urgency, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 
   public void recordTreatmentResponse(String responseStatus) {
-    String st = normalizeTagValue(responseStatus, "UNKNOWN");
     if (meterRegistry != null) {
       Counter.builder(AIDashboardMetadata.METRIC_TREATMENT_RESPONSE_TOTAL)
           .description("Total treatment responses evaluated by status")
-          .tag("response_status", st).register(meterRegistry).increment();
+          .tag("response_status", normalizeTagValue(responseStatus, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 
   public void recordConditionWorsened(String urgency) {
-    String urg = normalizeTagValue(urgency, "UNKNOWN");
     if (meterRegistry != null) {
       Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CONDITION_WORSENED_TOTAL)
           .description("Total clinical condition worsening escalations")
-          .tag(AIDashboardMetadata.TAG_URGENCY, urg).register(meterRegistry).increment();
+          .tag(AIDashboardMetadata.TAG_URGENCY, normalizeTagValue(urgency, "UNKNOWN")).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordCareTaskCreated(String type, String priority, String actor) {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASKS_TOTAL)
+          .description("Total clinical care tasks created")
+          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
+          .tag("priority", normalizeTagValue(priority, "UNKNOWN"))
+          .tag("actor", normalizeTagValue(actor, "UNKNOWN")).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordCareTaskOverdue(String type, String priority) {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_OVERDUE_TOTAL)
+          .description("Total clinical care tasks overdue")
+          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
+          .tag("priority", normalizeTagValue(priority, "UNKNOWN")).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordCareTaskEscalated(String type, String priority) {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_ESCALATION_TOTAL)
+          .description("Total clinical care tasks escalated")
+          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
+          .tag("priority", normalizeTagValue(priority, "UNKNOWN")).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordCareTaskCompleted(String type, String priority, String actor) {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_COMPLETION_TOTAL)
+          .description("Total clinical care tasks completed")
+          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
+          .tag("priority", normalizeTagValue(priority, "UNKNOWN"))
+          .tag("actor", normalizeTagValue(actor, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 

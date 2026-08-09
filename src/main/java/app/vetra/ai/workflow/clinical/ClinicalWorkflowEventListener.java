@@ -137,6 +137,41 @@ public class ClinicalWorkflowEventListener {
     log.info("Clinical Case RESOLVED: caseId={}", event.caseId());
   }
 
+  @EventListener
+  public void onCareTaskCreated(app.vetra.ai.event.ClinicalCareTaskCreatedEvent event) {
+    log.info("Care Task CREATED: caseId={} taskId={} type={} priority={}", event.caseId(), event.taskId(), event.type(), event.priority());
+  }
+
+  @EventListener
+  public void onCareTaskAssigned(app.vetra.ai.event.ClinicalCareTaskAssignedEvent event) {
+    log.info("Care Task ASSIGNED: caseId={} taskId={} actor={}", event.caseId(), event.taskId(), event.actor());
+  }
+
+  @EventListener
+  public void onCareTaskCompleted(app.vetra.ai.event.ClinicalCareTaskCompletedEvent event) {
+    log.info("Care Task COMPLETED: caseId={} taskId={} actor={}", event.caseId(), event.taskId(), event.actor());
+  }
+
+  @EventListener
+  public void onCareTaskOverdue(app.vetra.ai.event.ClinicalCareTaskOverdueEvent event) {
+    log.warn("Care Task OVERDUE: caseId={} taskId={} priority={}", event.caseId(), event.taskId(), event.priority());
+  }
+
+  @EventListener
+  public void onCareTaskEscalated(app.vetra.ai.event.ClinicalCareTaskEscalatedEvent event) {
+    log.warn("Care Task ESCALATED: caseId={} taskId={} priority={} reason='{}'", event.caseId(), event.taskId(), event.priority(), event.reason());
+  }
+
+  @EventListener
+  public void onFollowUpDue(app.vetra.ai.event.ClinicalFollowUpDueEvent event) {
+    log.info("Clinical Follow-Up DUE: caseId={} followUpId={}", event.caseId(), event.followUpId());
+  }
+
+  @EventListener
+  public void onFollowUpMissed(app.vetra.ai.event.ClinicalFollowUpMissedEvent event) {
+    log.warn("Clinical Follow-Up MISSED: caseId={} followUpId={}", event.caseId(), event.followUpId());
+  }
+
   /**
    * Handles workflow failure event.
    *
