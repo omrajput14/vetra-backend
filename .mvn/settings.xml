@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings.xml for CI resilience against transient Maven Central HTTP 429 rate limiting.
+
+  Applied automatically by ./mvnw when placed at .mvn/settings.xml
+  (Maven Wrapper respects this file for project-level settings).
+
+  Changes made here are CI/infrastructure only. No application dependencies,
+  Spring Boot versions, or clinical domain code are modified.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0
+                              https://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+  <!--
+    Connection and read timeouts in milliseconds.
+    Reduces false-positive failures from slow Maven Central responses.
+    20 seconds connect, 60 seconds read.
+  -->
+  <interactiveMode>false</interactiveMode>
+
+  <profiles>
+    <profile>
+      <id>ci-resilience</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>https://repo.maven.apache.org/maven2</url>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>ci-resilience</activeProfile>
+  </activeProfiles>
+
+</settings>

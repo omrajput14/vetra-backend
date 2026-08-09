@@ -52,10 +52,41 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
+      - name: Resolve Maven Dependencies (with retry on 429)
+        # Pre-resolves all dependencies into the local repository cache before
+        # running the full verify. This isolates dependency resolution failures
+        # (HTTP 429 transient) from build failures, and limits retry scope.
+        # --fail-at-end ensures all resolution is attempted before failing.
+        run: |
+          for attempt in 1 2 3; do
+            echo "Dependency resolution attempt $attempt of 3..."
+            ./mvnw dependency:go-offline -B \
+              --settings .mvn/settings.xml \
+              -Dhttp.keepAlive=false \
+              && echo "Dependencies resolved successfully on attempt $attempt" \
+              && break
+            if [ $attempt -eq 3 ]; then
+              echo "Dependency resolution failed after 3 attempts — Maven Central unavailable"
+              exit 1
+            fi
+            echo "Attempt $attempt failed (possible HTTP 429). Waiting 30 seconds before retry..."
+            sleep 30
+          done
+        env:
+          MAVEN_OPTS: >-
+            -Dmaven.wagon.http.retryHandler.count=3
+            -Dmaven.wagon.http.connectionTimeout=20000
+            -Dmaven.wagon.http.readTimeout=60000
+            -Dhttp.keepAlive=false
+
       - name: Execute Checkstyle, Compile & Maven Test Suite
-        run: ./mvnw clean verify -B
+        run: ./mvnw clean verify -B --settings .mvn/settings.xml
         env:
           REDIS_PASSWORD: test_password
+          MAVEN_OPTS: >-
+            -Dmaven.wagon.http.retryHandler.count=3
+            -Dmaven.wagon.http.connectionTimeout=20000
+            -Dmaven.wagon.http.readTimeout=60000
 
       - name: Generate Test Summary
         if: always()
