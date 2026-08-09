@@ -452,39 +452,37 @@ public class AIMetricsCollector {
 
   public void recordCareTaskCreated(String type, String priority, String actor) {
     if (meterRegistry != null) {
-      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASKS_TOTAL)
-          .description("Total clinical care tasks created")
-          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
-          .tag("priority", normalizeTagValue(priority, "UNKNOWN"))
-          .tag("actor", normalizeTagValue(actor, "UNKNOWN")).register(meterRegistry).increment();
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASKS_TOTAL).description("Total clinical care tasks created").tag("task_type", normalizeTagValue(type, "UNKNOWN")).tag("priority", normalizeTagValue(priority, "UNKNOWN")).tag("actor", normalizeTagValue(actor, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 
   public void recordCareTaskOverdue(String type, String priority) {
     if (meterRegistry != null) {
-      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_OVERDUE_TOTAL)
-          .description("Total clinical care tasks overdue")
-          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
-          .tag("priority", normalizeTagValue(priority, "UNKNOWN")).register(meterRegistry).increment();
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_OVERDUE_TOTAL).description("Total clinical care tasks overdue").tag("task_type", normalizeTagValue(type, "UNKNOWN")).tag("priority", normalizeTagValue(priority, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 
   public void recordCareTaskEscalated(String type, String priority) {
     if (meterRegistry != null) {
-      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_ESCALATION_TOTAL)
-          .description("Total clinical care tasks escalated")
-          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
-          .tag("priority", normalizeTagValue(priority, "UNKNOWN")).register(meterRegistry).increment();
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_ESCALATION_TOTAL).description("Total clinical care tasks escalated").tag("task_type", normalizeTagValue(type, "UNKNOWN")).tag("priority", normalizeTagValue(priority, "UNKNOWN")).register(meterRegistry).increment();
     }
   }
 
   public void recordCareTaskCompleted(String type, String priority, String actor) {
     if (meterRegistry != null) {
-      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_COMPLETION_TOTAL)
-          .description("Total clinical care tasks completed")
-          .tag("task_type", normalizeTagValue(type, "UNKNOWN"))
-          .tag("priority", normalizeTagValue(priority, "UNKNOWN"))
-          .tag("actor", normalizeTagValue(actor, "UNKNOWN")).register(meterRegistry).increment();
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CARE_TASK_COMPLETION_TOTAL).description("Total clinical care tasks completed").tag("task_type", normalizeTagValue(type, "UNKNOWN")).tag("priority", normalizeTagValue(priority, "UNKNOWN")).tag("actor", normalizeTagValue(actor, "UNKNOWN")).register(meterRegistry).increment();
+    }
+  }
+
+  public void recordOperationsDashboard() {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_OPERATIONS_DASHBOARD_TOTAL).description("Total operations dashboard queries").register(meterRegistry).increment();
+    }
+  }
+
+  public void recordCaseQueueQuery(String reason) {
+    if (meterRegistry != null) {
+      Counter.builder(AIDashboardMetadata.METRIC_CLINICAL_CASE_QUEUE_TOTAL).description("Total case work queue queries").tag("queue_reason", normalizeTagValue(reason, "ALL")).register(meterRegistry).increment();
     }
   }
 

@@ -58,6 +58,10 @@ public final class AIDashboardMetadata {
   public static final String METRIC_CLINICAL_CARE_TASK_COMPLETION_TOTAL = "clinical_care_task_completion_total";
   public static final String METRIC_CLINICAL_FOLLOWUPS_DUE_TOTAL = "clinical_followups_due_total";
   public static final String METRIC_CLINICAL_FOLLOWUPS_MISSED_TOTAL = "clinical_followups_missed_total";
+  public static final String METRIC_CLINICAL_OPERATIONS_DASHBOARD_TOTAL = "clinical_operations_dashboard_total";
+  public static final String METRIC_CLINICAL_CASE_QUEUE_TOTAL = "clinical_case_queue_total";
+  public static final String METRIC_CLINICAL_CARE_TASK_QUEUE_TOTAL = "clinical_care_task_queue_total";
+  public static final String METRIC_CLINICAL_VETERINARIAN_QUEUE_TOTAL = "clinical_veterinarian_queue_total";
 
   // ── OpenTelemetry Span Events ─────────────────────────────────────────────
   public static final String SPAN_EVENT_DIAGNOSIS_COMPLETED = "diagnosis completed";

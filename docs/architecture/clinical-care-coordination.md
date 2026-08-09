@@ -58,3 +58,9 @@ CareCoordinationService (Post-Encounter Operational Layer)
 - **Domain Events**: `ClinicalCareTaskCreatedEvent`, `ClinicalCareTaskAssignedEvent`, `ClinicalCareTaskCompletedEvent`, `ClinicalCareTaskOverdueEvent`, `ClinicalCareTaskEscalatedEvent`, `ClinicalFollowUpDueEvent`, `ClinicalFollowUpMissedEvent`.
 - **Metrics**: `clinical_care_tasks_total`, `clinical_care_task_overdue_total`, `clinical_care_task_escalation_total`, `clinical_care_task_completion_total`, `clinical_followups_due_total`, `clinical_followups_missed_total`. (Tagged strictly with low-cardinality values `task_type`, `priority`, `actor`, `status`, `urgency`).
 - **Span Events**: `care.task.created`, `care.task.assigned`, `care.task.started`, `care.task.completed`, `care.task.overdue`, `care.task.escalated`, `followup.due`, `followup.missed`.
+
+---
+
+## Stage 13.1.8 Integration: Operational Work Queues
+
+Stage 13.1.8 consumes `ClinicalCareTaskRepository` and `CareCoordinationService` via `CareTaskWorkQueueService` and `VeterinarianWorkQueueService` to project care tasks into deterministic, paginated operational work queues (`PageResult<T>`) ordered by `EMERGENCY > HIGH > MEDIUM > LOW` without altering canonical care task state.

@@ -89,3 +89,9 @@ Invalid state transitions (e.g. `CLOSED` -> `OPEN` or arbitrary status skips) ar
 
 ### Safe Telemetry Invariants
 Strictly excludes PII, UUIDs, animal metrics, diagnosis names, medication names, clinical text, and prompt narratives. Contains only stable categorical low-cardinality values.
+
+---
+
+## 6. Stage 13.1.8 Integration: Operational Read Models & Projections
+
+Stage 13.1.8 projects longitudinal `ClinicalCase` and encounter history into `ClinicalCaseOperationalView`, `ClinicalCaseWorkQueueItem`, `FarmerOperationalCaseView`, and `VeterinarianOperationalCaseView` via `ClinicalOperationsDashboardService`. These read-model projections query canonical repository abstractions directly without mutating historical case state or introducing competing sources of truth.

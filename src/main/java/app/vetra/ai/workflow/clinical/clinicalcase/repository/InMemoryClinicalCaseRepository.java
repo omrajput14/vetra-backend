@@ -5,8 +5,11 @@ import app.vetra.ai.workflow.clinical.clinicalcase.followup.ClinicalFollowUp;
 import app.vetra.ai.workflow.clinical.clinicalcase.followup.FollowUpStatus;
 import app.vetra.ai.workflow.clinical.clinicalcase.model.ClinicalCase;
 import app.vetra.ai.workflow.clinical.clinicalcase.model.ClinicalCaseStatus;
+import app.vetra.ai.workflow.clinical.clinicalcase.response.TreatmentResponse;
 import app.vetra.ai.workflow.clinical.clinicalcase.timeline.ClinicalCaseTimeline;
 import app.vetra.ai.workflow.clinical.clinicalcase.timeline.ClinicalTimelineEvent;
+import app.vetra.ai.workflow.clinical.model.action.ClinicalActionPlan;
+import app.vetra.ai.workflow.clinical.model.explainability.ClinicalDecisionSupport;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +35,10 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
   private final Map<UUID, List<ClinicalFollowUp>> followUpsByCase = new ConcurrentHashMap<>();
   private final Map<UUID, ClinicalFollowUp> followUpById = new ConcurrentHashMap<>();
 
+  private final Map<UUID, ClinicalDecisionSupport> latestCdsByCase = new ConcurrentHashMap<>();
+  private final Map<UUID, ClinicalActionPlan> latestPlanByCase = new ConcurrentHashMap<>();
+  private final Map<UUID, TreatmentResponse> latestResponseByCase = new ConcurrentHashMap<>();
+
   @Override
   public ClinicalCase createCase(ClinicalCase clinicalCase) {
     if (clinicalCase == null) {
@@ -45,6 +52,44 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
     timelineByCase.put(clinicalCase.caseId(), Collections.synchronizedList(new ArrayList<>()));
     followUpsByCase.put(clinicalCase.caseId(), Collections.synchronizedList(new ArrayList<>()));
     return clinicalCase;
+  }
+
+  /**
+   * Helper method for testing setup to directly save a case.
+   */
+  public void saveCase(ClinicalCase clinicalCase) {
+    if (clinicalCase != null) {
+      cases.put(clinicalCase.caseId(), clinicalCase);
+      encountersByCase.putIfAbsent(clinicalCase.caseId(), Collections.synchronizedList(new ArrayList<>()));
+      timelineByCase.putIfAbsent(clinicalCase.caseId(), Collections.synchronizedList(new ArrayList<>()));
+      followUpsByCase.putIfAbsent(clinicalCase.caseId(), Collections.synchronizedList(new ArrayList<>()));
+    }
+  }
+
+  /** Helper method for testing setup to add an encounter. */
+  public void addEncounter(UUID caseId, ClinicalEncounter encounter) {
+    saveEncounter(encounter);
+  }
+
+  /** Helper method for testing setup to save CDS. */
+  public void saveDecisionSupport(UUID caseId, ClinicalDecisionSupport cds) {
+    if (caseId != null && cds != null) {
+      latestCdsByCase.put(caseId, cds);
+    }
+  }
+
+  /** Helper method for testing setup to save ActionPlan. */
+  public void saveActionPlan(UUID caseId, ClinicalActionPlan plan) {
+    if (caseId != null && plan != null) {
+      latestPlanByCase.put(caseId, plan);
+    }
+  }
+
+  /** Helper method for testing setup to save TreatmentResponse. */
+  public void saveTreatmentResponse(UUID caseId, TreatmentResponse response) {
+    if (caseId != null && response != null) {
+      latestResponseByCase.put(caseId, response);
+    }
   }
 
   @Override
@@ -62,6 +107,13 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
     }
     return cases.values().stream()
         .filter(c -> animalId.equals(c.animalId()))
+        .sorted(Comparator.comparing(ClinicalCase::openedAt).reversed())
+        .toList();
+  }
+
+  @Override
+  public List<ClinicalCase> findAllCases() {
+    return cases.values().stream()
         .sorted(Comparator.comparing(ClinicalCase::openedAt).reversed())
         .toList();
   }
@@ -102,7 +154,8 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
     }
     List<ClinicalEncounter> encounters = encountersByCase.get(encounter.caseId());
     if (encounters == null) {
-      throw new IllegalArgumentException("No ClinicalCase exists for encounter caseId: " + encounter.caseId());
+      encounters = Collections.synchronizedList(new ArrayList<>());
+      encountersByCase.put(encounter.caseId(), encounters);
     }
 
     boolean exists = encounters.stream().anyMatch(e -> e.encounterId().equals(encounter.encounterId()));
@@ -111,6 +164,14 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
     }
 
     encounters.add(encounter);
+
+    if (encounter.decisionSupport() != null) {
+      latestCdsByCase.put(encounter.caseId(), encounter.decisionSupport());
+    }
+    if (encounter.actionPlan() != null) {
+      latestPlanByCase.put(encounter.caseId(), encounter.actionPlan());
+    }
+
     return encounter;
   }
 
@@ -134,7 +195,8 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
     }
     List<ClinicalTimelineEvent> events = timelineByCase.get(event.caseId());
     if (events == null) {
-      throw new IllegalArgumentException("No ClinicalCase exists for event caseId: " + event.caseId());
+      events = Collections.synchronizedList(new ArrayList<>());
+      timelineByCase.put(event.caseId(), events);
     }
     events.add(event);
     return event;
@@ -161,7 +223,8 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
     }
     List<ClinicalFollowUp> followUps = followUpsByCase.get(followUp.caseId());
     if (followUps == null) {
-      throw new IllegalArgumentException("No ClinicalCase exists for followUp caseId: " + followUp.caseId());
+      followUps = Collections.synchronizedList(new ArrayList<>());
+      followUpsByCase.put(followUp.caseId(), followUps);
     }
     followUps.add(followUp);
     followUpById.put(followUp.followUpId(), followUp);
@@ -209,5 +272,29 @@ public class InMemoryClinicalCaseRepository implements ClinicalCaseRepository {
       }
     }
     return updated;
+  }
+
+  @Override
+  public Optional<ClinicalDecisionSupport> findLatestDecisionSupportByCaseId(UUID caseId) {
+    if (caseId == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(latestCdsByCase.get(caseId));
+  }
+
+  @Override
+  public Optional<ClinicalActionPlan> findLatestActionPlanByCaseId(UUID caseId) {
+    if (caseId == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(latestPlanByCase.get(caseId));
+  }
+
+  @Override
+  public Optional<TreatmentResponse> findLatestTreatmentResponseByCaseId(UUID caseId) {
+    if (caseId == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(latestResponseByCase.get(caseId));
   }
 }
