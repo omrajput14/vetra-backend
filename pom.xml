@@ -35,7 +35,7 @@
     <checkstyle.version>3.6.0</checkstyle.version>
     <!-- datasource-micrometer: JDBC/HikariCP tracing via Micrometer Observation -->
     <datasource-micrometer.version>1.0.6</datasource-micrometer.version>
-    <resilience4j.version>2.2.0</resilience4j.version>
+    <resilience4j.version>2.4.0</resilience4j.version>
   </properties>
 
   <!-- ─── Dependency Management (BOM imports) ─────────────────────── -->
