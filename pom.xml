@@ -280,7 +280,7 @@
                 <path>
                   <groupId>org.springframework.boot</groupId>
                   <artifactId>spring-boot-configuration-processor</artifactId>
-                  <version>3.4.1</version>
+                  <version>3.5.16</version>
                 </path>
               </annotationProcessorPaths>
             </configuration>
