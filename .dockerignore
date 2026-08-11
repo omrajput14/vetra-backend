@@ -23,3 +23,13 @@ README.md
 .env
 .env.*
 !.env.example
+
+# Infrastructure-as-Code (never needed in Docker build context)
+infra/
+terraform/
+*.tfstate
+*.tfstate.*
+.terraform/
+.aws/
+*.pem
+*.key

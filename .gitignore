@@ -33,3 +33,26 @@ postgres-data/
 # ─── Scratch and temp files ────────────────────────────────────────────
 scratch/
 *.tmp
+
+# ─── AWS Credentials & CLI configuration ──────────────────────────────
+# Never commit AWS credentials, CLI session files, or SSO cache.
+.aws/
+aws-credentials
+aws-exports.js
+
+# ─── Infrastructure-as-Code state & sensitive outputs ─────────────────
+# Terraform/OpenTofu state files contain plaintext secrets.
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+infra/.terraform/
+
+# ─── TLS / PEM private keys ───────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
