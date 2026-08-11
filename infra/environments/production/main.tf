@@ -94,9 +94,24 @@ module "vpc" {
 
   # Production: one NAT Gateway per AZ for full high availability.
   # If one AZ fails, ECS tasks in other AZs retain outbound internet access.
-  enable_nat_gateway  = true
-  single_nat_gateway  = false # One NAT per AZ — required for production HA
+  enable_nat_gateway = true
+  single_nat_gateway = false # One NAT per AZ — required for production HA
 
   enable_flow_logs        = true
   flow_log_retention_days = 30
+}
+
+# ── ECR Container Registry ────────────────────────────────────────────────────
+
+module "ecr" {
+  source = "../../modules/ecr"
+
+  environment = "production"
+  project     = "vetra"
+
+  # Keep untagged images for 7 days in production
+  untagged_image_retention_days = 7
+
+  # Keep 30 most recent tagged production images for rollback capability
+  tagged_image_retention_count = 30
 }
