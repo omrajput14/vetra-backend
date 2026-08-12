@@ -142,3 +142,15 @@ module "redis" {
   node_type       = "cache.t4g.micro"
   num_cache_nodes = 1
 }
+
+# ── IAM / OIDC GitHub Actions Deployment Role ─────────────────────────────────
+
+module "iam" {
+  source = "../../modules/iam"
+
+  environment        = "staging"
+  project            = "vetra"
+  github_repository  = "omrajput14/vetra-backend"
+  github_branch      = "refs/heads/main"
+  ecr_repository_arn = module.ecr.repository_arn
+}

@@ -46,3 +46,20 @@ output "redis_password_secret_arn" {
 }
 output "ecr_repository_arn" { value = module.ecr.repository_arn }
 output "ecr_registry_id" { value = module.ecr.registry_id }
+
+# ── IAM / OIDC ────────────────────────────────────────────────────────────────
+
+output "github_actions_role_arn" {
+  description = "ARN of the IAM role assumed by GitHub Actions via OIDC"
+  value       = module.iam.github_actions_role_arn
+}
+
+output "github_actions_role_name" {
+  description = "Name of the IAM role assumed by GitHub Actions via OIDC"
+  value       = module.iam.github_actions_role_name
+}
+
+output "oidc_provider_arn" {
+  description = "ARN of the GitHub Actions OIDC Identity Provider"
+  value       = module.iam.oidc_provider_arn
+}

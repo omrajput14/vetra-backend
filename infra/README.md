@@ -15,8 +15,12 @@ infra/
 │   │   ├── security_groups.tf         ← ALB, ECS, RDS, Redis security groups
 │   │   ├── variables.tf               ← All module input variables
 │   │   └── outputs.tf                 ← All module outputs for downstream stages
-│   └── ecr/                           ← Reusable ECR module
-│       ├── main.tf                    ← ECR Repository, Lifecycle Policy, Repository Policy
+│   ├── ecr/                           ← Reusable ECR module
+│   │   ├── main.tf                    ← ECR Repository, Lifecycle Policy, Repository Policy
+│   │   ├── variables.tf               ← Module input variables
+│   │   └── outputs.tf                 ← Module outputs
+│   └── iam/                           ← Reusable IAM / OIDC module
+│       ├── main.tf                    ← GitHub Actions OIDC Provider & Deploy Role
 │       ├── variables.tf               ← Module input variables
 │       └── outputs.tf                 ← Module outputs
 └── environments/
