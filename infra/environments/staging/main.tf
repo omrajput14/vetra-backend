@@ -89,9 +89,24 @@ module "vpc" {
   # Staging: single NAT gateway to minimize cost.
   # This creates a single point of failure for outbound internet — acceptable
   # for staging but NOT for production.
-  enable_nat_gateway  = true
-  single_nat_gateway  = true
+  enable_nat_gateway = true
+  single_nat_gateway = true
 
   enable_flow_logs        = true
   flow_log_retention_days = 14 # Shorter retention for staging cost efficiency
+}
+
+# ── ECR Container Registry ────────────────────────────────────────────────────
+
+module "ecr" {
+  source = "../../modules/ecr"
+
+  environment = "staging"
+  project     = "vetra"
+
+  # Keep untagged images for 3 days to control costs in staging
+  untagged_image_retention_days = 3
+
+  # Keep 10 most recent tagged staging images
+  tagged_image_retention_count = 10
 }
