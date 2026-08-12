@@ -110,3 +110,35 @@ module "ecr" {
   # Keep 10 most recent tagged staging images
   tagged_image_retention_count = 10
 }
+
+# ── RDS PostgreSQL ────────────────────────────────────────────────────────────
+
+module "rds" {
+  source = "../../modules/rds"
+
+  environment = "staging"
+
+  vpc_id              = module.vpc.vpc_id
+  isolated_subnet_ids = module.vpc.isolated_subnet_ids
+  sg_rds_id           = module.vpc.sg_rds_id
+
+  instance_class    = "db.t4g.micro"
+  allocated_storage = 20
+  multi_az          = false
+  engine_version    = "15.7"
+}
+
+# ── ElastiCache Redis ─────────────────────────────────────────────────────────
+
+module "redis" {
+  source = "../../modules/redis"
+
+  environment = "staging"
+
+  vpc_id              = module.vpc.vpc_id
+  isolated_subnet_ids = module.vpc.isolated_subnet_ids
+  sg_redis_id         = module.vpc.sg_redis_id
+
+  node_type       = "cache.t4g.micro"
+  num_cache_nodes = 1
+}

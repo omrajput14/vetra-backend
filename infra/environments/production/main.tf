@@ -115,3 +115,35 @@ module "ecr" {
   # Keep 30 most recent tagged production images for rollback capability
   tagged_image_retention_count = 30
 }
+
+# ── RDS PostgreSQL ────────────────────────────────────────────────────────────
+
+module "rds" {
+  source = "../../modules/rds"
+
+  environment = "production"
+
+  vpc_id              = module.vpc.vpc_id
+  isolated_subnet_ids = module.vpc.isolated_subnet_ids
+  sg_rds_id           = module.vpc.sg_rds_id
+
+  instance_class    = "db.t4g.medium" # HA Production DB
+  allocated_storage = 100
+  multi_az          = true
+  engine_version    = "15.7"
+}
+
+# ── ElastiCache Redis ─────────────────────────────────────────────────────────
+
+module "redis" {
+  source = "../../modules/redis"
+
+  environment = "production"
+
+  vpc_id              = module.vpc.vpc_id
+  isolated_subnet_ids = module.vpc.isolated_subnet_ids
+  sg_redis_id         = module.vpc.sg_redis_id
+
+  node_type       = "cache.t4g.medium"
+  num_cache_nodes = 2 # Automatic failover enabled
+}

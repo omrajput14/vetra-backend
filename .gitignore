@@ -35,11 +35,13 @@ scratch/
 *.tmp
 
 # ─── AWS Credentials & CLI configuration ──────────────────────────────
+# Never commit AWS credentials, CLI session files, or SSO cache.
 .aws/
 aws-credentials
 aws-exports.js
 
 # ─── Infrastructure-as-Code state & sensitive outputs ─────────────────
+# Terraform/OpenTofu state files contain plaintext secrets.
 *.tfstate
 *.tfstate.*
 *.tfvars
