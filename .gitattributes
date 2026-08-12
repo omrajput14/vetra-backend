@@ -1,0 +1,30 @@
+# ── GitHub Linguist Language Classifications & Overrides ─────────────────────
+
+# Java Source Files (Preserve classification)
+*.java linguist-language=Java
+
+# Python Scripts
+*.py linguist-language=Python
+
+# Infrastructure as Code (Terraform / HCL)
+*.tf linguist-language=HCL
+*.tfvars linguist-language=HCL
+
+# Docker Infrastructure
+Dockerfile linguist-language=Dockerfile
+*.dockerfile linguist-language=Dockerfile
+
+# YAML Configuration & Workflows (Enable detection in repository language stats)
+*.yml linguist-language=YAML linguist-detectable=true
+*.yaml linguist-language=YAML linguist-detectable=true
+
+# Database Migrations & SQL
+*.sql linguist-language=SQL
+
+# Documentation (Excluded from language statistics)
+docs/** linguist-documentation
+*.md linguist-documentation
+
+# Vendored & Build Wrapper Scripts (Excluded from language statistics)
+mvnw linguist-vendored
+.mvn/** linguist-vendored
