@@ -158,9 +158,9 @@ flowchart TD
 
 ---
 
-## 🔄 CI/CD & Automated Deployment Pipeline
+## 🔄 CI/CD & Automated Continuous Deployment Pipeline
 
-Vetra utilizes a secure, keyless continuous integration pipeline powered by **GitHub Actions** and **AWS IAM OIDC**:
+Vetra utilizes a secure, fully automated continuous integration and continuous deployment (CI/CD) pipeline powered by **GitHub Actions** and **AWS IAM OIDC**:
 
 ```mermaid
 sequenceDiagram
@@ -171,6 +171,7 @@ sequenceDiagram
     participant AWS_OIDC as AWS STS (OIDC Provider)
     participant ECR as Amazon ECR
     participant ECS as AWS ECS Fargate
+    participant ALB as Application Load Balancer
 
     Dev->>GH: Git Push to main
     par Security Scanning
@@ -182,17 +183,26 @@ sequenceDiagram
         GH->>GH: Run Maven Test Suite (Surefire)
     end
     
-    opt Deployment Phase (main branch)
-        GH->>AWS_OIDC: Request short-lived credentials via JWT (AssumeRoleWithWebIdentity)
-        AWS_OIDC-->>GH: Issue temporary AWS STS session token
-        GH->>ECR: Authenticate & Build Multi-Stage Docker Image
-        GH->>ECR: Push immutable commit-tagged image (SHA)
-        GH->>ECS: Roll out new Task Definition Revision to Fargate Service
-        ECS->>ECS: Boot container, run Flyway migrations, pass health checks
+    opt Automated CD Pipeline (main branch)
+        GH->>AWS_OIDC: Request temporary credentials via JWT (AssumeRoleWithWebIdentity)
+        AWS_OIDC-->>GH: Issue short-lived AWS STS session token
+        GH->>ECR: Build & Push immutable Docker image (vetra-backend-staging:SHA)
+        GH->>ECS: Render & Register updated Task Definition revision
+        GH->>ECS: Trigger rolling deployment (update-service)
+        GH->>ECS: Wait for service stability (wait services-stable)
+        GH->>ALB: Verify target group health (describe-target-health)
+        GH->>ALB: Execute end-to-end HTTP smoke tests (200 OK)
+        GH->>GH: Verify image tag immutability (Git SHA = ECR Tag = Task Image)
     end
 ```
 
-> **Keyless OIDC Authentication:** No long-lived AWS Access Keys or Secret Keys are stored in GitHub Secrets. Authentication occurs dynamically via GitHub's OpenID Connect identity token verified against AWS STS.
+### Pipeline Guarantees & Security
+* **Keyless OIDC Authentication:** No long-lived AWS Access Keys or Secret Keys are stored in GitHub Secrets. Authentication occurs dynamically via GitHub's OpenID Connect identity token verified against AWS STS.
+* **Immutable Commit SHA Tagging:** Container images are uniquely tagged with the full Git commit SHA (`vetra-backend-staging:<sha>`) rather than mutable tags like `latest`.
+* **Zero Plaintext Secrets:** Task definition updates preserve dynamic AWS Secrets Manager ARNs (`DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`) without embedding credentials.
+* **Automated Health & Stability Gates:** The deployment workflow blocks and fails if ECS fails to reach steady state, if the ALB target group reports unhealthy, or if any of the 4 application health probes fail (`/actuator/health/liveness`, `/actuator/health`, `/liveness`, `/readiness`).
+* **Deployment Circuit Breaker:** ECS rolling deployments utilize automatic circuit breakers with rollback to prevent bad deployments from persisting.
+
 
 ---
 
@@ -415,8 +425,9 @@ Comprehensive engineering specifications and architecture design records are mai
 
 * [x] **Stage 14.2–14.6:** AWS VPC, Subnets, Security Groups, RDS PostgreSQL 15.13, ElastiCache Redis 7.1, ECR Registry, and OIDC CI Pipeline.
 * [x] **Stage 14.7:** AWS ECS Fargate & Application Load Balancer staging deployment with Secrets Manager runtime injection and Redis TLS.
-* [ ] **Stage 14.8 (Next):** AWS ACM SSL/TLS certificate provisioning for custom staging domain with HTTPS Port 443 listener and HTTP 80 → 443 redirect.
-* [ ] **Stage 14.9:** Automated GitHub Actions CD trigger (`aws ecs update-service --force-new-deployment`) upon verified ECR image build.
+* [x] **Stage 14.9:** Automated continuous deployment pipeline with GitHub Actions, keyless OIDC, task definition registration, ECS service rolling update, stability gates, target health checks, and smoke tests.
+* [ ] **Stage 14.8 (Pending Domain):** AWS ACM SSL/TLS certificate provisioning for custom staging domain with HTTPS Port 443 listener and HTTP 80 → 443 redirect.
+
 
 ---
 
