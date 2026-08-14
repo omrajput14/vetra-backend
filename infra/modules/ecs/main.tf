@@ -134,10 +134,10 @@ resource "aws_lb_target_group" "this" {
     path                = "/actuator/health/liveness"
     port                = tostring(var.container_port)
     protocol            = "HTTP"
-    interval            = 30
+    interval            = 15
     timeout             = 5
     healthy_threshold   = 2
-    unhealthy_threshold = 3
+    unhealthy_threshold = 5
     matcher             = "200"
   }
 
@@ -256,11 +256,12 @@ resource "aws_ecs_task_definition" "this" {
 }
 
 resource "aws_ecs_service" "this" {
-  name            = "${local.name_prefix}-backend-service"
-  cluster         = aws_ecs_cluster.this.id
-  task_definition = aws_ecs_task_definition.this.arn
-  desired_count   = var.desired_count
-  launch_type     = "FARGATE"
+  name                              = "${local.name_prefix}-backend-service"
+  cluster                           = aws_ecs_cluster.this.id
+  task_definition                   = aws_ecs_task_definition.this.arn
+  desired_count                     = var.desired_count
+  launch_type                       = "FARGATE"
+  health_check_grace_period_seconds = 180
 
   enable_execute_command = true
 

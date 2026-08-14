@@ -171,7 +171,7 @@ module "ecs" {
   sg_ecs_id          = module.vpc.sg_ecs_id
 
   ecr_repository_url = module.ecr.repository_url
-  image_tag          = "4c76a7dc67cbffa1a9535ad63d33c753c5259a24"
+  image_tag          = "6ba5a7f2512e1424154115cc7caf5f28b2e43f0b"
 
   container_port = 8080
   cpu            = 512
