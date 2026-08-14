@@ -256,6 +256,7 @@ vetra:
     password: ${REDIS_PASSWORD:}
     database: ${REDIS_DATABASE:0}
     timeout: ${REDIS_TIMEOUT:2000ms}
+    ssl: ${REDIS_SSL:false}
 
 # ─── Application Info (exposed via /actuator/info) ───────────────────
 info:

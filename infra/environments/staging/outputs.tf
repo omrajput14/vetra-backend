@@ -63,3 +63,36 @@ output "oidc_provider_arn" {
   description = "ARN of the GitHub Actions OIDC Identity Provider"
   value       = module.iam.oidc_provider_arn
 }
+
+# ── ECS Fargate & Application Load Balancer ───────────────────────────────────
+
+output "alb_dns_name" {
+  description = "Public DNS name of the Application Load Balancer"
+  value       = module.ecs.alb_dns_name
+}
+
+output "alb_arn" {
+  description = "ARN of the Application Load Balancer"
+  value       = module.ecs.alb_arn
+}
+
+output "target_group_arn" {
+  description = "ARN of the ALB Target Group"
+  value       = module.ecs.target_group_arn
+}
+
+output "ecs_cluster_name" {
+  description = "Name of the ECS Cluster"
+  value       = module.ecs.cluster_name
+}
+
+output "ecs_service_name" {
+  description = "Name of the ECS Service"
+  value       = module.ecs.service_name
+}
+
+output "jwt_secret_arn" {
+  description = "ARN of the Secrets Manager secret for JWT signing"
+  value       = module.ecs.jwt_secret_arn
+}
+

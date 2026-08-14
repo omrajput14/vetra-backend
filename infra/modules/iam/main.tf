@@ -17,7 +17,7 @@ locals {
     var.tags
   )
 
-  role_name   = "${var.project}-github-actions-deploy"
+  role_name = "${var.project}-github-actions-deploy"
   # Support standard "repo:owner/repo:ref:refs/heads/main" and GitHub ID-annotated "repo:owner@id/repo@id:ref:refs/heads/main"
   sub_pattern = "repo:${replace(var.github_repository, "/", "*/")}*:ref:${var.github_branch}"
 }

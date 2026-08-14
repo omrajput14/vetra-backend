@@ -23,6 +23,7 @@ vetra:
     password: ${REDIS_PASSWORD:vetra_redis_password_secret}
     database: ${REDIS_DATABASE:0}
     timeout: ${REDIS_TIMEOUT:2000ms}
+    ssl: ${REDIS_SSL:true}
 
 server:
   error:

@@ -1,6 +1,11 @@
 output "db_instance_endpoint" {
-  description = "The connection endpoint for the RDS instance"
+  description = "The connection endpoint for the RDS instance (hostname:port)"
   value       = aws_db_instance.this.endpoint
+}
+
+output "db_instance_address" {
+  description = "The hostname address of the RDS instance"
+  value       = aws_db_instance.this.address
 }
 
 output "db_instance_id" {

@@ -52,8 +52,14 @@ public class RedisConfig {
       standaloneConfig.setPassword(RedisPassword.of(redisProperties.getPassword()));
     }
 
-    LettuceClientConfiguration clientConfig =
-        LettuceClientConfiguration.builder().commandTimeout(redisProperties.getTimeout()).build();
+    LettuceClientConfiguration.LettuceClientConfigurationBuilder clientConfigBuilder =
+        LettuceClientConfiguration.builder().commandTimeout(redisProperties.getTimeout());
+
+    if (redisProperties.isSsl()) {
+      clientConfigBuilder.useSsl();
+    }
+
+    LettuceClientConfiguration clientConfig = clientConfigBuilder.build();
 
     return new LettuceConnectionFactory(standaloneConfig, clientConfig);
   }

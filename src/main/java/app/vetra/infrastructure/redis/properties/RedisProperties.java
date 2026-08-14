@@ -15,6 +15,7 @@ public class RedisProperties {
   private String password = "";
   private int database = 0;
   private Duration timeout = Duration.ofMillis(2000);
+  private boolean ssl = false;
 
   /**
    * Gets the Redis host name or IP address.
@@ -104,5 +105,23 @@ public class RedisProperties {
    */
   public void setTimeout(Duration timeout) {
     this.timeout = timeout;
+  }
+
+  /**
+   * Gets whether SSL/TLS in-transit encryption is enabled.
+   *
+   * @return true if SSL is enabled
+   */
+  public boolean isSsl() {
+    return ssl;
+  }
+
+  /**
+   * Sets whether SSL/TLS in-transit encryption is enabled.
+   *
+   * @param ssl true to enable SSL
+   */
+  public void setSsl(boolean ssl) {
+    this.ssl = ssl;
   }
 }

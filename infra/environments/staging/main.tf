@@ -154,3 +154,38 @@ module "iam" {
   github_branch      = "refs/heads/main"
   ecr_repository_arn = module.ecr.repository_arn
 }
+
+# ── ECS Fargate & Application Load Balancer ───────────────────────────────────
+
+module "ecs" {
+  source = "../../modules/ecs"
+
+  environment = "staging"
+  project     = "vetra"
+  aws_region  = "ap-south-1"
+
+  vpc_id             = module.vpc.vpc_id
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
+  sg_alb_id          = module.vpc.sg_alb_id
+  sg_ecs_id          = module.vpc.sg_ecs_id
+
+  ecr_repository_url = module.ecr.repository_url
+  image_tag          = "4c76a7dc67cbffa1a9535ad63d33c753c5259a24"
+
+  container_port = 8080
+  cpu            = 512
+  memory         = 1024
+  desired_count  = 1
+
+  db_host                = module.rds.db_instance_address
+  db_port                = 5432
+  db_name                = module.rds.db_name
+  db_user                = module.rds.db_username
+  db_password_secret_arn = module.rds.db_password_secret_arn
+
+  redis_host                = module.redis.redis_primary_endpoint_address
+  redis_port                = module.redis.redis_port
+  redis_password_secret_arn = module.redis.redis_password_secret_arn
+}
+
