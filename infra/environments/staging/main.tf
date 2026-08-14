@@ -125,7 +125,7 @@ module "rds" {
   instance_class    = "db.t4g.micro"
   allocated_storage = 20
   multi_az          = false
-  engine_version    = "15.7"
+  engine_version    = "15.13"
 }
 
 # ── ElastiCache Redis ─────────────────────────────────────────────────────────

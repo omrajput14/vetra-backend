@@ -15,8 +15,8 @@ resource "aws_elasticache_subnet_group" "this" {
 }
 
 resource "random_password" "redis_password" {
-  length           = 32
-  special          = true
+  length  = 32
+  special = true
   # Redis AUTH requires printable ASCII characters, avoid spaces or control characters
   override_special = "!&#$^<>-"
 }
@@ -38,15 +38,15 @@ resource "aws_secretsmanager_secret_version" "redis_password" {
 }
 
 resource "aws_elasticache_replication_group" "this" {
-  replication_group_id       = "vetra-${var.environment}-redis"
-  description                = "Vetra ${var.environment} Redis Cluster"
-  node_type                  = var.node_type
-  port                       = 6379
-  parameter_group_name       = "default.redis7"
-  engine_version             = var.engine_version
+  replication_group_id = "vetra-${var.environment}-redis"
+  description          = "Vetra ${var.environment} Redis Cluster"
+  node_type            = var.node_type
+  port                 = 6379
+  parameter_group_name = "default.redis7"
+  engine_version       = var.engine_version
 
-  subnet_group_name          = aws_elasticache_subnet_group.this.name
-  security_group_ids         = [var.sg_redis_id]
+  subnet_group_name  = aws_elasticache_subnet_group.this.name
+  security_group_ids = [var.sg_redis_id]
 
   # Encryption and Authentication
   at_rest_encryption_enabled = true

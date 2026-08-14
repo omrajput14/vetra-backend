@@ -86,8 +86,8 @@ data "aws_caller_identity" "current" {}
 locals {
   account_id = data.aws_caller_identity.current.account_id
 
-  # Based on Stage 14.1 documented roles
-  ecs_execution_role_arn  = "arn:aws:iam::${local.account_id}:role/${var.project}-ecs-execution-${var.environment}"
+  # Based on Stage 14.1 documented roles (use account root for ECS pull until ECS execution role is created)
+  ecs_execution_role_arn  = "arn:aws:iam::${local.account_id}:root"
   github_actions_role_arn = "arn:aws:iam::${local.account_id}:role/${var.project}-github-actions-deploy"
 }
 

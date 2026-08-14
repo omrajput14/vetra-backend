@@ -323,7 +323,7 @@ resource "aws_security_group" "vpc_endpoints" {
   vpc_id      = aws_vpc.this.id
 
   ingress {
-    description = "HTTPS from VPC CIDR — allows ECS tasks to reach Secrets Manager endpoint"
+    description = "HTTPS from VPC CIDR - allows ECS tasks to reach Secrets Manager endpoint"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"

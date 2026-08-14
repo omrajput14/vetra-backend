@@ -40,13 +40,13 @@ resource "aws_secretsmanager_secret_version" "db_password" {
 resource "aws_db_instance" "this" {
   identifier = "vetra-${var.environment}-postgres"
 
-  engine               = "postgres"
-  engine_version       = var.engine_version
-  instance_class       = var.instance_class
-  allocated_storage    = var.allocated_storage
-  storage_type         = "gp3"
-  storage_encrypted    = true
-  kms_key_id           = var.kms_key_id
+  engine            = "postgres"
+  engine_version    = var.engine_version
+  instance_class    = var.instance_class
+  allocated_storage = var.allocated_storage
+  storage_type      = "gp3"
+  storage_encrypted = true
+  kms_key_id        = var.kms_key_id
 
   db_name  = var.db_name
   username = var.db_user
@@ -56,9 +56,9 @@ resource "aws_db_instance" "this" {
   db_subnet_group_name   = aws_db_subnet_group.this.name
   publicly_accessible    = false
 
-  multi_az               = var.multi_az
+  multi_az                = var.multi_az
   backup_retention_period = var.environment == "production" ? 7 : 1
-  skip_final_snapshot    = var.environment == "production" ? false : true
+  skip_final_snapshot     = var.environment == "production" ? false : true
 
   # Auto minor version upgrade enabled for security patching
   auto_minor_version_upgrade = true
