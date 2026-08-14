@@ -1,275 +1,376 @@
-# Vetra Backend — Veterinary Operating System (VetOS) REST API
+<div align="center">
 
-[![Build Status](https://github.com/omrajput14/vetra-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/omrajput14/vetra-backend/actions/workflows/ci.yml)
-[![Java 21](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://www.oracle.com/java/technologies/downloads/#java21)
-[![Spring Boot 3](https://img.shields.io/badge/Spring%20Boot-3.5.3-green.svg)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%20%7C%2017%2BPostGIS-blue.svg)](https://www.postgresql.org/)
-[![Redis 7](https://img.shields.io/badge/Redis-7%20TLS-red.svg)](https://redis.io/)
-[![Docker](https://img.shields.io/badge/Docker-Multi--stage-blue.svg)](https://www.docker.com/)
-[![AWS ECS](https://img.shields.io/badge/AWS-ECS%20Fargate%20%2B%20ALB-orange.svg)](https://aws.amazon.com/ecs/)
-[![Terraform](https://img.shields.io/badge/Terraform-1.5%2B-purple.svg)](https://www.terraform.io/)
-[![Flyway](https://img.shields.io/badge/Flyway-14%20Migrations-red.svg)](https://flywaydb.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+# 🐾 Vetra Backend
+### Enterprise Veterinary Operating System (VetOS) & Clinical Core Engine
 
-Vetra Backend is a production-grade, modular monolith REST API powering **Vetra** — an enterprise Veterinary Operating System (VetOS) for livestock healthcare management, clinical veterinary practice, and epidemiological disease surveillance.
+[![CI Pipeline](https://github.com/omrajput14/vetra-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/omrajput14/vetra-backend/actions/workflows/ci.yml)
+[![Security Scan: CodeQL](https://github.com/omrajput14/vetra-backend/actions/workflows/codeql.yml/badge.svg)](https://github.com/omrajput14/vetra-backend/actions/workflows/codeql.yml)
+[![Java 21 LTS](https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=flat&logo=openjdk&logoColor=white)](https://www.oracle.com/java/technologies/downloads/#java21)
+[![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5.3-6DB33F?style=flat&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![PostgreSQL 15 | 17](https://img.shields.io/badge/PostgreSQL-15%20%7C%2017%20%2B%20PostGIS-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis 7 TLS](https://img.shields.io/badge/Redis-7.1%20TLS-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Multi--stage%20Alpine-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![AWS ECS Fargate](https://img.shields.io/badge/AWS-ECS%20Fargate%20%2B%20ALB-FF9900?style=flat&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/ecs/)
+[![Terraform 1.5+](https://img.shields.io/badge/Terraform-1.5%2B%20IaC-844FBA?style=flat&logo=terraform&logoColor=white)](https://www.terraform.io/)
+[![Flyway Migrations](https://img.shields.io/badge/Flyway-14%20Migrations-CC0200?style=flat&logo=flyway&logoColor=white)](https://flywaydb.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Built with **Java 21 LTS** and **Spring Boot 3**, backed by **PostgreSQL with PostGIS** and **Redis 7**, the application is fully containerized with **Docker** and deployed to **AWS** via **Terraform** on **Amazon ECS Fargate** behind an **Application Load Balancer (ALB)**.
+<p align="center">
+  <b>Production-grade, modular monolith REST API powering livestock health tracking, clinical veterinary workflows, epidemiological disease surveillance, and tamper-proof digital animal passports.</b>
+</p>
 
----
+<p align="center">
+  <a href="#-system-architecture">Architecture</a> •
+  <a href="#-aws-cloud-deployment">AWS Cloud Infrastructure</a> •
+  <a href="#-key-capabilities">Core Domains</a> •
+  <a href="#-rest-api-overview">API Reference</a> •
+  <a href="#-security-and-compliance">Security</a> •
+  <a href="#-database--migrations">Flyway Migrations</a> •
+  <a href="#-quick-start-local-development">Quick Start</a> •
+  <a href="#-documentation-index">Documentation</a>
+</p>
 
-## Key Capabilities
-
-* **Dual-Role Identity & Access Control:** Role-Based Access Control (RBAC) separating Farmers and Veterinarians, secured via stateless HMAC-SHA256 JWTs and database-backed refresh token rotation.
-* **Digital Livestock Passport:** Unique QR-code registration (`qr_code_id`) providing tamper-proof animal identification, ownership tracking, and chronological medical history.
-* **Clinical Appointment Engine:** Formal state machine (`PENDING` → `CONFIRMED` → `COMPLETED` / `CANCELLED`) with JPA optimistic locking (`version`) for conflict-free scheduling.
-* **Electronic Veterinary Medical Records (EVMR):** Immutable clinical medical records created by licensed veterinarians for completed consultations, fulfilling veterinary regulatory compliance.
-* **Epidemiological Disease Surveillance:** Geospatial outbreak tracking, disease reporting, and automated alert generation powered by PostGIS spatial queries.
-* **Multi-Channel Notification Engine:** Notification dispatch architecture supporting in-app preferences, templates, and delivery tracking.
-* **Role-Specific Dashboards:** Aggregated metrics tailored to farmer herd health metrics and veterinarian clinical schedules.
-* **Interactive OpenAPI / Swagger UI:** Built-in interactive API documentation generated automatically by SpringDoc OpenAPI.
-
----
-
-## Technology Stack
-
-| Layer | Technologies |
-|---|---|
-| **Language & Runtime** | Java 21 LTS (Eclipse Temurin), JVM G1GC |
-| **Framework** | Spring Boot 3.5.3, Spring Security, Spring Data JPA / Hibernate 6, SpringDoc OpenAPI 2.8 |
-| **Relational Database** | PostgreSQL (RDS 15.13 in Staging / 17 in Local Dev) with PostGIS Spatial Extensions |
-| **Database Migrations** | Flyway (14 verified, version-controlled SQL migrations) |
-| **Cache & In-Memory Data** | Redis 7.1 (AWS ElastiCache with in-transit TLS encryption; Lettuce driver) |
-| **Containerization** | Docker multi-stage build, Alpine Linux runtime, non-root system user (`vetra`) |
-| **Cloud Infrastructure** | AWS (VPC, ECS Fargate, ALB, RDS, ElastiCache, ECR, Secrets Manager, CloudWatch Logs) |
-| **Infrastructure as Code** | Terraform 1.5+ (Modular architecture, S3 remote state backend with DynamoDB locking) |
-| **CI/CD & Security** | GitHub Actions, GitHub OIDC Keyless Authentication, Gitleaks, CodeQL |
+</div>
 
 ---
 
-## Application Architecture
+## 📌 Executive Summary
 
-Vetra Backend is structured as a **Modular Monolith** applying **Clean Architecture** and **Domain-Driven Design (DDD)** principles:
+**Vetra** is an enterprise Veterinary Operating System (VetOS) built to modernize livestock healthcare management, veterinary practice operations, and regional disease outbreak intelligence. 
 
-```
-app.vetra/
-├── auth/           ← Identity, JWT authentication, refresh token rotation, vet directory
-├── animal/         ← Animal registry, species classification, QR digital passports
-├── appointment/    ← Scheduling workflow & clinical state machine
-├── medicalrecord/  ← Immutable Electronic Veterinary Medical Records (EVMR)
-├── disease/        ← Epidemiological surveillance, outbreak detection, PostGIS spatial queries
-├── notification/   ← Multi-channel notification templates, dispatch, and delivery logging
-├── dashboard/      ← Role-based analytics and aggregated clinical metrics
-└── infrastructure/ ← Shared JPA entities, security configuration, Redis TLS cache, Flyway, observability
+Engineered with **Java 21 LTS** and **Spring Boot 3.5**, Vetra adopts a **Domain-Driven Modular Monolith** architecture backed by **PostgreSQL with PostGIS** spatial indexing and **Redis 7 with in-transit TLS encryption**. The platform is containerized with multi-stage Docker builds and deployed to **AWS** via **Terraform** on **Amazon ECS Fargate** behind an **Application Load Balancer (ALB)** with zero-plaintext runtime secret injection via **AWS Secrets Manager**.
+
+---
+
+## 🏛 System Architecture
+
+Vetra is structured as a cohesive **Modular Monolith** applying **Clean Architecture** and **Domain-Driven Design (DDD)** boundaries within a single deployable artifact.
+
+```mermaid
+graph TD
+    Client[Web & Mobile Clients] -->|HTTPS / REST| Ingress[Spring Security Filter Chain]
+    Ingress --> JWT[Stateless JWT & Refresh Token Auth]
+    
+    subgraph Modular Monolith Runtime ["app.vetra Core Engine"]
+        JWT --> AuthModule[🔐 auth Module]
+        JWT --> AnimalModule[🐾 animal Module]
+        JWT --> ApptModule[📅 appointment Module]
+        JWT --> MedRecModule[📋 medicalrecord Module]
+        JWT --> DiseaseModule[🛰️ disease Module]
+        JWT --> NotifModule[🔔 notification Module]
+        JWT --> DashModule[📊 dashboard Module]
+
+        ApptModule -.->|State Machine Trigger| MedRecModule
+        DiseaseModule -.->|Outbreak Alert Event| NotifModule
+        AnimalModule -.->|QR Passport Data| MedRecModule
+    end
+
+    subgraph Data & Cache Tier ["Persistent & In-Memory Infrastructure"]
+        AuthModule & AnimalModule & ApptModule & MedRecModule & DiseaseModule -->|Spring Data JPA / HikariCP| Postgres[(PostgreSQL 15/17 + PostGIS)]
+        AuthModule & DashModule & DiseaseModule -->|Lettuce Driver with TLS| Redis[(ElastiCache Redis 7.1)]
+    end
 ```
 
 ### Architectural Rationale
-The modular monolith architecture enforces strict domain package boundaries and cohesive domain models while operating as a single, easily deployable runtime unit. This avoids the operational complexity, distributed transaction overhead, and network latency of premature microservice decomposition while preserving clear decoupling for future extraction if required.
+* **High Domain Cohesion:** Strictly partitioned packages (`auth`, `animal`, `appointment`, `medicalrecord`, `disease`, `notification`, `dashboard`, `infrastructure`) preserve separation of concerns.
+* **Transaction Integrity:** ACID guarantees across complex clinical transactions (e.g. appointment state transition + medical record creation) without distributed transaction overhead (2PC/Saga).
+* **Operational Efficiency:** Single-pipeline builds, low-overhead container execution, and simple local reproducibility while remaining decoupled for future microservice extraction if required.
 
 ---
 
-## AWS Deployment Architecture
+## ☁️ AWS Cloud Deployment
 
-The staging backend runs on a high-security, multi-AZ AWS infrastructure in `ap-south-1` provisioned entirely through Terraform:
+The staging environment is fully provisioned using **Terraform (IaC)** in AWS Region `ap-south-1` (Mumbai) across multiple Availability Zones with multi-tier network isolation.
 
+```mermaid
+flowchart TD
+    subgraph InternetZone ["Public Internet"]
+        User((End User / Client))
+    end
+
+    subgraph AWSVPC ["AWS VPC: 10.1.0.0/16 (ap-south-1)"]
+        subgraph PublicSubnets ["Public Subnets (10.1.1.0/24 & 10.1.2.0/24)"]
+            ALB["Application Load Balancer (ALB)<br/>Port 80 Ingress<br/>SG: vetra-staging-alb-sg"]
+            NAT["NAT Gateway<br/>Elastic IP: 13.127.40.139"]
+        end
+
+        subgraph PrivateSubnets ["Private Subnets (10.1.10.0/24 & 10.1.11.0/24)"]
+            ECS["Amazon ECS Fargate Tasks<br/>Port 8080 | NO Public IP<br/>SG: vetra-staging-ecs-sg"]
+        end
+
+        subgraph IsolatedSubnets ["Isolated Data Subnets (10.1.20.0/24 & 10.1.21.0/24)"]
+            RDS[("Amazon RDS PostgreSQL 15.13<br/>Port 5432<br/>SG: vetra-staging-rds-sg")]
+            RedisCluster[("ElastiCache Redis 7.1<br/>Port 6379 (TLS Enforced)<br/>SG: vetra-staging-redis-sg")]
+        end
+
+        subgraph VPCEndpoints ["VPC Interface & Gateway Endpoints"]
+            S3Endpoint["S3 Gateway Endpoint"]
+            SecMgrEndpoint["Secrets Manager Endpoint"]
+            ECREndpoint["ECR API & DKR Endpoint"]
+            LogsEndpoint["CloudWatch Logs Endpoint"]
+        end
+    end
+
+    subgraph AWSManagement ["AWS Managed Services"]
+        SecMgr["AWS Secrets Manager<br/>/vetra/staging/*"]
+        CWLogs["CloudWatch Logs<br/>/ecs/vetra-staging-backend"]
+        ECR["Amazon ECR Registry<br/>vetra-backend-staging"]
+    end
+
+    User -->|HTTP Requests| ALB
+    ALB -->|Health Checked Forwarding| ECS
+    ECS -->|JDBC / HikariCP| RDS
+    ECS -->|Lettuce TLS| RedisCluster
+    ECS -->|Task Role / Outbound| NAT
+    ECS -.->|VPC PrivateLink| SecMgr
+    ECS -.->|Log Streaming| CWLogs
+    ECS -.->|Image Pull| ECR
 ```
-                                 Internet
-                                    │
-                                    ▼ (HTTP :80)
-                         ┌─────────────────────┐
-                         │ Application Load    │
-                         │ Balancer (ALB)      │
-                         │ Public Subnets      │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼ (HTTP :8080, Security Group Chaining)
-                         ┌─────────────────────┐
-                         │ Amazon ECS Fargate  │
-                         │ Vetra Backend Task  │
-                         │ Private Subnets     │
-                         │ NO Public IP        │
-                         └──────┬───────┬──────┘
-                                │       │
-                       ┌────────┘       └────────┐
-                       ▼                         ▼
-               ┌───────────────┐         ┌───────────────┐
-               │ Amazon RDS    │         │ ElastiCache   │
-               │ PostgreSQL    │         │ Redis 7       │
-               │ 15.13 + GIS   │         │ In-Transit TLS│
-               │ (Isolated)    │         │ (Isolated)    │
-               └───────────────┘         └───────────────┘
 
-                          AWS Secrets Manager
-                                 │
-                                 ▼ (Injected at task startup)
-                      DB / Redis / JWT secrets
-
-        Developer Push ──► GitHub Actions ──► GitHub OIDC ──► AWS IAM ──► Amazon ECR
-```
-
-### Security Boundaries
-* **Public Ingress:** The Application Load Balancer in public subnets is the sole internet entry point.
-* **Compute Isolation:** ECS Fargate tasks reside strictly in private subnets with **no public IP addresses**.
-* **Data Isolation:** RDS PostgreSQL and ElastiCache Redis are deployed in dedicated isolated subnets with no internet route.
-* **Network Access Control:** Least-privilege security group rules restrict inbound traffic strictly along the chain (`Internet` → `ALB SG` → `ECS SG` → `RDS / Redis SGs`).
-* **In-Transit Encryption:** Redis connections enforce TLS encryption (`REDIS_SSL=true`).
+### Network Security & Traffic Model
+1. **Public Ingress:** ALB in public subnets is the **sole entry point** (`vetra-staging-alb-sg`).
+2. **Compute Isolation:** ECS Fargate tasks reside in **private subnets** with **no public IPs** (`vetra-staging-ecs-sg`).
+3. **Data Isolation:** RDS and ElastiCache reside in **isolated subnets** with zero internet ingress/egress.
+4. **Security Group Chaining:** `ALB:80` → `ECS:8080` → `RDS:5432` & `Redis:6379`.
+5. **Runtime Secret Injection:** Passwords and keys (`DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`) are injected dynamically via Secrets Manager ARNs into the container at startup.
 
 ---
 
-## Verified AWS Staging Infrastructure
+## ⚡ Verified Staging Infrastructure Catalog
 
-The following infrastructure components are live and verified in AWS (`ap-south-1`):
-
-| Component | Technology | Purpose | Status |
+| Resource / Layer | AWS Service | Specification / Configuration | Live Verification Status |
 |---|---|---|---|
-| **VPC & Subnets** | AWS VPC (`10.1.0.0/16`) | Network isolation across 2 Availability Zones | ✅ Live |
-| **Public Subnets** | AWS Subnets (`10.1.1.0/24`, `10.1.2.0/24`) | Application Load Balancer placement | ✅ Live |
-| **Private Subnets** | AWS Subnets (`10.1.10.0/24`, `10.1.11.0/24`) | ECS Fargate compute tasks | ✅ Live |
-| **Isolated Subnets** | AWS Subnets (`10.1.20.0/24`, `10.1.21.0/24`) | RDS and ElastiCache data tier | ✅ Live |
-| **NAT Gateway** | AWS NAT Gateway + Elastic IP | Controlled outbound access for private tasks | ✅ Live |
-| **VPC Endpoints** | AWS PrivateLink / Gateway | Private access to S3, Secrets Manager, ECR, CloudWatch | ✅ Live |
-| **Relational Database** | Amazon RDS PostgreSQL 15.13 | Persistent relational storage with PostGIS | ✅ Live |
-| **In-Memory Cache** | Amazon ElastiCache Redis 7.1 | Session storage, caching, and rate limiting with TLS | ✅ Live |
-| **Container Registry** | Amazon ECR (`vetra-backend-staging`) | Immutable, vulnerability-scanned Docker container images | ✅ Live |
-| **Secret Storage** | AWS Secrets Manager | Encrypted runtime credential management | ✅ Live |
-| **Container Runtime** | Amazon ECS Fargate | Serverless container compute engine | ✅ Live |
-| **Load Balancer** | Application Load Balancer (ALB) | Public HTTP ingress and health-checked traffic routing | ✅ Live |
-| **Target Group** | ALB Target Group (Port 8080) | Health-check management via `/actuator/health/liveness` | ✅ Live |
-| **Observability** | Amazon CloudWatch Logs | Structured container log aggregation (`awslogs` driver) | ✅ Live |
-| **Identity & Access** | AWS IAM Roles | Least-privilege ECS execution and task IAM roles | ✅ Live |
-| **CI Authentication** | GitHub OIDC Identity Provider | Keyless authentication for GitHub Actions CI/CD | ✅ Live |
+| **VPC** | AWS VPC | `10.1.0.0/16` across `ap-south-1a` and `ap-south-1b` | 🟢 **ACTIVE** |
+| **Public Subnets** | AWS Subnet | `10.1.1.0/24`, `10.1.2.0/24` (ALB placement) | 🟢 **ACTIVE** |
+| **Private Subnets** | AWS Subnet | `10.1.10.0/24`, `10.1.11.0/24` (ECS Fargate compute) | 🟢 **ACTIVE** |
+| **Isolated Subnets** | AWS Subnet | `10.1.20.0/24`, `10.1.21.0/24` (RDS & ElastiCache) | 🟢 **ACTIVE** |
+| **Internet Gateway** | AWS IGW | Public routing for ALB ingress | 🟢 **ACTIVE** |
+| **NAT Gateway** | AWS NAT GW | Outbound egress for private subnets | 🟢 **ACTIVE** |
+| **Relational Database** | Amazon RDS | PostgreSQL 15.13 (`db.t4g.micro`, 20GB gp3, PostGIS) | 🟢 **ACTIVE** |
+| **In-Memory Cache** | Amazon ElastiCache | Redis 7.1 (`cache.t4g.micro`, in-transit TLS enabled) | 🟢 **ACTIVE** |
+| **Container Registry** | Amazon ECR | `vetra-backend-staging` (Scan-on-push, lifecycle rules) | 🟢 **ACTIVE** |
+| **Secret Management** | AWS Secrets Manager | Encrypted storage for DB, Redis, and JWT signing keys | 🟢 **ACTIVE** |
+| **Compute Engine** | Amazon ECS | Fargate Cluster (`vetra-staging-cluster`) | 🟢 **ACTIVE** |
+| **ECS Service** | Amazon ECS | `vetra-staging-backend-service` (Desired: 1, Running: 1) | 🟢 **ACTIVE** |
+| **Load Balancer** | AWS ALB | `vetra-staging-alb` with health-checked target group | 🟢 **ACTIVE** |
+| **Observability** | AWS CloudWatch | Container logs under `/ecs/vetra-staging-backend` | 🟢 **ACTIVE** |
+| **IAM & OIDC** | AWS IAM | Keyless GitHub Actions deploy role & ECS task roles | 🟢 **ACTIVE** |
 
 ---
 
-## CI/CD Pipeline
+## 🔄 CI/CD & Automated Deployment Pipeline
 
-Continuous integration is managed through GitHub Actions with keyless AWS OIDC authentication:
+Vetra utilizes a secure, keyless continuous integration pipeline powered by **GitHub Actions** and **AWS IAM OIDC**:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev as Engineer
+    participant GH as GitHub Actions
+    participant Sec as Gitleaks & CodeQL
+    participant AWS_OIDC as AWS STS (OIDC Provider)
+    participant ECR as Amazon ECR
+    participant ECS as AWS ECS Fargate
+
+    Dev->>GH: Git Push to main
+    par Security Scanning
+        GH->>Sec: Execute Gitleaks Secret Exposure Scan
+        GH->>Sec: Run CodeQL Static Security Analysis
+    and Build & Verification
+        GH->>GH: Resolve Maven Dependencies (Retry on 429)
+        GH->>GH: Compile Java 21 & Execute Checkstyle
+        GH->>GH: Run Maven Test Suite (Surefire)
+    end
+    
+    opt Deployment Phase (main branch)
+        GH->>AWS_OIDC: Request short-lived credentials via JWT (AssumeRoleWithWebIdentity)
+        AWS_OIDC-->>GH: Issue temporary AWS STS session token
+        GH->>ECR: Authenticate & Build Multi-Stage Docker Image
+        GH->>ECR: Push immutable commit-tagged image (SHA)
+        GH->>ECS: Roll out new Task Definition Revision to Fargate Service
+        ECS->>ECS: Boot container, run Flyway migrations, pass health checks
+    end
+```
+
+> **Keyless OIDC Authentication:** No long-lived AWS Access Keys or Secret Keys are stored in GitHub Secrets. Authentication occurs dynamically via GitHub's OpenID Connect identity token verified against AWS STS.
+
+---
+
+## 🎯 Key Capabilities & Domain Workflows
+
+### 1. Dual-Role Authentication & Access Control (RBAC)
+* Strict domain separation between **FARMER** and **VETERINARIAN** roles.
+* Stateless session tokens via HMAC-SHA256 JWTs with 24-hour expiration.
+* Database-backed refresh token rotation with single-use revocation to mitigate replay attacks.
+
+### 2. Digital Livestock Passport
+* Tamper-proof animal identification bound to unique QR code IDs (`qr_code_id`).
+* Full lifecycle tracking (species, breed, date of birth, tag IDs, ownership transfers).
+* Instant chronological medical history accessible via QR code scans in the field.
+
+### 3. Clinical Appointment State Machine
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING: Farmer Requests Appointment
+    PENDING --> CONFIRMED: Veterinarian Accepts
+    PENDING --> CANCELLED: Farmer or Vet Rejects
+    CONFIRMED --> IN_PROGRESS: Vet Begins Consultation
+    CONFIRMED --> CANCELLED: Cancelled with Justification
+    IN_PROGRESS --> COMPLETED: EVMR Medical Record Finalized
+    COMPLETED --> [*]
+    CANCELLED --> [*]
+```
+
+### 4. Electronic Veterinary Medical Records (EVMR)
+* Immutable medical records authored by licensed veterinarians.
+* Captures symptoms, diagnostic notes, vital signs, administered prescriptions, and clinical follow-up directives.
+* Strict authorization: Only the attending licensed veterinarian can seal a record.
+
+### 5. Epidemiological Disease Surveillance & Outbreak Intelligence
+* Real-time disease reporting with severity scoring and clinical metadata.
+* **PostGIS Spatial Queries:** Radius-based cluster analysis (`ST_DWithin`) to detect disease outbreak velocity.
+* Automated high-risk zone geofencing and broadcast alert dispatching.
+
+---
+
+## 📡 REST API Overview & Endpoints
+
+| Method | Endpoint | Access Level | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/register` | Public | Register Farmer or Veterinarian account |
+| `POST` | `/api/v1/auth/login` | Public | Authenticate user & issue JWT + Refresh Token |
+| `POST` | `/api/v1/auth/refresh` | Public | Rotate refresh token & issue new JWT |
+| `GET` | `/api/v1/animals` | Authenticated | List animals registered under farmer profile |
+| `POST` | `/api/v1/animals` | `ROLE_FARMER` | Register new livestock with unique QR identifier |
+| `GET` | `/api/v1/animals/qr/{qrCodeId}` | Authenticated | Retrieve digital animal passport by QR code |
+| `POST` | `/api/v1/appointments` | `ROLE_FARMER` | Request clinical veterinary appointment |
+| `PATCH` | `/api/v1/appointments/{id}/status` | `ROLE_VETERINARIAN` | Transition appointment state |
+| `POST` | `/api/v1/medical-records` | `ROLE_VETERINARIAN` | Create immutable EVMR medical record |
+| `POST` | `/api/v1/disease-reports` | Authenticated | Submit regional livestock disease report |
+| `GET` | `/api/v1/dashboard` | Authenticated | Retrieve role-specific metrics & schedules |
+| `GET` | `/actuator/health` | Public | Full infrastructure health probe |
+
+*Interactive API documentation is accessible via Swagger UI at `/swagger-ui.html`.*
+
+---
+
+## 🛡️ Security & Compliance
 
 ```
-Git Push to main / feature/**
-   │
-   ├── [Job 1: Gitleaks Secret Scanner] ──► Fails build if credentials/keys are exposed
-   │
-   ├── [Job 2: Build & Test Suite]      ──► Java 21 compile, Checkstyle validation, Maven tests
-   │
-   └── [Job 3: Docker Build & ECR Push] (main branch only)
-           │
-           ├── Validate AWS Account ID Variable
-           ├── Authenticate to AWS via GitHub OIDC (AssumeRoleWithWebIdentity)
-           ├── Log in to Amazon ECR
-           ├── Build production multi-stage Docker image
-           └── Push immutable commit-tagged image to Amazon ECR
+┌────────────────────────────────────────────────────────────────────────┐
+│                        DEFENSE IN DEPTH MATRIX                         │
+├────────────────────────┬───────────────────────────────────────────────┤
+│ Identity Layer         │ JWT HMAC-SHA256, Refresh Token Rotation, RBAC │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ Secret Management      │ AWS Secrets Manager dynamic ARN injection     │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ Network Perimeter      │ ALB public entry, private ECS subnets, no IP  │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ Data Tier Isolation    │ Isolated subnets, RDS & Redis unexposed       │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ Data in Transit        │ HTTPS (ALB) & TLS-encrypted Redis connection  │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ Container Security     │ Alpine JRE, Non-root `vetra:vetra` user       │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ CI/CD Authentication   │ Keyless GitHub OIDC with least-privilege IAM  │
+├────────────────────────┼───────────────────────────────────────────────┤
+│ Static & Secret Audits │ Gitleaks secret scanner, GitHub CodeQL SAST   │
+└────────────────────────┴───────────────────────────────────────────────┘
 ```
 
-> **Security Note:** GitHub Actions authenticates to AWS using GitHub OIDC and IAM role assumption rather than long-lived AWS access keys.
+---
+
+## 🗄 Database & Migrations
+
+Database evolution is managed via **Flyway** with 14 version-controlled, production-validated SQL migrations:
+
+```
+src/main/resources/db/migration/
+├── V1__baseline.sql                                 ← Schema baseline & UUID extensions
+├── V2__schema_entities.sql                          ← Users, roles, and core entity tables
+├── V3__refresh_tokens.sql                           ← Refresh token rotation storage
+├── V4__add_animal_name.sql                          ← Animal naming enhancements
+├── V5__create_appointments.sql                      ← Appointment state machine schema
+├── V6__create_medical_records.sql                   ← Immutable EVMR record tables
+├── V7__optimize_vet_availability_index.sql          ← Performance indexing for vet schedules
+├── V8__create_ai_scan_tables.sql                    ← AI diagnostic scan metadata
+├── V9__create_ai_scan_results.sql                   ← AI diagnostic structured results
+├── V10__make_medical_records_appointment_optional.sql← Walk-in consultation support
+├── V11__create_disease_surveillance.sql             ← Disease reporting & PostGIS spatial schema
+├── V12__outbreak_intelligence_engine.sql            ← Outbreak clustering & trigger procedures
+├── V13__disease_intelligence_automation.sql         ← Automated alert generation schema
+└── V14__notification_engine.sql                     ← Multi-channel notification templates & logs
+```
 
 ---
 
-## Security Architecture
+## 📊 Health & Observability
 
-* **Stateless JWT Authentication:** HMAC-SHA256 tokens for authenticated API sessions.
-* **Database-Backed Refresh Token Rotation:** Secure refresh token rotation with single-use revocation.
-* **Runtime Secret Injection:** Application credentials (`DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`) are injected dynamically into ECS tasks at container startup through AWS Secrets Manager ARNs rather than being hardcoded into task definitions or source code.
-* **Network Isolation:** ECS tasks have no public IP addresses; ingress is strictly mediated by the ALB.
-* **Database & Cache Security:** RDS and ElastiCache instances are placed in isolated subnets with no internet ingress/egress.
-* **Encrypted Cache Traffic:** ElastiCache Redis operates with in-transit encryption (TLS) enabled.
-* **Non-Root Container Runtime:** Docker containers execute as an unprivileged system user (`vetra:vetra`).
-* **Automated Security Scanning:** Gitleaks scans every commit for secret exposure, and CodeQL analyzes source code for security vulnerabilities.
+### Verified Staging Health Probe Matrix
 
----
-
-## Database & Migrations
-
-* **PostgreSQL Engine:** PostgreSQL 15.13 on AWS RDS staging; PostgreSQL 17 on local Docker Compose.
-* **Geospatial Capabilities:** PostGIS enabled for livestock tracking and spatial outbreak queries.
-* **Flyway Migration Strategy:** Schema migrations are version-controlled and executed automatically on startup.
-* **Validated Schema Migrations:**
-  * `V1__baseline.sql` — Extensions and baseline configuration
-  * `V2__schema_entities.sql` — Users, roles, and core entity tables
-  * `V3__refresh_tokens.sql` — Refresh token storage
-  * `V4__add_animal_name.sql` — Animal name column addition
-  * `V5__create_appointments.sql` — Appointment state machine and scheduling tables
-  * `V6__create_medical_records.sql` — Electronic Veterinary Medical Records (EVMR)
-  * `V7__optimize_vet_availability_index.sql` — Performance indexes for veterinarian availability
-  * `V8__create_ai_scan_tables.sql` — AI diagnostic scan records
-  * `V9__create_ai_scan_results.sql` — AI diagnostic result structured storage
-  * `V10__make_medical_records_appointment_optional.sql` — Walk-in record support
-  * `V11__create_disease_surveillance.sql` — Disease surveillance and PostGIS spatial tables
-  * `V12__outbreak_intelligence_engine.sql` — Outbreak detection algorithms and triggers
-  * `V13__disease_intelligence_automation.sql` — Automated alert generation
-  * `V14__notification_engine.sql` — Notification templates, preferences, and delivery logs
-
----
-
-## Health & Observability
-
-### Health Endpoints (Spring Boot Actuator & Custom Probes)
-
-| Endpoint | HTTP Method | Expected Status | Purpose | Verified Status |
+| Probe Endpoint | Protocol | HTTP Status | Response Payload | Verification State |
 |---|---|---|---|---|
-| `/actuator/health/liveness` | `GET` | `200 OK` | Container liveness probe | ✅ `{"status":"UP"}` |
-| `/actuator/health/readiness` | `GET` | `200 OK` | Database & disk space readiness probe | ✅ `{"status":"UP"}` |
-| `/actuator/health` | `GET` | `200 OK` | Full application health (DB + Redis TLS) | ✅ `{"status":"UP"}` |
-| `/liveness` | `GET` | `200 OK` | Unauthenticated application liveness | ✅ `{"status":"ALIVE"}` |
-| `/readiness` | `GET` | `200 OK` | Unauthenticated application readiness | ✅ `{"status":"READY"}` |
+| `/actuator/health/liveness` | HTTP GET | `200 OK` | `{"status":"UP"}` | 🟢 Verified Live |
+| `/actuator/health/readiness` | HTTP GET | `200 OK` | `{"status":"UP"}` | 🟢 Verified Live (DB + Disk) |
+| `/actuator/health` | HTTP GET | `200 OK` | `{"status":"UP","groups":["liveness","readiness"]}` | 🟢 Verified Live (PostgreSQL + Redis TLS) |
+| `/liveness` | HTTP GET | `200 OK` | `{"success":true,"status":200,"message":"Application is alive"}` | 🟢 Verified Live |
+| `/readiness` | HTTP GET | `200 OK` | `{"success":true,"status":200,"message":"Application is ready"}` | 🟢 Verified Live |
 
-### Container Logging
-* Container logs stream to Amazon CloudWatch Logs under `/ecs/vetra-staging-backend` using the `awslogs` driver.
-* Structured logging includes timestamp, thread, trace ID, span ID, and request correlation IDs.
-
----
-
-## API Documentation
-
-Vetra Backend provides dynamic OpenAPI 3.0 documentation generated by SpringDoc OpenAPI:
-
-* **Swagger UI (Interactive):** `http://localhost:8080/swagger-ui.html`
-* **OpenAPI JSON Specification:** `http://localhost:8080/v3/api-docs`
+### Structured Logging & Diagnostics
+* Logs stream to Amazon CloudWatch under log group `/ecs/vetra-staging-backend`.
+* Spring Boot logs format with MDC correlation IDs:
+  ```text
+  2026-08-14 17:54:31.155 [http-nio-8080-exec-2] [traceId=4d430681b7b02767c53d3fc3c64ef3fa] [spanId=e9c9aecdea0bf1da] [11dce0a6-9727-47e3-a2c7-43ad07d692a3] INFO a.v.i.logging.LoggingFilter - method=GET uri=/actuator/health/liveness status=200 duration=400ms
+  ```
 
 ---
 
-## Quick Start (Local Development)
+## 🚀 Quick Start (Local Development)
 
 ### 1. Prerequisites
-* **JDK 21 LTS** (`java -version` → 21.x)
-* **Docker & Docker Compose** (for PostgreSQL 17 + PostGIS and Redis 7)
+* **Java 21 LTS** (Eclipse Temurin recommended)
+* **Docker Desktop** (for PostgreSQL 17 + PostGIS and Redis 7)
+* **Maven 3.9+** (or use included `./mvnw` wrapper)
 
-### 2. Configure Environment
+### 2. Clone and Setup Environment
 ```bash
+git clone https://github.com/omrajput14/vetra-backend.git
+cd vetra-backend
 cp .env.example .env
 ```
 
-### 3. Start Local Infrastructure Containers
+### 3. Start Local Database & Cache Containers
 ```bash
 docker compose up -d postgres redis
 ```
 
-### 4. Run the Backend Application
+### 4. Build and Run Application
 ```bash
-./mvnw spring-boot:run
+./mvnw clean spring-boot:run
 ```
 
-### 5. Verify Health & OpenAPI Docs
-* **Health Check:** `curl http://localhost:8080/actuator/health` → `{"status":"UP"}`
-* **Swagger UI:** Open `http://localhost:8080/swagger-ui.html` in your browser
+### 5. Verify Running Services
+* **Health Endpoint:** `curl http://localhost:8080/actuator/health` → `{"status":"UP"}`
+* **Interactive Swagger UI:** Open `http://localhost:8080/swagger-ui.html`
 
-### 6. Run Code Formatting & Quality Checks
+### 6. Code Formatting & Quality Checks
 ```bash
-# Verify Google Java Format
+# Verify Google Java Format compliance
 ./mvnw spotless:check
 
-# Apply formatting
+# Auto-format codebase
 ./mvnw spotless:apply
 
-# Run Checkstyle validation
+# Execute Checkstyle rules
 ./mvnw checkstyle:check
 
-# Run test suite
+# Run full test suite
 ./mvnw test
 ```
 
 ---
 
-## Documentation Index
+## 📚 Documentation Index
 
 Comprehensive engineering specifications and architecture design records are maintained under `docs/`:
 
@@ -310,35 +411,15 @@ Comprehensive engineering specifications and architecture design records are mai
 
 ---
 
-## Deployment Status Summary
+## 🔮 Roadmap & Upcoming Milestones
 
-| Area | Component | Implementation / Cloud Provider | Status |
-|---|---|---|---|
-| **Core REST API** | Spring Boot 3.5.3 / Java 21 | Modular Monolith DDD Architecture | ✅ Verified |
-| **Containerization** | Docker Multi-Stage | Alpine JRE 21, Non-root `vetra` User | ✅ Verified |
-| **Relational Database** | Amazon RDS PostgreSQL 15.13 | Multi-AZ ready, Isolated Subnets | ✅ Verified |
-| **Geospatial Engine** | PostGIS Extension | Spatial Indexing & Outbreak Queries | ✅ Verified |
-| **In-Memory Cache** | Amazon ElastiCache Redis 7.1 | In-Transit TLS Encryption, Isolated Subnets | ✅ Verified |
-| **Schema Migrations** | Flyway DB | 14 Validated Migrations | ✅ Verified |
-| **Network Architecture** | AWS VPC (`10.1.0.0/16`) | Public, Private & Isolated Subnets, NAT GW | ✅ Verified |
-| **Container Registry** | Amazon ECR | Staging Registry with Scan-on-Push & Lifecycle Rules | ✅ Verified |
-| **CI Keyless Auth** | GitHub OIDC Identity Provider | AWS IAM Role Assumption (`AssumeRoleWithWebIdentity`) | ✅ Verified |
-| **Compute Engine** | Amazon ECS Fargate | Serverless Tasks in Private Subnets (No Public IP) | ✅ Verified |
-| **Ingress & Routing** | Application Load Balancer (ALB) | Public Ingress with Target Group Health Probes | ✅ Verified |
-| **Secrets Management** | AWS Secrets Manager | Runtime ARN Injection (DB, Redis, JWT) | ✅ Verified |
-| **Observability** | Amazon CloudWatch Logs | Container Logs via `awslogs` Log Driver | ✅ Verified |
-| **Health Checks** | Spring Boot Actuator | Liveness & Readiness Probes (`HTTP 200 OK`) | ✅ Verified |
+* [x] **Stage 14.2–14.6:** AWS VPC, Subnets, Security Groups, RDS PostgreSQL 15.13, ElastiCache Redis 7.1, ECR Registry, and OIDC CI Pipeline.
+* [x] **Stage 14.7:** AWS ECS Fargate & Application Load Balancer staging deployment with Secrets Manager runtime injection and Redis TLS.
+* [ ] **Stage 14.8 (Next):** AWS ACM SSL/TLS certificate provisioning for custom staging domain with HTTPS Port 443 listener and HTTP 80 → 443 redirect.
+* [ ] **Stage 14.9:** Automated GitHub Actions CD trigger (`aws ecs update-service --force-new-deployment`) upon verified ECR image build.
 
 ---
 
-## Next Steps
-
-### Next Infrastructure Stage (Stage 14.8)
-* **Custom Domain & HTTPS Hardening:** Provision an AWS Certificate Manager (ACM) SSL/TLS certificate for the staging domain and configure an HTTPS listener on port 443 with an HTTP 80 → 443 redirect rule on the Application Load Balancer.
-* **Automated CD Deployment Step:** Add an automated `aws ecs update-service` step in GitHub Actions to automatically trigger ECS rolling deployments upon newly published ECR container images.
-
----
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
