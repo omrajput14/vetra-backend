@@ -17,8 +17,9 @@ locals {
     var.tags
   )
 
-  role_name = "${var.project}-github-actions-deploy"
-  sub_claim = "repo:${var.github_repository}:ref:${var.github_branch}"
+  role_name   = "${var.project}-github-actions-deploy"
+  # Support standard "repo:owner/repo:ref:refs/heads/main" and GitHub ID-annotated "repo:owner@id/repo@id:ref:refs/heads/main"
+  sub_pattern = "repo:${replace(var.github_repository, "/", "*/")}*:ref:${var.github_branch}"
 }
 
 # ── GitHub OIDC Identity Provider ──────────────────────────────────────────────
@@ -57,7 +58,9 @@ resource "aws_iam_role" "github_actions_deploy" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-            "token.actions.githubusercontent.com:sub" = local.sub_claim
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = local.sub_pattern
           }
         }
       }
