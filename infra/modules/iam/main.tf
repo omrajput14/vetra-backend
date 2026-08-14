@@ -104,3 +104,59 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
     ]
   })
 }
+
+# ── ECS Deployment Policy for GitHub Actions ──────────────────────────────────
+# Least-privilege policy granting rights to register task definitions, trigger
+# rolling deployments on the ECS service, and verify target group health.
+
+resource "aws_iam_role_policy" "github_actions_ecs" {
+  name = "${var.project}-github-actions-ecs-policy"
+  role = aws_iam_role.github_actions_deploy.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowECSTaskDefinition"
+        Effect = "Allow"
+        Action = [
+          "ecs:DescribeTaskDefinition",
+          "ecs:RegisterTaskDefinition"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowECSServiceDeployment"
+        Effect = "Allow"
+        Action = [
+          "ecs:UpdateService",
+          "ecs:DescribeServices",
+          "ecs:DescribeClusters",
+          "ecs:DescribeTasks",
+          "ecs:ListTasks"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowTargetGroupHealthCheck"
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:DescribeTargetHealth",
+          "elasticloadbalancing:DescribeTargetGroups"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowPassRoleToECS"
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = [
+          "arn:aws:iam::*:role/${var.project}-*-ecs-*"
+        ]
+      }
+    ]
+  })
+}
+

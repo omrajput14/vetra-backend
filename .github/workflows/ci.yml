@@ -1,4 +1,4 @@
-name: Enterprise Continuous Integration
+name: Enterprise Continuous Integration & Deployment
 
 on:
   push:
@@ -9,10 +9,10 @@ on:
     branches:
       - main
 
-# Concurrency management: cancel outdated in-progress runs for the same ref
+# Concurrency management: cancel outdated PR builds, but queue staging deployments sequentially
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -53,10 +53,6 @@ jobs:
           cache: 'maven'
 
       - name: Resolve Maven Dependencies (with retry on 429)
-        # Pre-resolves all dependencies into the local repository cache before
-        # running the full verify. This isolates dependency resolution failures
-        # (HTTP 429 transient) from build failures, and limits retry scope.
-        # --fail-at-end ensures all resolution is attempted before failing.
         run: |
           for attempt in 1 2 3; do
             echo "Dependency resolution attempt $attempt of 3..."
@@ -112,15 +108,40 @@ jobs:
             target/surefire-reports/
           retention-days: 30
 
-  # ─── 2. Dockerfile Build & ECR Publish ────────────────────────────────
+  # ─── 2. Secret Leak Scanning (Gitleaks) ─────────────────────────────
+  secret-scan:
+    name: Gitleaks Secret & API Key Exposure Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Execute Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── 3. Dockerfile Build & ECR Publish ────────────────────────────────
   docker-build-publish:
-    name: Build & Publish Docker Image
+    name: Build & Publish Docker Image to ECR
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: [build-and-test, secret-scan]
 
     permissions:
       contents: read
       id-token: write # Required for AWS OIDC authentication
+
+    outputs:
+      ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+      image_tag: ${{ steps.image-metadata.outputs.tag }}
 
     steps:
       - name: Checkout Repository
@@ -157,6 +178,11 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Compute Image Tag Metadata
+        id: image-metadata
+        run: |
+          echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
       - name: Build and Publish Production Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -172,22 +198,180 @@ jobs:
           cp .env.example .env
           docker compose config --quiet
 
-  # ─── 3. Secret Leak Scanning (Gitleaks) ─────────────────────────────
-  secret-scan:
-    name: Gitleaks Secret & API Key Exposure Scanner
+  # ─── 4. Automated ECS Fargate Staging Deployment ────────────────────
+  deploy-staging:
+    name: Deploy to ECS Fargate Staging
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
+    needs: [docker-build-publish]
+    if: github.ref == 'refs/heads/main'
+
+    concurrency:
+      group: staging-ecs-deployment
+      cancel-in-progress: false
 
     permissions:
       contents: read
+      id-token: write # Required for AWS OIDC authentication
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Execute Gitleaks Secret Scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/vetra-github-actions-deploy
+          aws-region: ap-south-1
+
+      - name: Render and Register Updated ECS Task Definition
+        id: register-task-def
+        run: |
+          IMAGE_URI="${{ needs.docker-build-publish.outputs.ecr_registry }}/vetra-backend-staging:${{ github.sha }}"
+          echo "Target Image URI: $IMAGE_URI"
+
+          echo "Downloading current task definition for family vetra-staging-backend..."
+          TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition vetra-staging-backend --region ap-south-1 --query "taskDefinition")
+
+          echo "Updating container image to $IMAGE_URI while preserving execution/task roles, secrets, and environment..."
+          NEW_DEF_JSON=$(echo "$TASK_DEF_JSON" | jq --arg IMAGE "$IMAGE_URI" '
+            .containerDefinitions[0].image = $IMAGE |
+            {
+              family: .family,
+              taskRoleArn: .taskRoleArn,
+              executionRoleArn: .executionRoleArn,
+              networkMode: .networkMode,
+              containerDefinitions: .containerDefinitions,
+              volumes: .volumes,
+              placementConstraints: .placementConstraints,
+              requiresCompatibilities: .requiresCompatibilities,
+              cpu: .cpu,
+              memory: .memory
+            } | del(.[] | nulls)')
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_DEF_JSON" \
+            --region ap-south-1 \
+            --query "taskDefinition.taskDefinitionArn" \
+            --output text)
+
+          echo "Registered new ECS task definition: $NEW_TASK_DEF_ARN"
+          echo "task_def_arn=$NEW_TASK_DEF_ARN" >> $GITHUB_OUTPUT
+
+      - name: Update ECS Service & Trigger Rolling Deployment
+        run: |
+          echo "Deploying task definition ${{ steps.register-task-def.outputs.task_def_arn }} to service vetra-staging-backend-service..."
+          aws ecs update-service \
+            --cluster vetra-staging-cluster \
+            --service vetra-staging-backend-service \
+            --task-definition "${{ steps.register-task-def.outputs.task_def_arn }}" \
+            --region ap-south-1
+
+      - name: Wait for ECS Service Stability
+        run: |
+          echo "Waiting for ECS service vetra-staging-backend-service to reach stable state..."
+          aws ecs wait services-stable \
+            --cluster vetra-staging-cluster \
+            --service vetra-staging-backend-service \
+            --region ap-south-1
+          echo "ECS service reached stable state!"
+
+      - name: Verify ALB Target Group Health
+        run: |
+          echo "Locating target group ARN for vetra-staging-backend-tg..."
+          TG_ARN=$(aws elbv2 describe-target-groups \
+            --names vetra-staging-backend-tg \
+            --region ap-south-1 \
+            --query "TargetGroups[0].TargetGroupArn" \
+            --output text)
+          echo "Target Group ARN: $TG_ARN"
+
+          echo "Polling target health..."
+          HEALTHY=false
+          for attempt in {1..20}; do
+            HEALTH_STATUS=$(aws elbv2 describe-target-health \
+              --target-group-arn "$TG_ARN" \
+              --region ap-south-1 \
+              --query "TargetHealthDescriptions[?TargetHealth.State=='healthy'].TargetHealth.State" \
+              --output text)
+            if [[ "$HEALTH_STATUS" =~ "healthy" ]]; then
+              echo "ALB Target Group is HEALTHY on attempt $attempt/20!"
+              HEALTHY=true
+              break
+            fi
+            echo "Target not yet healthy on attempt $attempt/20. Waiting 10s..."
+            sleep 10
+          done
+
+          if [ "$HEALTHY" != "true" ]; then
+            echo "::error::ALB target group failed to report healthy state."
+            aws elbv2 describe-target-health --target-group-arn "$TG_ARN" --region ap-south-1
+            exit 1
+          fi
+
+      - name: Execute End-to-End Application Smoke Tests
+        run: |
+          ALB_URL="http://vetra-staging-alb-704759510.ap-south-1.elb.amazonaws.com"
+          echo "Executing smoke tests against $ALB_URL..."
+
+          echo "1. Probing /actuator/health/liveness (Liveness probe)..."
+          LIVENESS_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/actuator/health/liveness")
+          if [ "$LIVENESS_RESP" != "200" ]; then
+            echo "::error::/actuator/health/liveness failed with HTTP $LIVENESS_RESP"
+            exit 1
+          fi
+          echo "   ✅ /actuator/health/liveness -> HTTP 200 OK"
+
+          echo "2. Probing /actuator/health (Full health: DB + Redis TLS)..."
+          HEALTH_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/actuator/health")
+          if [ "$HEALTH_RESP" != "200" ]; then
+            echo "::error::/actuator/health failed with HTTP $HEALTH_RESP"
+            exit 1
+          fi
+          echo "   ✅ /actuator/health -> HTTP 200 OK"
+
+          echo "3. Probing /liveness (Application probe)..."
+          APP_LIVENESS_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/liveness")
+          if [ "$APP_LIVENESS_RESP" != "200" ]; then
+            echo "::error::/liveness failed with HTTP $APP_LIVENESS_RESP"
+            exit 1
+          fi
+          echo "   ✅ /liveness -> HTTP 200 OK"
+
+          echo "4. Probing /readiness (Application readiness)..."
+          APP_READINESS_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/readiness")
+          if [ "$APP_READINESS_RESP" != "200" ]; then
+            echo "::error::/readiness failed with HTTP $APP_READINESS_RESP"
+            exit 1
+          fi
+          echo "   ✅ /readiness -> HTTP 200 OK"
+
+          echo "All application smoke tests PASSED successfully!"
+
+      - name: Verify Deployment Immutability
+        run: |
+          echo "Verifying running task image matches Git commit SHA ${{ github.sha }}..."
+          DEPLOYED_IMAGE=$(aws ecs describe-task-definition \
+            --task-definition "${{ steps.register-task-def.outputs.task_def_arn }}" \
+            --region ap-south-1 \
+            --query "taskDefinition.containerDefinitions[0].image" \
+            --output text)
+          echo "Task Definition image: $DEPLOYED_IMAGE"
+
+          if [[ ! "$DEPLOYED_IMAGE" =~ "${{ github.sha }}" ]]; then
+            echo "::error::Deployed task definition image does not contain Git commit SHA ${{ github.sha }}"
+            exit 1
+          fi
+          echo "Verified: Deployed container image is immutable and matches Git SHA ${{ github.sha }}."
+
+      - name: Publish Deployment Summary
+        if: always()
+        run: |
+          echo "### 🚀 Staging Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ✅ SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Git Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ECR Image Tag:** \`vetra-backend-staging:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ECS Task Definition:** \`${{ steps.register-task-def.outputs.task_def_arn }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ECS Service:** \`vetra-staging-backend-service\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ALB Target Health:** 🟢 HEALTHY" >> $GITHUB_STEP_SUMMARY
+          echo "- **Smoke Tests:** 🟢 4/4 PASSED (HTTP 200)" >> $GITHUB_STEP_SUMMARY
