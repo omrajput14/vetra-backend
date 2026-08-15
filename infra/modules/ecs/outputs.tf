@@ -92,3 +92,21 @@ output "log_group_name" {
   description = "Name of the CloudWatch log group for ECS container logs"
   value       = aws_cloudwatch_log_group.ecs.name
 }
+
+# ── Application Auto Scaling (Stage 14.11) ───────────────────────────────────
+
+output "autoscaling_target_resource_id" {
+  description = "Resource ID of the Application Auto Scaling target"
+  value       = try(aws_appautoscaling_target.ecs[0].resource_id, null)
+}
+
+output "autoscaling_cpu_policy_arn" {
+  description = "ARN of the CPU target tracking autoscaling policy"
+  value       = try(aws_appautoscaling_policy.cpu[0].arn, null)
+}
+
+output "autoscaling_alb_requests_policy_arn" {
+  description = "ARN of the ALB request count target tracking autoscaling policy"
+  value       = try(aws_appautoscaling_policy.alb_requests[0].arn, null)
+}
+

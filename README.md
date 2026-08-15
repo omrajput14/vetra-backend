@@ -415,6 +415,7 @@ Comprehensive engineering specifications and architecture design records are mai
 ### 🛠 Operations & Engineering Guides
 * [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md)
 * [AWS CloudWatch Observability Manual](docs/operations/cloudwatch-monitoring.md)
+* [ECS Application Auto Scaling Manual](docs/operations/autoscaling.md)
 * [Enterprise Caching Architecture](docs/architecture/25-caching-architecture.md)
 * [Cache Performance Benchmark Report](docs/performance/cache-benchmark-report.md)
 * [Coding Standards & Conventions](docs/engineering/12-coding-standards.md)
@@ -434,6 +435,7 @@ Comprehensive engineering specifications and architecture design records are mai
 * [x] **Stage 14.7:** AWS ECS Fargate & Application Load Balancer staging deployment with Secrets Manager runtime injection and Redis TLS.
 * [x] **Stage 14.9:** Automated continuous deployment pipeline with GitHub Actions, keyless OIDC, task definition registration, ECS service rolling update, stability gates, target health checks, and smoke tests.
 * [x] **Stage 14.10:** AWS CloudWatch Observability & Monitoring suite: operational telemetry dashboard, 12 metric alarms (ECS, ALB, RDS, Redis), log metric filters, and SNS alert notifications.
+* [x] **Stage 14.11:** AWS Application Auto Scaling with dual target-tracking policies (CPU @ 70%, ALB requests @ 1000 req/target), multi-AZ Fargate task balancing (1–3 tasks), and cooldown safeguards.
 * [ ] **Stage 14.8 (Pending Domain):** AWS ACM SSL/TLS certificate provisioning for custom staging domain with HTTPS Port 443 listener and HTTP 80 → 443 redirect.
 
 

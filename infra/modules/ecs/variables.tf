@@ -128,3 +128,48 @@ variable "tags" {
   description = "Additional resource tags"
   default     = {}
 }
+
+# ── Application Auto Scaling (Stage 14.11) ───────────────────────────────────
+
+variable "enable_autoscaling" {
+  type        = bool
+  description = "Whether to enable Application Auto Scaling for ECS service"
+  default     = false
+}
+
+variable "autoscaling_min_capacity" {
+  type        = number
+  description = "Minimum number of ECS tasks to maintain"
+  default     = 1
+}
+
+variable "autoscaling_max_capacity" {
+  type        = number
+  description = "Maximum number of ECS tasks to scale out to"
+  default     = 3
+}
+
+variable "autoscaling_cpu_target_percentage" {
+  type        = number
+  description = "Target average CPU utilization percentage for scaling"
+  default     = 70.0
+}
+
+variable "autoscaling_request_count_target" {
+  type        = number
+  description = "Target number of requests per target per minute for ALB scaling"
+  default     = 1000
+}
+
+variable "autoscaling_scale_out_cooldown" {
+  type        = number
+  description = "Cooldown period in seconds before another scale-out action"
+  default     = 60
+}
+
+variable "autoscaling_scale_in_cooldown" {
+  type        = number
+  description = "Cooldown period in seconds before another scale-in action"
+  default     = 300
+}
+

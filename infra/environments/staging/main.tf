@@ -187,7 +187,17 @@ module "ecs" {
   redis_host                = module.redis.redis_primary_endpoint_address
   redis_port                = module.redis.redis_port
   redis_password_secret_arn = module.redis.redis_password_secret_arn
+
+  # Application Auto Scaling (Stage 14.11)
+  enable_autoscaling                = true
+  autoscaling_min_capacity          = 1
+  autoscaling_max_capacity          = 3
+  autoscaling_cpu_target_percentage = 70.0
+  autoscaling_request_count_target  = 1000
+  autoscaling_scale_out_cooldown    = 60
+  autoscaling_scale_in_cooldown     = 300
 }
+
 
 # ── Observability & Monitoring (Stage 14.10) ──────────────────────────────────
 
