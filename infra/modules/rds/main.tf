@@ -70,7 +70,9 @@ resource "aws_db_instance" "this" {
 
   lifecycle {
     ignore_changes = [
-      password # Ignore manual password rotations
+      password, # Ignore manual password rotations
+      engine_version
     ]
   }
 }
+

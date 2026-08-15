@@ -333,6 +333,12 @@ src/main/resources/db/migration/
   2026-08-14 17:54:31.155 [http-nio-8080-exec-2] [traceId=4d430681b7b02767c53d3fc3c64ef3fa] [spanId=e9c9aecdea0bf1da] [11dce0a6-9727-47e3-a2c7-43ad07d692a3] INFO a.v.i.logging.LoggingFilter - method=GET uri=/actuator/health/liveness status=200 duration=400ms
   ```
 
+### CloudWatch Observability & Alerting (Stage 14.10)
+* **Unified Operations Dashboard:** `vetra-staging-operations-dashboard` tracking ECS compute, ALB latency (p50/p95), HTTP error rates, target group health, RDS connections/storage, Redis Engine CPU/memory, and application log metrics.
+* **Proactive Alarms:** 12 automated CloudWatch metric alarms for compute, networking, data tier, and container error spikes routing to `vetra-staging-alerts-topic`.
+* **Log Metric Filters:** Real-time log scanning for application `ERROR` spikes and HikariCP connection pool timeouts.
+* **Operations Manual:** See [AWS CloudWatch Observability Manual](docs/operations/cloudwatch-monitoring.md) for alarm catalogs, thresholds, and runbooks.
+
 ---
 
 ## 🚀 Quick Start (Local Development)
@@ -408,6 +414,7 @@ Comprehensive engineering specifications and architecture design records are mai
 
 ### 🛠 Operations & Engineering Guides
 * [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md)
+* [AWS CloudWatch Observability Manual](docs/operations/cloudwatch-monitoring.md)
 * [Enterprise Caching Architecture](docs/architecture/25-caching-architecture.md)
 * [Cache Performance Benchmark Report](docs/performance/cache-benchmark-report.md)
 * [Coding Standards & Conventions](docs/engineering/12-coding-standards.md)
@@ -426,6 +433,7 @@ Comprehensive engineering specifications and architecture design records are mai
 * [x] **Stage 14.2–14.6:** AWS VPC, Subnets, Security Groups, RDS PostgreSQL 15.13, ElastiCache Redis 7.1, ECR Registry, and OIDC CI Pipeline.
 * [x] **Stage 14.7:** AWS ECS Fargate & Application Load Balancer staging deployment with Secrets Manager runtime injection and Redis TLS.
 * [x] **Stage 14.9:** Automated continuous deployment pipeline with GitHub Actions, keyless OIDC, task definition registration, ECS service rolling update, stability gates, target health checks, and smoke tests.
+* [x] **Stage 14.10:** AWS CloudWatch Observability & Monitoring suite: operational telemetry dashboard, 12 metric alarms (ECS, ALB, RDS, Redis), log metric filters, and SNS alert notifications.
 * [ ] **Stage 14.8 (Pending Domain):** AWS ACM SSL/TLS certificate provisioning for custom staging domain with HTTPS Port 443 listener and HTTP 80 → 443 redirect.
 
 

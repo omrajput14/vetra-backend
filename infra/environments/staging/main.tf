@@ -189,3 +189,22 @@ module "ecs" {
   redis_password_secret_arn = module.redis.redis_password_secret_arn
 }
 
+# ── Observability & Monitoring (Stage 14.10) ──────────────────────────────────
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  environment = "staging"
+  project     = "vetra"
+  aws_region  = "ap-south-1"
+
+  ecs_cluster_name           = module.ecs.cluster_name
+  ecs_service_name           = module.ecs.service_name
+  alb_arn_suffix             = module.ecs.alb_arn_suffix
+  target_group_arn_suffix    = module.ecs.target_group_arn_suffix
+  db_instance_id             = module.rds.db_instance_id
+  redis_replication_group_id = module.redis.replication_group_id
+  ecs_log_group_name         = module.ecs.log_group_name
+}
+
+

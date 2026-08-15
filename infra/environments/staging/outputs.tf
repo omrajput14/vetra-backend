@@ -96,3 +96,16 @@ output "jwt_secret_arn" {
   value       = module.ecs.jwt_secret_arn
 }
 
+# ── Observability & Monitoring (Stage 14.10) ──────────────────────────────────
+
+output "alerts_sns_topic_arn" {
+  description = "ARN of the SNS topic for staging operational alerts"
+  value       = module.monitoring.alerts_sns_topic_arn
+}
+
+output "cloudwatch_dashboard_name" {
+  description = "Name of the operational CloudWatch dashboard"
+  value       = module.monitoring.dashboard_name
+}
+
+

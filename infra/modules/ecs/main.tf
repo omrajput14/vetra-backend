@@ -290,5 +290,14 @@ resource "aws_ecs_service" "this" {
     aws_lb_listener.http
   ]
 
+  lifecycle {
+    ignore_changes = [
+      task_definition,
+      desired_count
+    ]
+  }
+
   tags = local.common_tags
 }
+
+
