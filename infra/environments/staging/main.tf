@@ -196,7 +196,11 @@ module "ecs" {
   autoscaling_request_count_target  = 1000
   autoscaling_scale_out_cooldown    = 60
   autoscaling_scale_in_cooldown     = 300
+
+  # HTTPS & SSL/TLS (Stage 14.8)
+  certificate_arn = "arn:aws:acm:ap-south-1:278177225155:certificate/f09b49d2-5926-464d-92b1-6e2ecbfcb4fd"
 }
+
 
 
 # ── Observability & Monitoring (Stage 14.10) ──────────────────────────────────

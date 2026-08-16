@@ -161,6 +161,39 @@ resource "aws_lb_listener" "http" {
   port              = 80
   protocol          = "HTTP"
 
+  dynamic "default_action" {
+    for_each = var.certificate_arn != "" ? [1] : []
+    content {
+      type = "redirect"
+
+      redirect {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
+  }
+
+  dynamic "default_action" {
+    for_each = var.certificate_arn == "" ? [1] : []
+    content {
+      type             = "forward"
+      target_group_arn = aws_lb_target_group.this.arn
+    }
+  }
+
+  tags = local.common_tags
+}
+
+resource "aws_lb_listener" "https" {
+  count = var.certificate_arn != "" ? 1 : 0
+
+  load_balancer_arn = aws_lb.this.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = var.ssl_policy
+  certificate_arn   = var.certificate_arn
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.this.arn
@@ -168,6 +201,7 @@ resource "aws_lb_listener" "http" {
 
   tags = local.common_tags
 }
+
 
 # ── ECS Cluster, Task Definition & Service ────────────────────────────────────
 

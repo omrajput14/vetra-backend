@@ -173,3 +173,18 @@ variable "autoscaling_scale_in_cooldown" {
   default     = 300
 }
 
+# ── HTTPS & ACM Certificate (Stage 14.8) ─────────────────────────────────────
+
+variable "certificate_arn" {
+  type        = string
+  description = "ARN of the AWS ACM SSL/TLS certificate for HTTPS port 443 listener"
+  default     = ""
+}
+
+variable "ssl_policy" {
+  type        = string
+  description = "Security policy for ALB HTTPS listener (TLS protocol and cipher suite)"
+  default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+}
+
+

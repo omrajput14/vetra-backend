@@ -38,6 +38,12 @@ output "target_group_arn_suffix" {
   value       = aws_lb_target_group.this.arn_suffix
 }
 
+output "https_listener_arn" {
+  description = "ARN of the ALB HTTPS listener"
+  value       = try(aws_lb_listener.https[0].arn, null)
+}
+
+
 output "cluster_id" {
   description = "ID of the ECS cluster"
   value       = aws_ecs_cluster.this.id
