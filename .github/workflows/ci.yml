@@ -311,42 +311,61 @@ jobs:
 
       - name: Execute End-to-End Application Smoke Tests
         run: |
-          ALB_URL="http://vetra-staging-alb-704759510.ap-south-1.elb.amazonaws.com"
-          echo "Executing smoke tests against $ALB_URL..."
+          set -euo pipefail
+          API_URL="https://api.vetra.dpdns.org"
+          HTTP_URL="http://api.vetra.dpdns.org"
+          echo "Executing smoke tests against $API_URL and redirect tests against $HTTP_URL..."
 
-          echo "1. Probing /actuator/health/liveness (Liveness probe)..."
-          LIVENESS_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/actuator/health/liveness")
+          echo "1. Probing HTTP -> HTTPS 301 Redirect..."
+          HEADER_DUMP=$(curl -sS -D - -o /dev/null "$HTTP_URL/actuator/health")
+          HTTP_STATUS=$(echo "$HEADER_DUMP" | grep -i "^HTTP/" | tail -n 1 | awk '{print $2}')
+          LOCATION_HEADER=$(echo "$HEADER_DUMP" | grep -i "^Location:" | tr -d '\r' | awk '{print $2}')
+          echo "   HTTP Status: $HTTP_STATUS"
+          echo "   Location:    $LOCATION_HEADER"
+
+          if [ "$HTTP_STATUS" != "301" ]; then
+            echo "::error::HTTP Port 80 redirect failed. Expected 301, got $HTTP_STATUS"
+            exit 1
+          fi
+          if [[ ! "$LOCATION_HEADER" =~ ^https://api\.vetra\.dpdns\.org ]]; then
+            echo "::error::Redirect Location header does not point to https://api.vetra.dpdns.org. Got $LOCATION_HEADER"
+            exit 1
+          fi
+          echo "   ✅ HTTP -> HTTPS 301 Redirect verified successfully."
+
+          echo "2. Probing /actuator/health/liveness over HTTPS..."
+          LIVENESS_RESP=$(curl -sS -o /dev/null -w "%{http_code}" "$API_URL/actuator/health/liveness")
           if [ "$LIVENESS_RESP" != "200" ]; then
             echo "::error::/actuator/health/liveness failed with HTTP $LIVENESS_RESP"
             exit 1
           fi
           echo "   ✅ /actuator/health/liveness -> HTTP 200 OK"
 
-          echo "2. Probing /actuator/health (Full health: DB + Redis TLS)..."
-          HEALTH_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/actuator/health")
+          echo "3. Probing /actuator/health over HTTPS (DB + Redis TLS)..."
+          HEALTH_RESP=$(curl -sS -o /dev/null -w "%{http_code}" "$API_URL/actuator/health")
           if [ "$HEALTH_RESP" != "200" ]; then
             echo "::error::/actuator/health failed with HTTP $HEALTH_RESP"
             exit 1
           fi
           echo "   ✅ /actuator/health -> HTTP 200 OK"
 
-          echo "3. Probing /liveness (Application probe)..."
-          APP_LIVENESS_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/liveness")
+          echo "4. Probing /liveness over HTTPS..."
+          APP_LIVENESS_RESP=$(curl -sS -o /dev/null -w "%{http_code}" "$API_URL/liveness")
           if [ "$APP_LIVENESS_RESP" != "200" ]; then
             echo "::error::/liveness failed with HTTP $APP_LIVENESS_RESP"
             exit 1
           fi
           echo "   ✅ /liveness -> HTTP 200 OK"
 
-          echo "4. Probing /readiness (Application readiness)..."
-          APP_READINESS_RESP=$(curl -s -o /dev/null -w "%{http_code}" "$ALB_URL/readiness")
+          echo "5. Probing /readiness over HTTPS..."
+          APP_READINESS_RESP=$(curl -sS -o /dev/null -w "%{http_code}" "$API_URL/readiness")
           if [ "$APP_READINESS_RESP" != "200" ]; then
             echo "::error::/readiness failed with HTTP $APP_READINESS_RESP"
             exit 1
           fi
           echo "   ✅ /readiness -> HTTP 200 OK"
 
-          echo "All application smoke tests PASSED successfully!"
+          echo "All application smoke tests PASSED successfully over HTTPS!"
 
       - name: Verify Deployment Immutability
         run: |
@@ -374,4 +393,4 @@ jobs:
           echo "- **ECS Task Definition:** \`${{ steps.register-task-def.outputs.task_def_arn }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **ECS Service:** \`vetra-staging-backend-service\`" >> $GITHUB_STEP_SUMMARY
           echo "- **ALB Target Health:** 🟢 HEALTHY" >> $GITHUB_STEP_SUMMARY
-          echo "- **Smoke Tests:** 🟢 4/4 PASSED (HTTP 200)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Smoke Tests:** 🟢 5/5 PASSED (HTTP 301 Redirect + HTTPS 200)" >> $GITHUB_STEP_SUMMARY

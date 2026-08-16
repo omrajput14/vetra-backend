@@ -191,7 +191,7 @@ sequenceDiagram
         GH->>ECS: Trigger rolling deployment (update-service)
         GH->>ECS: Wait for service stability (wait services-stable)
         GH->>ALB: Verify target group health (describe-target-health)
-        GH->>ALB: Execute end-to-end HTTP smoke tests (200 OK)
+        GH->>ALB: Execute end-to-end HTTP 301 redirect & HTTPS smoke tests (200 OK)
         GH->>GH: Verify image tag immutability (Git SHA = ECR Tag = Task Image)
     end
 ```
@@ -200,7 +200,7 @@ sequenceDiagram
 * **Keyless OIDC Authentication:** No long-lived AWS Access Keys or Secret Keys are stored in GitHub Secrets. Authentication occurs dynamically via GitHub's OpenID Connect identity token verified against AWS STS.
 * **Immutable Commit SHA Tagging:** Container images are uniquely tagged with the full Git commit SHA (`vetra-backend-staging:<sha>`) rather than mutable tags like `latest`.
 * **Zero Plaintext Secrets:** Task definition updates preserve dynamic AWS Secrets Manager ARNs (`DB_PASSWORD`, `REDIS_PASSWORD`, `JWT_SECRET`) without embedding credentials.
-* **Automated Health & Stability Gates:** The deployment workflow blocks and fails if ECS fails to reach steady state, if the ALB target group reports unhealthy, or if any of the 4 application health probes fail (`/actuator/health/liveness`, `/actuator/health`, `/liveness`, `/readiness`).
+* **Automated Health & Stability Gates:** The deployment workflow blocks and fails if ECS fails to reach steady state, if the ALB target group reports unhealthy, if HTTP 80 fails to redirect (301) to HTTPS, or if any of the deep HTTPS health probes fail (`/actuator/health/liveness`, `/actuator/health`, `/liveness`, `/readiness`).
 * **Deployment Circuit Breaker:** ECS rolling deployments utilize automatic circuit breakers with rollback to prevent bad deployments from persisting.
 
 
@@ -414,6 +414,7 @@ Comprehensive engineering specifications and architecture design records are mai
 
 ### 🛠 Operations & Engineering Guides
 * [Developer Onboarding Guide](docs/guides/20-developer-onboarding.md)
+* [Continuous Deployment & Verification Manual](docs/operations/cicd-deployment.md)
 * [AWS CloudWatch Observability Manual](docs/operations/cloudwatch-monitoring.md)
 * [ECS Application Auto Scaling Manual](docs/operations/autoscaling.md)
 * [Enterprise Caching Architecture](docs/architecture/25-caching-architecture.md)
