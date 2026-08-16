@@ -116,4 +116,131 @@ class AnimalServiceTest {
     List<AnimalResponse> emptyList = animalService.listAnimals("animalfarmer@vetra.app");
     assertEquals(0, emptyList.size());
   }
+
+  @Test
+  void testAnimalSearchFilterPermutations() {
+    String farmerEmail = "search_farmer@vetra.app";
+    FarmerRegisterRequest farmerReq =
+        new FarmerRegisterRequest(
+            farmerEmail,
+            "+1555099777",
+            "pass123",
+            "Search Farmer",
+            "Multi Animal Farm",
+            "Village A",
+            "District B",
+            "State C",
+            15.0,
+            75.0,
+            4);
+    authService.registerFarmer(farmerReq);
+
+    // 1. Cattle Female Sahiwal
+    animalService.createAnimal(
+        farmerEmail,
+        new CreateAnimalRequest(
+            "Gauri",
+            "TAG-CATTLE-01",
+            "QR-CATTLE-01",
+            Species.CATTLE,
+            "Sahiwal",
+            AnimalGender.FEMALE,
+            LocalDate.of(2023, 1, 15),
+            null));
+
+    // 2. Cattle Male Gir
+    animalService.createAnimal(
+        farmerEmail,
+        new CreateAnimalRequest(
+            "Nandi",
+            "TAG-CATTLE-02",
+            "QR-CATTLE-02",
+            Species.CATTLE,
+            "Gir",
+            AnimalGender.MALE,
+            LocalDate.of(2022, 6, 20),
+            null));
+
+    // 3. Goat Female Jamnapari
+    animalService.createAnimal(
+        farmerEmail,
+        new CreateAnimalRequest(
+            "Munni",
+            "TAG-GOAT-01",
+            "QR-GOAT-01",
+            Species.GOAT,
+            "Jamnapari",
+            AnimalGender.FEMALE,
+            LocalDate.of(2024, 2, 10),
+            null));
+
+    // 4. Goat Male Boer
+    animalService.createAnimal(
+        farmerEmail,
+        new CreateAnimalRequest(
+            "Ramu",
+            "TAG-GOAT-02",
+            "QR-GOAT-02",
+            Species.GOAT,
+            "Boer",
+            AnimalGender.MALE,
+            LocalDate.of(2023, 11, 5),
+            null));
+
+    // Test Permutation 1: only tagNumber
+    List<AnimalResponse> resOnlyTag =
+        animalService.searchAnimals(farmerEmail, null, "TAG-CATTLE-01", null, null, null, null);
+    assertEquals(1, resOnlyTag.size());
+    assertEquals("TAG-CATTLE-01", resOnlyTag.get(0).tagNumber());
+    assertEquals("Gauri", resOnlyTag.get(0).animalName());
+
+    // Test Permutation 2: tagNumber + species
+    List<AnimalResponse> resTagAndSpecies =
+        animalService.searchAnimals(
+            farmerEmail, null, "TAG-CATTLE", null, Species.CATTLE, null, null);
+    assertEquals(2, resTagAndSpecies.size());
+
+    List<AnimalResponse> resTagAndMismatchedSpecies =
+        animalService.searchAnimals(
+            farmerEmail, null, "TAG-CATTLE-01", null, Species.GOAT, null, null);
+    assertEquals(0, resTagAndMismatchedSpecies.size());
+
+    // Test Permutation 3: tagNumber + gender
+    List<AnimalResponse> resTagAndGender =
+        animalService.searchAnimals(
+            farmerEmail, null, "TAG-GOAT", null, null, null, AnimalGender.FEMALE);
+    assertEquals(1, resTagAndGender.size());
+    assertEquals("Munni", resTagAndGender.get(0).animalName());
+
+    // Test Permutation 4: species + gender
+    List<AnimalResponse> resSpeciesAndGender =
+        animalService.searchAnimals(
+            farmerEmail, null, null, null, Species.CATTLE, null, AnimalGender.FEMALE);
+    assertEquals(1, resSpeciesAndGender.size());
+    assertEquals("Gauri", resSpeciesAndGender.get(0).animalName());
+
+    List<AnimalResponse> resAllMaleCattle =
+        animalService.searchAnimals(
+            farmerEmail, null, null, null, Species.CATTLE, null, AnimalGender.MALE);
+    assertEquals(1, resAllMaleCattle.size());
+    assertEquals("Nandi", resAllMaleCattle.get(0).animalName());
+
+    // Test Permutation 5: all filters provided
+    List<AnimalResponse> resAllFilters =
+        animalService.searchAnimals(
+            farmerEmail,
+            "Gauri",
+            "TAG-CATTLE-01",
+            "QR-CATTLE-01",
+            Species.CATTLE,
+            "Sahiwal",
+            AnimalGender.FEMALE);
+    assertEquals(1, resAllFilters.size());
+    assertEquals("Gauri", resAllFilters.get(0).animalName());
+
+    // Test Permutation 6: all optional filters omitted (returns all registered animals for farmer)
+    List<AnimalResponse> resAllOmitted =
+        animalService.searchAnimals(farmerEmail, null, null, null, null, null, null);
+    assertEquals(4, resAllOmitted.size());
+  }
 }

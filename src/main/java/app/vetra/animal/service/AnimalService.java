@@ -4,6 +4,7 @@ import app.vetra.animal.dto.AnimalResponse;
 import app.vetra.animal.dto.CreateAnimalRequest;
 import app.vetra.animal.dto.UpdateAnimalRequest;
 import app.vetra.animal.repository.AnimalRepository;
+import app.vetra.animal.specification.AnimalSpecification;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.infrastructure.cache.CacheNames;
@@ -25,6 +26,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -162,7 +164,7 @@ public class AnimalService {
     return animalRepository.findAll().stream().map(this::mapToResponse).toList();
   }
 
-  /** Searches animals with optional filters. */
+  /** Searches animals with optional filters using dynamic Criteria Specification. */
   @Transactional(readOnly = true)
   public List<AnimalResponse> searchAnimals(
       String currentUserIdentifier,
@@ -185,11 +187,11 @@ public class AnimalService {
       farmerId = farmer.getId();
     }
 
-    return animalRepository
-        .searchAnimals(farmerId, animalName, tagNumber, qrCodeId, species, breed, gender)
-        .stream()
-        .map(this::mapToResponse)
-        .toList();
+    Specification<Animal> spec =
+        AnimalSpecification.withFilters(
+            farmerId, animalName, tagNumber, qrCodeId, species, breed, gender);
+
+    return animalRepository.findAll(spec).stream().map(this::mapToResponse).toList();
   }
 
   /** Updates an existing animal record. */

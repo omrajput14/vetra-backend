@@ -19,6 +19,10 @@ fi
 
 M2_HOME=${M2_HOME:-"$HOME/.m2/wrapper/dists/apache-maven-3.9.9"}
 
+if [ -f "$M2_HOME/bin/mvn" ]; then
+  exec "$M2_HOME/bin/mvn" "$@"
+fi
+
 # Fall back to system Maven if wrapper hasn't downloaded yet
 if command -v mvn > /dev/null 2>&1; then
   exec mvn "$@"
