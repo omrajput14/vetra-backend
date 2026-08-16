@@ -34,7 +34,7 @@
     <spotless.version>2.44.5</spotless.version>
     <checkstyle.version>3.6.0</checkstyle.version>
     <!-- datasource-micrometer: JDBC/HikariCP tracing via Micrometer Observation -->
-    <datasource-micrometer.version>1.0.6</datasource-micrometer.version>
+    <datasource-micrometer.version>2.2.1</datasource-micrometer.version>
     <resilience4j.version>2.4.0</resilience4j.version>
   </properties>
 
