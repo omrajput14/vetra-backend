@@ -30,7 +30,7 @@
     <!-- Dependency versions not managed by Boot parent -->
     <jjwt.version>0.12.6</jjwt.version>
     <springdoc.version>2.9.0</springdoc.version>
-    <awssdk.version>2.51.2</awssdk.version>
+    <awssdk.version>2.53.0</awssdk.version>
     <spotless.version>2.44.5</spotless.version>
     <checkstyle.version>3.6.0</checkstyle.version>
     <!-- datasource-micrometer: JDBC/HikariCP tracing via Micrometer Observation -->
