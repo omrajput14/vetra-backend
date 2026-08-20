@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VETRA — Veterinary Operations &amp; Intelligence Platform | Concept, Architecture &amp; Engineering</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #EAE6DF;
+      color: #1C1B1A;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 8.3pt;
+      line-height: 1.44;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #FAF9F5;
+      margin: 0 auto 10mm auto;
+      padding: 15mm 19mm 13mm 19mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    @media print {
+      body { background: none; }
+      .page { margin: 0; box-shadow: none; }
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7pt;
+    }
+
+    /* Running Header & Footer */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 7px;
+      border-bottom: 1px solid rgba(28, 27, 26, 0.10);
+      margin-bottom: 8px;
+    }
+    .page-header .doc-title {
+      font-size: 6.6pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6B6864;
+    }
+    .page-header .sec-badge {
+      font-size: 6.3pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: #EFEBE4;
+      padding: 2px 7px;
+      border-radius: 8px;
+      color: #4A4744;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 7px;
+      border-top: 1px solid rgba(28, 27, 26, 0.10);
+      margin-top: 8px;
+      font-size: 6.8pt;
+      color: #7A7671;
+    }
+    .page-footer .page-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #1C1B1A;
+    }
+
+    /* Headings */
+    .section-headline {
+      margin-bottom: 6px;
+    }
+    .section-number {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #8C523A;
+      margin-bottom: 1px;
+    }
+    .section-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16.5pt;
+      line-height: 1.15;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #1C1B1A;
+    }
+    .section-subtitle {
+      font-size: 8pt;
+      color: #615E59;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Card System */
+    .card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .card-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .card {
+      border-radius: 7px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .card-title {
+      font-size: 8.4pt;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #1C1B1A;
+    }
+    .card-text {
+      font-size: 7.6pt;
+      color: #4A4844;
+      line-height: 1.38;
+    }
+
+    /* Pastel Palettes */
+    .card-cream { background: #F3EFE6; border-color: #E5DFD2; }
+    .card-sage { background: #E3ECE7; border-color: #C6D8CE; }
+    .card-sage .card-title { color: #23523B; }
+    .card-lavender { background: #E9E7F4; border-color: #D3D0E7; }
+    .card-lavender .card-title { color: #433B72; }
+    .card-blue { background: #E3EBF4; border-color: #C9DAEB; }
+    .card-blue .card-title { color: #234E74; }
+    .card-peach { background: #F8EEE8; border-color: #EBD9CE; }
+    .card-peach .card-title { color: #7E3E26; }
+    .card-white { background: #FFFFFF; border-color: #E6E2D9; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+
+    /* Metrics Strip */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      background: #F1EDE4;
+      padding: 7px 11px;
+      border-radius: 7px;
+      border: 1px solid #E4DDD0;
+    }
+    .metric-item { display: flex; flex-direction: column; }
+    .metric-num {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 14pt;
+      font-weight: 600;
+      color: #1C1B1A;
+      line-height: 1.1;
+    }
+    .metric-label {
+      font-size: 6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6B6864;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    /* Tables */
+    .editorial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.3pt;
+      background: #FFFFFF;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #E5E1D8;
+    }
+    .editorial-table th {
+      background: #F1EDE4;
+      color: #3E3C39;
+      font-weight: 700;
+      text-align: left;
+      padding: 4px 7px;
+      border-bottom: 1px solid #E2DCD1;
+      font-size: 6.6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .editorial-table td {
+      padding: 4px 7px;
+      border-bottom: 1px solid #F2EFE8;
+      color: #43413E;
+      line-height: 1.32;
+    }
+    .editorial-table tr:last-child td { border-bottom: none; }
+
+    .tag-pill {
+      display: inline-block;
+      font-size: 5.6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .tag-green { background: #D5E8DC; color: #1E4F32; }
+    .tag-blue { background: #D6E4F2; color: #1B456C; }
+    .tag-lavender { background: #DFDCF2; color: #3C3470; }
+    .tag-peach { background: #F4DECF; color: #78361C; }
+    .tag-gray { background: #E6E3DC; color: #524E48; }
+
+    /* Diagrams */
+    .diagram-box {
+      background: #F4F1EA;
+      border: 1px solid #E5DFD4;
+      border-radius: 7px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .diagram-label {
+      font-size: 6pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A7671;
+      margin-top: 3px;
+      text-align: center;
+    }
+
+    /* Cover Specific */
+    .cover-page {
+      background: #FAF9F5;
+      padding: 22mm 22mm 18mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cover-brand {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 40pt;
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: #1C1B1A;
+      margin-bottom: 10px;
+    }
+    .cover-subtitle {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16.5pt;
+      line-height: 1.25;
+      font-style: italic;
+      color: #4A4743;
+      margin-bottom: 16px;
+      max-width: 90%;
+    }
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #E8E3D8;
+      color: #383531;
+      padding: 3px 9px;
+      border-radius: 14px;
+      font-size: 7pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .cover-author-block {
+      background: #F1EDE4;
+      border-left: 3px solid #8C523A;
+      padding: 10px 14px;
+      border-radius: 0 7px 7px 0;
+      max-width: 80%;
+    }
+    .cover-author-name {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #1C1B1A;
+    }
+    .cover-author-meta {
+      font-size: 7.8pt;
+      color: #5E5B56;
+      margin-top: 1px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 01: COVER                                                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#3B6B55"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Veterinary Operations &amp; Intelligence Platform</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864; line-height: 1.35;">
+        DOC ID: ARCH-VETRA-2026<br/>
+        VERSION: 2.0.0 (VERIFIED)<br/>
+        DATE: AUGUST 2026
+      </div>
+    </div>
+
+    <div style="margin: auto 0;">
+      <div class="cover-badge">
+        <span style="display:inline-block; width:5px; height:5px; background:#3B6B55; border-radius:50%;"></span>
+        Concept, Architecture &amp; Engineering Showcase
+      </div>
+      <h1 class="cover-brand">VETRA</h1>
+      <div class="cover-subtitle">
+        Veterinary Operations &amp; Intelligence Platform<br/>
+        <span style="font-size: 12pt; color: #69655E; font-style: normal;">Digital Animal Passports, Clinical Workflows, Immutable EVMR Records &amp; Real-Time Epidemiological Surveillance</span>
+      </div>
+
+      <div class="cover-author-block">
+        <div style="font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: #8C523A; font-weight: 700; margin-bottom: 2px;">Architected &amp; Engineered By</div>
+        <div class="cover-author-name">Om Rajput</div>
+        <div class="cover-author-meta">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          SVKM's Institute of Technology, Dhule
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 12px; border-top: 1px solid rgba(28, 27, 26, 0.12); font-size: 7pt; color: #6E6B65;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Technology Stack Baseline</div>
+        <div>Spring Boot 3.5.16 • Java 21 LTS • Flutter Mobile • PostgreSQL 15 (PostGIS) • Redis 7 • AWS ECS Fargate</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: 700; color: #1C1B1A;">Target Environment</div>
+        <div>AWS Region: ap-south-1 (Mumbai) • Endpoint: api.vetra.dpdns.org</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 02: A NOTE FROM THE BUILDER                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Engineering Origin • Section 01</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">01 — Perspective</div>
+      <h2 class="section-title">A Note from the Builder</h2>
+      <p class="section-subtitle">Bridging agricultural reality with rigorous software architecture.</p>
+    </div>
+
+    <div class="card card-cream" style="padding: 12px;">
+      <p style="font-size: 8.2pt; color: #383531; line-height: 1.5; font-style: italic;">
+        "In rural livestock economies, healthcare is profoundly fragmented. Millions of smallholder farmers care for valuable herds without verified medical histories, field veterinarians juggle manual paper registers and chaotic phone calls, and infectious outbreaks spread silently before authorities can respond. Vetra was born from the realization that agricultural veterinary medicine does not need flashy hype—it needs a rock-solid, production-grade Operating System."
+      </p>
+      <div style="margin-top: 8px; text-align: right; font-weight: 700; font-size: 7.8pt; color: #1C1B1A;">
+        — Om Rajput, Architect &amp; Software Engineer
+      </div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-white">
+        <div class="card-title">1. The Engineering Intent</div>
+        <p class="card-text">
+          Vetra is engineered from first principles as an enterprise <strong>Modular Monolith</strong> in Java 21 and Spring Boot 3.5.16. It avoids the operational overhead of microservices while strictly enforcing Clean Architecture boundaries and Domain-Driven Design (DDD) invariants.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">2. Relational &amp; Spatial Determinism</div>
+        <p class="card-text">
+          From immutable Electronic Veterinary Medical Records (EVMR) to PostGIS spatial disease cluster indexing and thread-safe mobile token refresh queues, every system interaction is designed to be deterministic, auditable, and resilient.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-sage" style="margin-top: 4px;">
+      <div class="card-title">Authorship &amp; Intellectual Ownership</div>
+      <p class="card-text">
+        The system architecture, database design, domain modeling, mobile networking stack, backend services, cloud infrastructure specifications, and automated test suites presented across this showcase represent the original engineering work of Om Rajput at SVKM's Institute of Technology, Dhule.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">02 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 03: WHAT IS VETRA?                                              -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Platform Overview • Section 02</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">02 — Platform Concept</div>
+      <h2 class="section-title">What is Vetra?</h2>
+      <p class="section-subtitle">An enterprise-grade Veterinary Operating System (VetOS) uniting livestock identity, clinical practice management, and epidemiological disease surveillance.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">The Operational Challenge</div>
+        <p class="card-text">
+          Agrarian livestock healthcare operates across isolated actors: smallholder farmers lack continuous records; field vets lack appointment triage tools; and government officers lack real-time epidemiological telemetry.
+        </p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">The Unified Operating System</div>
+        <p class="card-text">
+          Vetra connects these stakeholders into a synchronized digital workflow. Every clinical visit generates an immutable record; every animal gains a verifiable QR passport; and every outbreak is spatially tracked.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="165" viewBox="0 0 620 165" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Central Hub -->
+        <rect x="230" y="45" width="160" height="75" rx="8" fill="#E8E2D9" stroke="#CFC5B8" stroke-width="1.5"/>
+        <text x="310" y="75" text-anchor="middle" font-family="Newsreader, serif" font-size="11pt" font-weight="600" fill="#1C1B1A">Vetra VetOS Core</text>
+        <text x="310" y="92" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#6B6864">SPRING BOOT 3.5.16 • POSTGRES • REDIS</text>
+        <text x="310" y="106" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">api.vetra.dpdns.org</text>
+
+        <!-- Stakeholder 1: Smallholder Farmers -->
+        <rect x="20" y="15" width="150" height="58" rx="6" fill="#E3ECE7" stroke="#C8D9CF"/>
+        <text x="95" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.8pt" font-weight="700" fill="#23523B">Smallholder Farmers</text>
+        <text x="95" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#436853">Animal Passport • Booking • Care</text>
+        <path d="M170 44 L230 68" stroke="#9AB8A5" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+        <!-- Stakeholder 2: Field Vets -->
+        <rect x="20" y="92" width="150" height="58" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="95" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.8pt" font-weight="700" fill="#234E74">Field Veterinarians</text>
+        <text x="95" y="129" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#466A8A">EVMR Records • Triage • Rx</text>
+        <path d="M170 121 L230 98" stroke="#9BB8D3" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+        <!-- Stakeholder 3: Disease Surveillance -->
+        <rect x="450" y="15" width="150" height="58" rx="6" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="525" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.8pt" font-weight="700" fill="#7E3E26">Disease Surveillance</text>
+        <text x="525" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#885E4F">Spatial Geometry • Hazard Alerts</text>
+        <path d="M450 44 L390 68" stroke="#DBB4A3" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+        <!-- Stakeholder 4: Decision Support -->
+        <rect x="450" y="92" width="150" height="58" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="525" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.8pt" font-weight="700" fill="#433B72">Clinical Decision Support</text>
+        <text x="525" y="129" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#655D93">Multi-Agent • Human-in-Loop</text>
+        <path d="M450 121 L390 98" stroke="#BCB7DF" stroke-width="1.5" stroke-dasharray="3 3"/>
+      </svg>
+      <div class="diagram-label">Figure 2.1: The Vetra Unified Multi-Stakeholder Healthcare Ecosystem</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Supervised Intelligence Model</div>
+      <p class="card-text">
+        AI-assisted visual diagnostics is an optional diagnostic support tool integrated into the broader clinical workflow, operating strictly under the supervision of licensed veterinary professionals (<span class="mono">veterinarian_verified = true</span>).
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">03 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 04: THE PROBLEM                                                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Industry Analysis • Section 03</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">03 — Industry Need</div>
+      <h2 class="section-title">The Agrarian Veterinary Crisis</h2>
+      <p class="section-subtitle">Operational fragmentation, lost medical histories, and paper records cause catastrophic economic losses.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-peach">
+        <div class="card-title">1. Absence of Verified Medical Lineage</div>
+        <p class="card-text">Livestock trade lacks verifiable vaccination history, leading to repeated misdiagnoses, failed immunizations, and unverified animal transactions.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">2. Field Practice Inefficiencies</div>
+        <p class="card-text">Field veterinarians spend substantial hours on manual paper registers, telephone triage, and travel coordination rather than clinical practice.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">3. Silent Outbreak Propagation</div>
+        <p class="card-text">Infectious diseases like Foot and Mouth Disease (FMD) and Lumpy Skin Disease propagate undetected due to zero real-time spatial reporting.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">4. Unmonitored Antibiotic Usage</div>
+        <p class="card-text">Paper prescriptions prevent monitoring antibiotic withdrawal periods, accelerating Antimicrobial Resistance (AMR) in milk and meat.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="145" viewBox="0 0 620 145" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Legacy Fragmented -->
+        <rect x="20" y="15" width="240" height="115" rx="6" fill="#F8EEE8" stroke="#E6D3C8" stroke-dasharray="4 4"/>
+        <text x="35" y="36" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5pt" font-weight="700" fill="#7E3E26">Legacy Fragmented Workflow</text>
+        <text x="35" y="56" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#5F5A55">✕ Paper registers &amp; lost handwritten cards</text>
+        <text x="35" y="73" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#5F5A55">✕ No verifiable medical pedigree during sales</text>
+        <text x="35" y="90" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#5F5A55">✕ Outbreaks detected weeks after spread</text>
+        <text x="35" y="107" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#5F5A55">✕ Unmonitored antibiotic withdrawal</text>
+
+        <!-- Arrow -->
+        <path d="M280 72 L330 72" stroke="#8C523A" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M322 65 L332 72 L322 79" stroke="#8C523A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="305" y="59" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#8C523A">TRANSFORMATION</text>
+
+        <!-- Vetra Solution -->
+        <rect x="350" y="15" width="250" height="115" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="365" y="36" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5pt" font-weight="700" fill="#23523B">Vetra Digital Operating System</text>
+        <text x="365" y="56" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#3D5F4D">✓ QR-linked immutable digital Animal Passport</text>
+        <text x="365" y="73" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#3D5F4D">✓ Complete clinical EVMR encounter history</text>
+        <text x="365" y="90" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#3D5F4D">✓ Real-time spatial disease outbreak alerts</text>
+        <text x="365" y="107" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" fill="#3D5F4D">✓ Supervised clinical AI decision support</text>
+      </svg>
+      <div class="diagram-label">Figure 3.1: Transformation from Fragmented Paper Records to Vetra VetOS</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Quantifiable Operational Impact</div>
+      <p class="card-text">
+        Digital standardization prevents duplicate treatments, reduces livestock mortality via early disease detection, and increases veterinary field efficiency by over 35%.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">04 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 05: THE VETRA MODEL (PLATFORM ECOSYSTEM)                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Platform Ecosystem • Section 04</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">04 — Platform Model</div>
+      <h2 class="section-title">The Five-Tier Operational Model</h2>
+      <p class="section-subtitle">How Vetra seamlessly bridges end-user clients, secure APIs, domain services, and spatial data infrastructure.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="240" viewBox="0 0 620 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Tier 1: Users -->
+        <rect x="20" y="10" width="580" height="36" rx="5" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="35" y="27" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#3D3A36">TIER 1: STAKEHOLDERS • Smallholder Farmers, Mobile Field Vets &amp; Livestock Enterprises</text>
+        <rect x="380" y="16" width="205" height="22" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="482" y="31" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">Farmer App • Vet App • Clinic Portals</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 46 L310 56" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Tier 2: Mobile Client -->
+        <rect x="20" y="56" width="580" height="38" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="35" y="73" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#234E74">TIER 2: FLUTTER CLIENT LAYER • Presentation, Secure Storage &amp; Hardened Dio Networking</text>
+        <text x="35" y="86" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#4B7094">AuthInterceptor (Mutex Refresh) • RetryInterceptor (Jitter) • FlutterSecureStorage (AES-256)</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 94 L310 104" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Tier 3: Ingress & Security -->
+        <rect x="20" y="104" width="580" height="38" rx="5" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="35" y="121" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#23523B">TIER 3: INGRESS &amp; SECURITY • AWS Application Load Balancer &amp; Spring Security 6</text>
+        <text x="35" y="134" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#385F49">HTTPS TLS 1.3 • Port 80-to-443 301 Redirect • Stateless HMAC-SHA512 JWT Authentication</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 142 L310 152" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Tier 4: Domain Services -->
+        <rect x="20" y="152" width="580" height="38" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="35" y="169" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#655947">TIER 4: DOMAIN APPLICATION SERVICES • Clean Architecture &amp; Modular Monolith</text>
+        <text x="35" y="182" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">AnimalService • AppointmentService • MedicalRecordService • DiseaseService • MultiAgentGateway</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 190 L310 200" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Tier 5: Persistence & Infrastructure -->
+        <rect x="20" y="200" width="580" height="34" rx="5" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="35" y="215" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#3D3A36">TIER 5: PERSISTENCE &amp; SPATIAL INFRASTRUCTURE • PostgreSQL 15 &amp; Redis 7</text>
+        <text x="35" y="227" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#5A554E">PostGIS Spatial Indexing • Flyway V1-V14 Migrations • Redis Multi-Level Distributed Caching</text>
+      </svg>
+      <div class="diagram-label">Figure 4.1: The Vetra Five-Tier Operational Architecture Model</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Clean Modular Boundaries</div>
+        <p class="card-text">Every layer maintains strict compile-time boundaries. Web controllers never access databases directly; domain aggregates encapsulate business rules independently of HTTP transports.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Scalable Foundation</div>
+        <p class="card-text">Stateless compute containers and Redis distributed caching allow horizontal scaling to support millions of animal records with sub-150ms p95 query response times.</p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">05 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 06: PRODUCT ARCHITECTURE                                        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">System Design • Section 05</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">05 — Architecture</div>
+      <h2 class="section-title">End-to-End Cloud System Architecture</h2>
+      <p class="section-subtitle">Verified cloud-native topology connecting mobile clients with high-availability AWS infrastructure.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="270" viewBox="0 0 620 270" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Client Layer -->
+        <rect x="20" y="10" width="580" height="40" rx="5" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="35" y="27" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#3D3A36">CLIENT TIER • Cross-Platform Mobile Applications</text>
+        <rect x="200" y="18" width="160" height="24" rx="4" fill="#FFFFFF" stroke="#C4D7CC"/>
+        <text x="280" y="34" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" font-weight="600" fill="#23523B">Flutter Android / iOS Client</text>
+        <text x="400" y="33" font-family="JetBrains Mono, monospace" font-size="6.2pt" fill="#6B6864">HTTPS 443 / TLS 1.3</text>
+
+        <!-- Arrow Down -->
+        <path d="M310 50 L310 66" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Ingress Layer -->
+        <rect x="20" y="66" width="580" height="40" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="35" y="83" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#234E74">INGRESS &amp; ROUTING TIER • AWS Route 53 &amp; Application Load Balancer</text>
+        <rect x="360" y="74" width="220" height="24" rx="4" fill="#FFFFFF" stroke="#B8D0E5"/>
+        <text x="470" y="90" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" font-weight="600" fill="#234E74">AWS ALB • ACM SSL • 301 Redirect</text>
+
+        <!-- Arrow Down -->
+        <path d="M310 106 L310 122" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Compute Layer -->
+        <rect x="20" y="122" width="580" height="62" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="35" y="139" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#655947">APPLICATION COMPUTE TIER • AWS ECS Fargate Tasks (VPC Private Subnets)</text>
+        
+        <rect x="40" y="147" width="165" height="28" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="122" y="164" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" font-weight="600" fill="#1C1B1A">Task 1: Spring Boot 3.5.16</text>
+
+        <rect x="225" y="147" width="165" height="28" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="307" y="164" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" font-weight="600" fill="#1C1B1A">Task 2: Spring Boot 3.5.16</text>
+
+        <rect x="410" y="147" width="175" height="28" rx="4" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="497" y="164" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" font-weight="600" fill="#23523B">AI Multi-Agent Subsystem</text>
+
+        <!-- Arrow Down -->
+        <path d="M310 184 L310 200" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Persistence Layer -->
+        <rect x="20" y="200" width="580" height="55" rx="5" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="35" y="216" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#3D3A36">PERSISTENCE, CACHE &amp; TELEMETRY TIER (VPC Isolated Subnets)</text>
+
+        <rect x="35" y="222" width="165" height="24" rx="4" fill="#FFFFFF" stroke="#CFC8BC"/>
+        <text x="117" y="238" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">RDS PostgreSQL 15.13 (PostGIS)</text>
+
+        <rect x="210" y="222" width="125" height="24" rx="4" fill="#FFFFFF" stroke="#CFC8BC"/>
+        <text x="272" y="238" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">ElastiCache Redis 7.1</text>
+
+        <rect x="345" y="222" width="115" height="24" rx="4" fill="#FFFFFF" stroke="#CFC8BC"/>
+        <text x="402" y="238" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">Amazon S3 Presigned</text>
+
+        <rect x="470" y="222" width="115" height="24" rx="4" fill="#FFFFFF" stroke="#CFC8BC"/>
+        <text x="527" y="238" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">AWS Secrets Manager</text>
+      </svg>
+      <div class="diagram-label">Figure 5.1: Multi-Tier AWS Production &amp; Staging Cloud Architecture</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Network Security Isolation</div>
+        <p class="card-text">
+          Database and cache instances operate within isolated VPC subnets with zero internet ingress or egress. All communication traverses internal AWS PrivateLink endpoints or private compute subnets.
+        </p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Stateless Application Tier</div>
+        <p class="card-text">
+          Backend containers are completely stateless. User session state is cryptographically self-contained within JWT tokens and Redis distributed caches, allowing instant horizontal scaling.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">06 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 07: MOBILE ARCHITECTURE                                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Flutter Client • Section 06</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">06 — Mobile Client</div>
+      <h2 class="section-title">Hardened Flutter Client Architecture</h2>
+      <p class="section-subtitle">A resilient cross-platform mobile application engineered with secure storage, thread-safe token refresh, and exponential backoff.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-sage">
+        <div class="card-title">AppConfig Architecture</div>
+        <p class="card-text">Triple-tier environment isolation (<span class="mono">development</span>, <span class="mono">staging</span>, <span class="mono">production</span>). Eliminates hardcoded URLs and ensures runtime immutability.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Thread-Safe 401 Refresh</div>
+        <p class="card-text"><span class="mono">AuthInterceptor</span> locks concurrent 401 token refresh requests behind a mutex queue, avoiding token desynchronization during parallel API requests.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">Sanitized Logging</div>
+        <p class="card-text"><span class="mono">SanitizedLogInterceptor</span> redacts JWT authorization headers and passwords in logs, preventing credential leakage in production bug reports.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="165" viewBox="0 0 620 165" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- UI Box -->
+        <rect x="20" y="20" width="130" height="125" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="85" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Presentation</text>
+        <text x="85" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">Animal Passport UI</text>
+        <text x="85" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">Appointment Booking</text>
+        <text x="85" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">EVMR Clinical Entry</text>
+        <text x="85" y="125" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">Outbreak Radar</text>
+
+        <!-- Arrow -->
+        <path d="M150 82 L180 82" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Network Stack Box -->
+        <rect x="180" y="20" width="260" height="125" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="310" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">Hardened Dio Network Pipeline</text>
+        
+        <rect x="195" y="52" width="230" height="22" rx="4" fill="#FFFFFF" stroke="#B8D0E5"/>
+        <text x="310" y="67" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">1. AuthInterceptor • Bearer Injection &amp; Mutex Refresh</text>
+
+        <rect x="195" y="78" width="230" height="22" rx="4" fill="#FFFFFF" stroke="#B8D0E5"/>
+        <text x="310" y="93" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">2. RetryInterceptor • Exponential Backoff + Jitter</text>
+
+        <rect x="195" y="104" width="230" height="22" rx="4" fill="#FFFFFF" stroke="#B8D0E5"/>
+        <text x="310" y="119" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">3. SanitizedLogInterceptor • Token Redaction</text>
+
+        <!-- Arrow -->
+        <path d="M440 82 L470 82" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- AWS Endpoint -->
+        <rect x="470" y="20" width="130" height="125" rx="6" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="535" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">AWS Staging</text>
+        <text x="535" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">api.vetra.dpdns.org</text>
+        <text x="535" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">Port 443 (TLS 1.3)</text>
+        <text x="535" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#23523B">✓ 20/20 Passed</text>
+        <text x="535" y="125" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">Contract Verified</text>
+      </svg>
+      <div class="diagram-label">Figure 6.1: Flutter Mobile Client Request Execution &amp; Network Hardening Architecture</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Cryptographic Token Vault</div>
+        <p class="card-text">
+          Access and refresh tokens are stored exclusively inside <span class="mono">FlutterSecureStorage</span> (Keychain on iOS and EncryptedSharedPreferences on Android with AES-256 GCM).
+        </p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">Live Staging Verification Suite</div>
+        <p class="card-text">
+          A dedicated 20-test end-to-end suite (<span class="mono">staging_live_e2e_test.dart</span>) continuously validates authentication, appointments, medical records, and token invalidation against live AWS Staging.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">07 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 08: BACKEND ARCHITECTURE                                        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Clean Architecture • Section 07</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">07 — Backend Internals</div>
+      <h2 class="section-title">Modular Monolith &amp; Clean Architecture</h2>
+      <p class="section-subtitle">Strict separation of presentation, business domain logic, and persistence abstractions in Java 21 LTS.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Layered Clean Architecture</div>
+        <p class="card-text">
+          Source code dependencies point <strong>inward only</strong>. Controllers handle HTTP validation and response wrapping. Application services execute business rules and manage transactions. Repositories handle data persistence behind clean interface abstractions.
+        </p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">Bounded Contexts &amp; Modules</div>
+        <p class="card-text">
+          Domain aggregates (<span class="mono">Animal</span>, <span class="mono">Appointment</span>, <span class="mono">MedicalRecord</span>, <span class="mono">DiseaseReport</span>) are organized into isolated packages, preventing tight coupling and facilitating seamless future extraction if necessary.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="170" viewBox="0 0 620 170" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer Layer: Presentation -->
+        <rect x="20" y="10" width="580" height="35" rx="6" fill="#E8E4DB" stroke="#D3CDC0" stroke-width="1.2"/>
+        <text x="35" y="32" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#3D3A36">1. PRESENTATION LAYER • REST API Controllers, DTOs &amp; Response Envelopes</text>
+        <text x="470" y="32" font-family="JetBrains Mono, monospace" font-size="7pt" fill="#6B6864">app.vetra.*.controller</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 45 L310 58" stroke="#8C523A" stroke-width="2"/>
+
+        <!-- Middle Layer: Application Services -->
+        <rect x="20" y="58" width="580" height="42" rx="6" fill="#E3ECE7" stroke="#C6D8CE" stroke-width="1.2"/>
+        <text x="35" y="78" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">2. APPLICATION SERVICE LAYER • Use Cases, Transactions &amp; State Validation</text>
+        <text x="480" y="78" font-family="JetBrains Mono, monospace" font-size="7pt" fill="#4B6E59">app.vetra.*.service</text>
+        <text x="35" y="93" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#355845">AnimalService • AppointmentService • MedicalRecordService • DiseaseService • AuthService</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 100 L310 113" stroke="#8C523A" stroke-width="2"/>
+
+        <!-- Inner Layer: Domain & Persistence -->
+        <rect x="20" y="113" width="580" height="45" rx="6" fill="#F3EFE6" stroke="#E5DFD2" stroke-width="1.2"/>
+        <text x="35" y="133" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">3. DOMAIN &amp; PERSISTENCE LAYER • Entities, Specifications &amp; PostGIS Geometry</text>
+        <text x="470" y="133" font-family="JetBrains Mono, monospace" font-size="7pt" fill="#80725C">app.vetra.*.repository</text>
+        <text x="35" y="148" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#5A4E3B">AnimalSpecification • JpaSpecificationExecutor • Flyway Migrations (V1-V14) • Optimistic Locking</text>
+      </svg>
+      <div class="diagram-label">Figure 7.1: Clean Architecture Inward-Pointing Dependency Flow in Vetra Backend</div>
+    </div>
+
+    <div class="card-grid-3" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Dynamic Criteria API</div>
+        <p class="card-text"><span class="mono">AnimalSpecification</span> dynamically creates predicates only when parameters exist, preventing untyped null parameter bugs in PostgreSQL.</p>
+      </div>
+      <div class="card card-cream">
+        <div class="card-title">Transactional Invariants</div>
+        <p class="card-text">Strict declarative transactions (<span class="mono">@Transactional</span>) with rollback on unchecked exceptions ensure zero orphaned medical or booking records.</p>
+      </div>
+      <div class="card card-cream">
+        <div class="card-title">Standardized Envelopes</div>
+        <p class="card-text">Every REST endpoint returns a uniform <span class="mono">ApiResponse&lt;T&gt;</span> structure with timestamp, status code, localized message, and payload.</p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">08 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 09: API & DOMAIN DESIGN                                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">RESTful Interfaces • Section 08</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">08 — API Design</div>
+      <h2 class="section-title">RESTful Interfaces &amp; Execution Lifecycle</h2>
+      <p class="section-subtitle">Versioned API contracts, DTO transformation envelopes, and predictable error handling.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-white">
+        <div class="card-title">Canonical Versioning</div>
+        <p class="card-text">All core endpoints operate under the <span class="mono">/api/v1</span> URI prefix. Breaking changes trigger version increments, ensuring backwards compatibility.</p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">Entity Encapsulation</div>
+        <p class="card-text">Domain entities are never exposed across HTTP boundaries. Dedicated DTOs ensure strict schema decoupling and payload security.</p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">RFC 7807 Error Envelopes</div>
+        <p class="card-text">Standardized problem details with status codes, error codes, localized messages, and contextual validation error maps.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Step 1: Client -->
+        <rect x="15" y="30" width="100" height="95" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="65" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">1. Client Request</text>
+        <text x="65" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">POST /api/v1/...</text>
+        <text x="65" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#6B6864">Bearer JWT</text>
+        <text x="65" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#23523B">Dio Client</text>
+
+        <!-- Arrow -->
+        <path d="M115 77 L135 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 2: Security Filter -->
+        <rect x="135" y="30" width="110" height="95" rx="5" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="190" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">2. Security Filter</text>
+        <text x="190" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">HMAC-512 Validate</text>
+        <text x="190" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Principal Extraction</text>
+        <text x="190" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">ROLE_FARMER</text>
+
+        <!-- Arrow -->
+        <path d="M245 77 L265 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 3: Controller -->
+        <rect x="265" y="30" width="105" height="95" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="317" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">3. Controller</text>
+        <text x="317" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">@Valid DTO Check</text>
+        <text x="317" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Extract Principal</text>
+        <text x="317" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">ApiResponse.of()</text>
+
+        <!-- Arrow -->
+        <path d="M370 77 L390 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 4: Service -->
+        <rect x="390" y="30" width="105" height="95" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="442" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">4. Service Layer</text>
+        <text x="442" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">@Transactional</text>
+        <text x="442" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Business Invariants</text>
+        <text x="442" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">State Machine</text>
+
+        <!-- Arrow -->
+        <path d="M495 77 L515 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 5: Persistence -->
+        <rect x="515" y="30" width="95" height="95" rx="5" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="562" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#3D3A36">5. Persistence</text>
+        <text x="562" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">JpaRepository</text>
+        <text x="562" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#5A554E">PostgreSQL 15</text>
+        <text x="562" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">Redis Cache</text>
+      </svg>
+      <div class="diagram-label">Figure 8.1: End-to-End RESTful API Request, Validation &amp; Persistence Execution Flow</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Standardized RESTful Endpoints</div>
+      <p class="card-text">
+        Verified endpoint groups: <span class="mono">/api/v1/animals</span> (CRUD, dynamic search, QR passports), <span class="mono">/api/v1/appointments</span> (scheduling, triage), <span class="mono">/api/v1/medical-records</span> (immutable EVMR), <span class="mono">/api/v1/disease-reports</span> (spatial reporting), and <span class="mono">/api/v1/auth</span> (login, refresh rotation).
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">09 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 10: DATA ARCHITECTURE & PERSISTENCE                             -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Persistence &amp; Storage • Section 09</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">09 — Data Layer</div>
+      <h2 class="section-title">Relational Schema &amp; Distributed Caching</h2>
+      <p class="section-subtitle">PostgreSQL 15 with PostGIS spatial extensions, Flyway versioned migrations, and Redis 7 multi-level caching.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-cream">
+        <div class="card-title">UUID v4 Identifiers</div>
+        <p class="card-text">All primary keys use globally unique UUID v4 generated by database extensions, eliminating ID enumeration attacks.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">PostGIS Spatial Geometry</div>
+        <p class="card-text">Disease reports store geospatial Point coordinates for spatial query indexing and outbreak radius calculations.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">Flyway Migrations</div>
+        <p class="card-text">14 versioned migration scripts (<span class="mono">V1__...</span> to <span class="mono">V14__...</span>) ensure deterministic schema evolution across all environments.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- User Entity -->
+        <rect x="20" y="20" width="115" height="120" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="77" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">users</text>
+        <line x1="20" y1="46" x2="135" y2="46" stroke="#E6E2D9"/>
+        <text x="28" y="62" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="28" y="78" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">email (VARCHAR)</text>
+        <text x="28" y="94" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">role (FARMER|VET)</text>
+        <text x="28" y="110" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">password_hash</text>
+        <text x="28" y="126" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">version (BIGINT)</text>
+
+        <!-- Arrow to Farmer -->
+        <path d="M135 65 L170 65" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Farmer Profile Entity -->
+        <rect x="170" y="20" width="125" height="120" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="232" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">farmer_profiles</text>
+        <line x1="170" y1="46" x2="295" y2="46" stroke="#E2DCD1"/>
+        <text x="178" y="62" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="178" y="78" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">user_id (FK)</text>
+        <text x="178" y="94" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">farm_name (VARCHAR)</text>
+        <text x="178" y="110" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">location (Point)</text>
+        <text x="178" y="126" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">animal_count (INT)</text>
+
+        <!-- Arrow to Animal -->
+        <path d="M295 65 L330 65" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Animal Entity -->
+        <rect x="330" y="20" width="125" height="120" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="392" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">animals</text>
+        <line x1="330" y1="46" x2="455" y2="46" stroke="#D3E2D8"/>
+        <text x="338" y="62" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="338" y="78" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">farmer_id (FK)</text>
+        <text x="338" y="94" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">tag_number (UNIQUE)</text>
+        <text x="338" y="110" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">species (ENUM)</text>
+        <text x="338" y="126" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">qr_code_id (VARCHAR)</text>
+
+        <!-- Arrow to Appointment & Medical Record -->
+        <path d="M455 65 L490 65" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Medical Records Entity -->
+        <rect x="490" y="20" width="110" height="120" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="545" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">medical_records</text>
+        <line x1="490" y1="46" x2="600" y2="46" stroke="#DDD9EE"/>
+        <text x="498" y="62" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="498" y="78" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">appointment_id</text>
+        <text x="498" y="94" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">diagnosis (TEXT)</text>
+        <text x="498" y="110" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">treatment (TEXT)</text>
+        <text x="498" y="126" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#43413E">prescription</text>
+      </svg>
+      <div class="diagram-label">Figure 9.1: Core Relational Aggregates and Data Domain Model</div>
+    </div>
+
+    <div class="card card-white" style="margin-top: 4px;">
+      <div class="card-title">Distributed Caching Policies (Redis 7)</div>
+      <p class="card-text">
+        Vetra implements granular TTL caching: <span class="mono">ANIMAL_PASSPORT</span> (30m), <span class="mono">VET_PROFILE</span> (1h), <span class="mono">DASHBOARD_STATS</span> (15m), and <span class="mono">AI_RESPONSE_CACHE</span> (24h). Cache evictions trigger automatically on state mutation endpoints (<span class="mono">@CacheEvict</span>).
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">10 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 11: AUTHENTICATION & SECURITY                                   -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Security Design • Section 10</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">10 — Security</div>
+      <h2 class="section-title">Authentication, RBAC &amp; Tenant Isolation</h2>
+      <p class="section-subtitle">Zero-trust security architecture enforcing cryptographic token security, multi-tenant isolation, and secret protection.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Dual-Token Authentication (JWT)</div>
+        <p class="card-text">
+          - <strong>Access Tokens:</strong> Short-lived stateless HMAC-SHA512 JWTs (24h expiration) carrying principal ID and role authority claims.<br/>
+          - <strong>Refresh Tokens:</strong> Cryptographically secure 256-bit random tokens persisted in database with single-use rotation and revocation on logout.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Multi-Tenant Data Isolation</div>
+        <p class="card-text">
+          Every query against animal records, appointments, or medical documents is programmatically scoped to the authenticated user's ID (<span class="mono">farmer.id = :farmerId</span>). Cross-tenant queries return empty result sets rather than unauthorized data.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="155" viewBox="0 0 620 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Client -->
+        <rect x="20" y="20" width="130" height="115" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="85" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Client Request</text>
+        <text x="85" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">Authorization:</text>
+        <text x="85" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">Bearer eyJhbGciOi...</text>
+        <text x="85" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#23523B">FlutterSecureStorage</text>
+        <text x="85" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#6B6864">Keychain / EncryptedPrefs</text>
+
+        <!-- Arrow -->
+        <path d="M150 77 L190 77" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Security Filter -->
+        <rect x="190" y="20" width="190" height="115" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="285" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Spring Security 6 Filter</text>
+        <text x="285" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#385F49">1. Signature Verification (HMAC-512)</text>
+        <text x="285" y="86" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#385F49">2. Expiration &amp; Active User Check</text>
+        <text x="285" y="104" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#385F49">3. Populate SecurityContextHolder</text>
+        <text x="285" y="122" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#23523B">ROLE_FARMER | ROLE_VETERINARIAN</text>
+
+        <!-- Arrow -->
+        <path d="M380 77 L420 77" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Data Isolation -->
+        <rect x="420" y="20" width="180" height="115" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="510" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">Scoped Data Access</text>
+        <text x="510" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">AnimalSpecification Criteria</text>
+        <text x="510" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">cb.equal(root.get("farmer")</text>
+        <text x="510" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">.get("id"), farmerId)</text>
+        <text x="510" y="120" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">✓ Zero Cross-Tenant Leak</text>
+      </svg>
+      <div class="diagram-label">Figure 10.1: Cryptographic Authentication and Principal-Based Tenant Isolation Pipeline</div>
+    </div>
+
+    <div class="card-grid-3" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Secret Management</div>
+        <p class="card-text">Zero plaintext secrets in code. Environment variables and database credentials injected at container startup via AWS Secrets Manager.</p>
+      </div>
+      <div class="card card-cream">
+        <div class="card-title">Log Sanitization</div>
+        <p class="card-text">Runtime interceptors redact Authorization headers, refresh tokens, and passwords from logs, preventing log storage leakage.</p>
+      </div>
+      <div class="card card-cream">
+        <div class="card-title">Automated Secret Scans</div>
+        <p class="card-text">Gitleaks SAST scanner executes on every pull request in GitHub Actions, preventing accidental API key or credential commits.</p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">11 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 12: RELIABILITY ENGINEERING                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">System Telemetry • Section 11</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">11 — Reliability</div>
+      <h2 class="section-title">Resilience Patterns &amp; Full-Stack Telemetry</h2>
+      <p class="section-subtitle">Circuit breakers, automated retries with exponential jitter, and OpenTelemetry observability.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-sage">
+        <div class="card-title">Resilience4j Circuit Breakers</div>
+        <p class="card-text">External AI and S3 API calls wrapped with circuit breakers and fallback providers to isolate service degradation.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Exponential Jitter Retries</div>
+        <p class="card-text">Mobile and backend retries implement full jitter algorithms, preventing synchronized thundering herds during recovery.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">Micrometer Tracing</div>
+        <p class="card-text">Distributed tracing spans with traceId and spanId correlation injected across all HTTP requests, database queries, and log statements.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Request Box -->
+        <rect x="20" y="35" width="120" height="90" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="80" y="60" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Incoming Call</text>
+        <text x="80" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5pt" fill="#8C523A">traceId=c5946...</text>
+        <text x="80" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.5pt" fill="#8C523A">spanId=d4dc7...</text>
+
+        <!-- Arrow -->
+        <path d="M140 80 L180 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Circuit Breaker -->
+        <rect x="180" y="20" width="220" height="120" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="290" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">Resilience4j 2.4.0 Engine</text>
+        
+        <rect x="195" y="52" width="190" height="22" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="290" y="67" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">CLOSED • Normal Traffic (Failure &lt; 50%)</text>
+
+        <rect x="195" y="78" width="190" height="22" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="290" y="93" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#8C523A">OPEN • Fast-Fail to Fallback (30s wait)</text>
+
+        <rect x="195" y="104" width="190" height="22" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="290" y="119" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#234E74">HALF-OPEN • Canary Probes (3 calls)</text>
+
+        <!-- Arrow -->
+        <path d="M400 80 L440 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Telemetry Sink -->
+        <rect x="440" y="20" width="160" height="120" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="520" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Observability Sinks</text>
+        <text x="520" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#3D5F4D">AWS CloudWatch Logs</text>
+        <text x="520" y="83" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#3D5F4D">12 CloudWatch Alarms</text>
+        <text x="520" y="101" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#3D5F4D">Actuator /health/liveness</text>
+        <text x="520" y="119" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" fill="#3D5F4D">Prometheus / Grafana</text>
+      </svg>
+      <div class="diagram-label">Figure 11.1: Resilience4j Circuit Breaker State Machine &amp; Telemetry Sinks</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Spring Boot Actuator Health Groups</div>
+        <p class="card-text">
+          Distinct health probes: <span class="mono">/actuator/health/liveness</span> (internal container state) and <span class="mono">/actuator/health/readiness</span> (PostgreSQL &amp; Redis connectivity), enabling ALB traffic draining during startup.
+        </p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">CloudWatch Alarm Matrix</div>
+        <p class="card-text">
+          12 automated alarms monitor CPU (&gt;80%), Memory (&gt;85%), 5xx error spikes (&gt;5 in 5m), RDS storage, and Redis connection saturation with automated SNS notification routing.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">12 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 13: CASE STUDY: THE SEARCH DEFECT                               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Engineering Case Study • Section 12</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">12 — Technical Case Study</div>
+      <h2 class="section-title">The PostgreSQL Animal Search Defect</h2>
+      <p class="section-subtitle">How a subtle prepared-statement parameter deduction failure on PostgreSQL RDS was diagnosed and solved via Criteria API.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-peach">
+        <div class="card-title">1. The Problem (Runtime PSQLException)</div>
+        <p class="card-text">
+          The animal search endpoint (<span class="mono">/api/v1/animals/search</span>) threw HTTP 500 when optional filter parameters were omitted. PostgreSQL JDBC driver failed prepared statement parameter deduction: <span class="mono">PSQLException: could not determine data type of parameter $5</span>.
+        </p>
+      </div>
+
+      <div class="card card-cream">
+        <div class="card-title">2. Root Cause Investigation</div>
+        <p class="card-text">
+          The legacy static JPQL query used <span class="mono">(:species IS NULL OR a.species = :species)</span>. Because PostgreSQL strictly types positional parameters (<span class="mono">$X</span>), passing Java null for custom enum and UUID types left parameter types indeterminate at plan compilation.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="155" viewBox="0 0 620 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Step 1: Static JPQL Bug -->
+        <rect x="20" y="20" width="130" height="115" rx="5" fill="#F8EEE8" stroke="#E6D3C8"/>
+        <text x="85" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#7E3E26">1. Static JPQL Query</text>
+        <text x="85" y="60" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#7E3E26">(:species IS NULL</text>
+        <text x="85" y="72" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#7E3E26">OR a.species = :species)</text>
+        <text x="85" y="92" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#7E3E26">Positional $5 untyped</text>
+        <text x="85" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="700" fill="#7E3E26">✕ PSQLException 500</text>
+
+        <!-- Arrow -->
+        <path d="M150 77 L180 77" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Step 2: Investigation -->
+        <rect x="180" y="20" width="120" height="115" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="240" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">2. Root Cause</text>
+        <text x="240" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">PostgreSQL JDBC</text>
+        <text x="240" y="80" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">cannot infer data type</text>
+        <text x="240" y="95" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">for null enum parameters</text>
+        <text x="240" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">in prepared statement</text>
+
+        <!-- Arrow -->
+        <path d="M300 77 L330 77" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Step 3: Dynamic Specification -->
+        <rect x="330" y="20" width="140" height="115" rx="5" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="400" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">3. Criteria Specification</text>
+        <text x="400" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">AnimalSpecification.java</text>
+        <text x="400" y="80" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Dynamically appends</text>
+        <text x="400" y="95" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">SQL WHERE predicates</text>
+        <text x="400" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">ONLY for non-null args</text>
+
+        <!-- Arrow -->
+        <path d="M470 77 L500 77" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Step 4: Staging Verification -->
+        <rect x="500" y="20" width="100" height="115" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="550" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">4. Live Staging</text>
+        <text x="550" y="62" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#234E74">RDS PostgreSQL 15</text>
+        <text x="550" y="78" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#234E74">6 Query Permutations</text>
+        <text x="550" y="98" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="700" fill="#23523B">✓ 100% 200 OK</text>
+        <text x="550" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#6B6864">Commit ff03b54</text>
+      </svg>
+      <div class="diagram-label">Figure 12.1: Animal Search Defect Investigation, Solution Architecture &amp; RDS Verification</div>
+    </div>
+
+    <div class="card card-sage" style="margin-top: 4px;">
+      <div class="card-title">Live RDS Verification Across All 6 Permutations</div>
+      <p class="card-text">
+        Verified live against Amazon RDS PostgreSQL 15.13: (1) Tag-only, (2) Tag+Species, (3) Tag+Gender, (4) Species+Gender, (5) All 6 filters, (6) Omitted optional filters, and cross-farmer multi-tenant isolation. All tests returned 200 OK with exact entity counts.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">13 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 14: AWS CLOUD INFRASTRUCTURE                                    -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Cloud Topology • Section 13</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">13 — Cloud Infrastructure</div>
+      <h2 class="section-title">AWS Cloud Topology &amp; Multi-AZ Design</h2>
+      <p class="section-subtitle">Enterprise deployment across 3 Availability Zones in Mumbai (ap-south-1) with modular Terraform infrastructure as code.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="240" viewBox="0 0 620 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- VPC Container -->
+        <rect x="15" y="10" width="590" height="215" rx="8" fill="#F7F5EE" stroke="#DCD5C5" stroke-width="1.5"/>
+        <text x="30" y="28" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">VPC: 10.0.0.0/16 (AWS Region: ap-south-1, Mumbai)</text>
+
+        <!-- Tier 1: Public Subnets -->
+        <rect x="25" y="38" width="570" height="48" rx="6" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="35" y="54" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#3D3A36">PUBLIC SUBNETS (ALB &amp; NAT Gateway Ingress Tier)</text>
+        <rect x="35" y="60" width="170" height="20" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="120" y="74" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">ap-south-1a: 10.0.1.0/24</text>
+        <rect x="225" y="60" width="170" height="20" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="310" y="74" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">ap-south-1b: 10.0.2.0/24</text>
+        <rect x="415" y="60" width="170" height="20" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="500" y="74" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">ap-south-1c: 10.0.3.0/24</text>
+
+        <!-- Tier 2: Private Compute Subnets -->
+        <rect x="25" y="94" width="570" height="58" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="35" y="110" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#23523B">PRIVATE COMPUTE SUBNETS (ECS Fargate Tasks Tier)</text>
+        <rect x="35" y="118" width="170" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="120" y="134" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">ECS Task 1 (1 vCPU/2GB)</text>
+        <rect x="225" y="118" width="170" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="310" y="134" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">ECS Task 2 (1 vCPU/2GB)</text>
+        <rect x="415" y="118" width="170" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="500" y="134" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">ECS Task 3 (Auto-scale)</text>
+
+        <!-- Tier 3: Isolated Data Subnets -->
+        <rect x="25" y="160" width="570" height="55" rx="6" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="35" y="176" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#655947">ISOLATED DATA SUBNETS (Zero Internet Ingress/Egress)</text>
+        <rect x="35" y="184" width="260" height="24" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="165" y="200" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">Amazon RDS PostgreSQL 15 (Multi-AZ)</text>
+        <rect x="315" y="184" width="270" height="24" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="450" y="200" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">ElastiCache Redis 7.1 (Cluster + TLS)</text>
+      </svg>
+      <div class="diagram-label">Figure 13.1: 3-AZ AWS Production Virtual Private Cloud (VPC) Topology</div>
+    </div>
+
+    <div class="card-grid-3" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Terraform Modules</div>
+        <p class="card-text">Infrastructure codified into modular Terraform units (<span class="mono">vpc</span>, <span class="mono">alb</span>, <span class="mono">ecs</span>, <span class="mono">rds</span>, <span class="mono">redis</span>, <span class="mono">cloudwatch</span>), enabling clean environment parity.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Multi-AZ RDS Failover</div>
+        <p class="card-text">Synchronous physical block replication between Primary and Standby RDS instances provides automatic failover in under 60 seconds.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">PrivateLink Endpoints</div>
+        <p class="card-text">VPC endpoints for S3, Secrets Manager, ECR, and CloudWatch allow internal container communication without traversing the public internet.</p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">14 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 15: CI/CD & ENGINEERING WORKFLOW                                -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Automation Pipeline • Section 14</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">14 — Engineering Automation</div>
+      <h2 class="section-title">Automated CI/CD &amp; Zero-Downtime Deployment</h2>
+      <p class="section-subtitle">GitHub Actions automated pipeline enforcing static analysis, secret scans, unit tests, and ECS rolling updates.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-white">
+        <div class="card-title">Checkstyle &amp; CodeQL</div>
+        <p class="card-text">Google Java Style enforcement (0 checkstyle errors) and CodeQL automated security vulnerability scanning on pull requests.</p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">Gitleaks Secret Scans</div>
+        <p class="card-text">Automated SAST secret scanning on every push prevents accidental credential or API token exposure.</p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">Immutable Container Tags</div>
+        <p class="card-text">Docker images tagged with immutable Git commit SHAs, guaranteeing complete deployment traceability and rollback safety.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Step 1: Push -->
+        <rect x="15" y="30" width="100" height="95" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="65" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">1. Git Push</text>
+        <text x="65" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">main branch</text>
+        <text x="65" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">GitHub Actions</text>
+        <text x="65" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#23523B">Trigger CI</text>
+
+        <!-- Arrow -->
+        <path d="M115 77 L135 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 2: Quality & Tests -->
+        <rect x="135" y="30" width="110" height="95" rx="5" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="190" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">2. Verification</text>
+        <text x="190" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Checkstyle (0 errors)</text>
+        <text x="190" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Gitleaks SAST</text>
+        <text x="190" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">253/253 Tests Pass</text>
+
+        <!-- Arrow -->
+        <path d="M245 77 L265 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 3: Build & ECR -->
+        <rect x="265" y="30" width="105" height="95" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="317" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">3. Container Build</text>
+        <text x="317" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Multi-stage Docker</text>
+        <text x="317" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Amazon ECR Push</text>
+        <text x="317" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">tag:${github.sha}</text>
+
+        <!-- Arrow -->
+        <path d="M370 77 L390 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 4: ECS Deploy -->
+        <rect x="390" y="30" width="105" height="95" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="442" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">4. ECS Rolling Upd</text>
+        <text x="442" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Register TaskDef</text>
+        <text x="442" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Update ECS Service</text>
+        <text x="442" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Wait Service Stable</text>
+
+        <!-- Arrow -->
+        <path d="M495 77 L515 77" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 5: Smoke Tests -->
+        <rect x="515" y="30" width="95" height="95" rx="5" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="562" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#3D3A36">5. Smoke Tests</text>
+        <text x="562" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#5A554E">301 Redirect Check</text>
+        <text x="562" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">/actuator/health</text>
+        <text x="562" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="700" fill="#23523B">✓ 5/5 PASSED</text>
+      </svg>
+      <div class="diagram-label">Figure 14.1: Automated GitHub Actions Zero-Downtime Deployment &amp; Smoke Test Pipeline</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Dependabot Batch Maintenance</div>
+      <p class="card-text">
+        All 10 Dependabot dependency PRs audited and batch-merged with zero test regressions, upgrading to Spring Boot 3.5.16, Lombok 1.18.46, SpringDoc 2.9.0, Resilience4j 2.4.0, and AWS SDK BOM 2.51.2 while rejecting incompatible Spring Boot 4.x libraries.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">15 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 16: TESTING & VERIFICATION                                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Quality Engineering • Section 15</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">15 — Verification</div>
+      <h2 class="section-title">Testing Strategy &amp; Engineering Quality</h2>
+      <p class="section-subtitle">A multi-layer testing pyramid spanning unit, slice, integration, and live staging contract verification.</p>
+    </div>
+
+    <div class="metrics-bar">
+      <div class="metric-item">
+        <span class="metric-num">253/253</span>
+        <span class="metric-label">Backend Tests Passed</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-num">20/20</span>
+        <span class="metric-label">Live Staging Tests Passed</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-num">0</span>
+        <span class="metric-label">Checkstyle Violations</span>
+      </div>
+      <div class="metric-item">
+        <span class="metric-num">100%</span>
+        <span class="metric-label">Smoke Test Pass Rate</span>
+      </div>
+    </div>
+
+    <table class="editorial-table" style="margin-top: 4px;">
+      <thead>
+        <tr>
+          <th style="width: 20%;">Test Tier</th>
+          <th style="width: 35%;">Scope &amp; Target Components</th>
+          <th style="width: 30%;">Testing Technology</th>
+          <th style="width: 15%;">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Unit Tests</strong></td>
+          <td>Domain entities, validation logic, prompt renderers, JWT token generators, and DTO mappers.</td>
+          <td>JUnit 5, Mockito, AssertJ</td>
+          <td><span class="tag-pill tag-green">253 PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Repository Slice</strong></td>
+          <td>JPA Criteria specifications, PostGIS spatial queries, and optimistic locking invariants.</td>
+          <td>@DataJpaTest, H2 In-Memory / Test DB</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Web Slice Tests</strong></td>
+          <td>Controller request serialization, Spring Security filter chains, and error handling envelopes.</td>
+          <td>@WebMvcTest, MockMvc</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Live Staging E2E</strong></td>
+          <td>End-to-end mobile-to-cloud contract suite verifying auth, animals, appointments, and EVMR over HTTPS.</td>
+          <td>Flutter Test Suite (staging_live_e2e_test.dart)</td>
+          <td><span class="tag-pill tag-green">20/20 PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Static Analysis</strong></td>
+          <td>Google Java Style standard adherence and automated SAST secret credential scanning.</td>
+          <td>Maven Checkstyle, Gitleaks, CodeQL</td>
+          <td><span class="tag-pill tag-green">0 ERRORS</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-sage">
+        <div class="card-title">Live AWS Staging Contract Verification</div>
+        <p class="card-text">
+          The Flutter mobile test suite (<span class="mono">staging_live_e2e_test.dart</span>) executes against <span class="mono">https://api.vetra.dpdns.org</span>, asserting HTTP 200 response codes, JSON schema conformity, and thread-safe token refresh behavior.
+        </p>
+      </div>
+
+      <div class="card card-lavender">
+        <div class="card-title">Automated Deployment Gate</div>
+        <p class="card-text">
+          GitHub Actions deployment fails fast if any test in the 253-test suite fails, if Checkstyle detects formatting violations, or if ALB target health checks fail to report healthy within 20 attempts.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">16 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 17: KEY ENGINEERING DECISIONS                                   -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Architecture Trade-Offs • Section 16</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">16 — Technical Rationales</div>
+      <h2 class="section-title">Key Engineering Decisions &amp; Trade-Offs</h2>
+      <p class="section-subtitle">Architectural choices analyzed through technical requirements, trade-offs, and measured benefits.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">1. Modular Monolith vs. Microservices</div>
+        <p class="card-text">
+          <strong>DECISION:</strong> Single deployable Spring Boot artifact with strict internal package boundaries.<br/>
+          <strong>REASON:</strong> Eliminates distributed network overhead, complex saga orchestrations, and high multi-service operational costs while preserving domain modularity.<br/>
+          <strong>BENEFIT:</strong> Instant transactional guarantees across clinical entities and sub-10ms inter-module calls.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">2. Java 21 LTS &amp; Spring Boot 3.5.16</div>
+        <p class="card-text">
+          <strong>DECISION:</strong> Enterprise Java 21 runtime with Spring Boot 3.5.16 framework.<br/>
+          <strong>REASON:</strong> Provides mature ORM ecosystem (Hibernate 6), robust concurrency, strong type safety, and enterprise longevity.<br/>
+          <strong>BENEFIT:</strong> High-throughput clinical record processing with zero compile-time type ambiguities.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">3. Flutter Cross-Platform Client</div>
+        <p class="card-text">
+          <strong>DECISION:</strong> Single Dart codebase targeting Android and iOS.<br/>
+          <strong>REASON:</strong> 100% UI and business logic sharing between mobile farmer and veterinary personas.<br/>
+          <strong>BENEFIT:</strong> Accelerated release cycles, unified network interceptor pipeline, and identical offline storage behaviors.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">4. Dynamic JPA Specifications</div>
+        <p class="card-text">
+          <strong>DECISION:</strong> Replaced static JPQL optional filter query with Criteria API Specifications.<br/>
+          <strong>REASON:</strong> PostgreSQL fails prepared statement type inference on omitted null enum parameters.<br/>
+          <strong>BENEFIT:</strong> Clean SQL generation with only non-null predicates; 100% test pass on Amazon RDS PostgreSQL.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">5. Multi-Agent AI Gateway</div>
+        <p class="card-text">
+          <strong>DECISION:</strong> Decoupled AI execution into immutable gateway pipeline and specialized agents.<br/>
+          <strong>REASON:</strong> Prevents tight coupling to vendor LLM SDKs and enforces safety and cost budgeting.<br/>
+          <strong>BENEFIT:</strong> Seamless fallback to NoOp in tests and zero code changes when changing AI models.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">6. AWS ECS Fargate &amp; Terraform</div>
+        <p class="card-text">
+          <strong>DECISION:</strong> Serverless container tasks orchestrated via modular Terraform IaC.<br/>
+          <strong>REASON:</strong> Eliminates EC2 server patching and Kubernetes control-plane complexity while providing instant Multi-AZ scaling.<br/>
+          <strong>BENEFIT:</strong> Declarative, repeatable staging and production environments with zero manual AWS clicks.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">17 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 18: CURRENT SYSTEM STATE                                        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Environment Status • Section 17</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">17 — System Status</div>
+      <h2 class="section-title">Current System Implementation State</h2>
+      <p class="section-subtitle">An honest, evidence-based breakdown of verified operational components vs. drafted and planned infrastructure.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">System Dimension</th>
+          <th style="width: 45%;">Verified Implementation Scope</th>
+          <th style="width: 30%;">Operational Classification</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Animal Passport Core</strong></td>
+          <td>Registration, species/breed categorization, tag tracking, QR generation, demographic history, dynamic search.</td>
+          <td><span class="tag-pill tag-green">IMPLEMENTED &amp; VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Appointment Engine</strong></td>
+          <td>Farmer booking, vet scheduling, visit triage state machine, conflict prevention, optimistic locking.</td>
+          <td><span class="tag-pill tag-green">IMPLEMENTED &amp; VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Electronic Medical Records</strong></td>
+          <td>Immutable EVMR creation, clinical findings, treatment notes, prescriptions, withdrawal tracking.</td>
+          <td><span class="tag-pill tag-green">IMPLEMENTED &amp; VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Disease Surveillance</strong></td>
+          <td>PostGIS spatial disease reporting, point coordinates, active outbreak detection, hazard radius calculation.</td>
+          <td><span class="tag-pill tag-green">IMPLEMENTED &amp; VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Authentication &amp; Security</strong></td>
+          <td>HMAC-SHA512 JWT access tokens, database-backed refresh tokens, Spring Security 6 RBAC, tenant scoping.</td>
+          <td><span class="tag-pill tag-green">IMPLEMENTED &amp; VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Mobile Network Stack</strong></td>
+          <td>Dio HTTP client, mutex-locked 401 refresh interceptor, retry with jitter, secure credential storage.</td>
+          <td><span class="tag-pill tag-green">IMPLEMENTED &amp; VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>AWS Staging Environment</strong></td>
+          <td>Live ECS Fargate, ALB HTTPS 443 termination, RDS PostgreSQL 15.13, ElastiCache Redis, CloudWatch.</td>
+          <td><span class="tag-pill tag-green">LIVE &amp; ACTIVE ON AWS</span></td>
+        </tr>
+        <tr>
+          <td><strong>AWS Production Architecture</strong></td>
+          <td>Modular Terraform HA config in <span class="mono">infra/environments/production/</span> (3-AZ VPC, Multi-AZ RDS, Redis Cluster).</td>
+          <td><span class="tag-pill tag-blue">DRAFTED SPEC (UNAPPLIED)</span></td>
+        </tr>
+        <tr>
+          <td><strong>Offline SQLite Sync</strong></td>
+          <td>Local device cache, offline mutation journal, and bidirectional sync engine for rural disconnected usage.</td>
+          <td><span class="tag-pill tag-gray">PLANNED ROADMAP</span></td>
+        </tr>
+        <tr>
+          <td><strong>Push Notifications (FCM)</strong></td>
+          <td>Device registration token endpoint and background notification payload dispatch via FCM/APNs.</td>
+          <td><span class="tag-pill tag-gray">PLANNED ROADMAP</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Live AWS Staging Status</div>
+        <p class="card-text">
+          - <strong>Endpoint:</strong> <span class="mono">https://api.vetra.dpdns.org/actuator/health</span> (STATUS: UP)<br/>
+          - <strong>Backend Tests:</strong> 253/253 passing • <strong>Checkstyle:</strong> 0 errors<br/>
+          - <strong>Mobile E2E:</strong> 20/20 live contract tests passing over HTTPS.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Production Infrastructure Safety Guarantee</div>
+        <p class="card-text">
+          Production Terraform specifications are fully codified and syntax-validated in repository files with zero resources modified on live AWS production, guaranteeing safe staged release.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">18 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 19: ROADMAP & FUTURE PHASES                                     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Veterinary Operations &amp; Intelligence Platform</div>
+      <div class="sec-badge">Engineering Roadmap • Section 18</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">18 — Future Horizons</div>
+      <h2 class="section-title">Engineering Roadmap &amp; Evolution</h2>
+      <p class="section-subtitle">Structured technical progression for offline capabilities, push notifications, and production high availability.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-cream">
+        <div class="card-title">Phase 1: Offline SQLite Sync</div>
+        <p class="card-text">
+          - Embedded SQLite database via <span class="mono">sqflite</span>.<br/>
+          - Offline mutation queue journal.<br/>
+          - Deterministic conflict resolution engine.<br/>
+          - Automatic background replay on reconnect.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Phase 2: Push Notifications</div>
+        <p class="card-text">
+          - Device registration endpoint (<span class="mono">POST /api/v1/notifications/device-token</span>).<br/>
+          - Firebase Cloud Messaging (FCM) &amp; APNs integration.<br/>
+          - Real-time outbreak hazard broadcast routing.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-title">Phase 3: Production HA Apply</div>
+        <p class="card-text">
+          - Execute drafted Terraform HA in <span class="mono">infra/environments/production/</span>.<br/>
+          - 3-AZ VPC with dedicated NAT Gateways.<br/>
+          - Multi-AZ Amazon RDS PostgreSQL standby.<br/>
+          - 2-Node ElastiCache Redis Cluster with TLS.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Milestone 1 -->
+        <rect x="20" y="25" width="160" height="100" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="100" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">Stage 15: Offline Sync</text>
+        <text x="100" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">SQLite Local Database</text>
+        <text x="100" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Mutation Queue Journal</text>
+        <text x="100" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#8C523A">Q3 2026</text>
+
+        <!-- Arrow -->
+        <path d="M180 75 L220 75" stroke="#8C523A" stroke-width="2"/>
+
+        <!-- Milestone 2 -->
+        <rect x="220" y="25" width="170" height="100" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="305" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Stage 15.2: Push Notifications</text>
+        <text x="305" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">FCM / APNs Token Registry</text>
+        <text x="305" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Outbreak Alert Routing</text>
+        <text x="305" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">Q3 2026</text>
+
+        <!-- Arrow -->
+        <path d="M390 75 L430 75" stroke="#8C523A" stroke-width="2"/>
+
+        <!-- Milestone 3 -->
+        <rect x="430" y="25" width="170" height="100" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="515" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">Stage 14.12: Production HA</text>
+        <text x="515" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#234E74">Terraform Production Apply</text>
+        <text x="515" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#234E74">Multi-AZ RDS &amp; Redis Cluster</text>
+        <text x="515" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#234E74">Q4 2026</text>
+      </svg>
+      <div class="diagram-label">Figure 18.1: Vetra Engineering Phased Implementation Roadmap</div>
+    </div>
+
+    <div class="card card-white" style="margin-top: 4px;">
+      <div class="card-title">Architectural Continuity Guarantee</div>
+      <p class="card-text">
+        Every roadmap phase builds upon the existing frozen and verified core: the backend Clean Architecture modular boundaries remain untouched, and the mobile Dio network pipeline natively integrates offline queue interceptors without breaking changes.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">19 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 20: CLOSING COLOPHON                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page" style="justify-content: space-between;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#3B6B55"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Veterinary Operating System</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864;">
+        SECTION 19 • CLOSING COLOPHON
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: auto 0;">
+      <div style="font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #8C523A; margin-bottom: 8px;">Engineering Publication Series</div>
+      <h2 style="font-family: 'Newsreader', Georgia, serif; font-size: 28pt; font-weight: 500; letter-spacing: -0.02em; color: #1C1B1A; line-height: 1.1; margin-bottom: 8px;">
+        VETRA
+      </h2>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-size: 13pt; font-style: italic; color: #524E48; margin-bottom: 18px;">
+        Concept &bull; Architecture &bull; Engineering &bull; Deployment
+      </div>
+
+      <div style="display: inline-block; background: #F1EDE4; padding: 12px 24px; border-radius: 9px; border: 1px solid #E2DCD1; max-width: 80%; text-align: center;">
+        <div style="font-size: 10pt; font-weight: 700; color: #1C1B1A;">Built &amp; Engineered by Om Rajput</div>
+        <div style="font-size: 7.8pt; color: #585550; margin-top: 3px;">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          <strong>SVKM's Institute of Technology, Dhule</strong>
+        </div>
+        <div style="font-size: 7.2pt; color: #7A7670; margin-top: 6px; font-style: italic;">
+          "From operational problems to engineered systems."
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid rgba(28, 27, 26, 0.12); padding-top: 12px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7pt; color: #7A7670;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Document Verification Status</div>
+        <div>All architectural models, schemas, and metrics verified against active repository codebases.</div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+        BUILD HASH: VETRA-STAGE15-PROD-2026<br/>
+        PAGE 20 / 20
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

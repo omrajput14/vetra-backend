@@ -7,11 +7,6 @@ global:
     environment: 'production-docker'
     service: 'vetra-platform'
 
-# Enable exemplar storage so Prometheus can store trace ID exemplars.
-# This powers the Prometheus metric → Tempo trace click-through in Grafana.
-feature_flags:
-  - exemplar-storage
-
 
 rule_files:
   - '/etc/prometheus/rules/*.yml'

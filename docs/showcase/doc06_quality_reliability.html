@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VETRA — Engineering Quality, Testing &amp; Reliability | Om Rajput</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-surface: #FAF9F5;
+      --bg-page: #EAE6DF;
+      --text-main: #1C1B1A;
+      --text-muted: #615E59;
+      --border-subtle: rgba(28, 27, 26, 0.10);
+      --accent-blue: #234E74;
+      --accent-sage: #23523B;
+      --accent-lavender: #433B72;
+      --accent-peach: #7E3E26;
+      --card-cream: #F3EFE6;
+      --card-sage: #E3ECE7;
+      --card-blue: #E3EBF4;
+      --card-lavender: #E9E7F4;
+      --card-peach: #F8EEE8;
+      --code-bg: #F4EFE6;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 940px;
+      margin: 40px auto;
+      background: var(--bg-surface);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    @media print {
+      body { background: none; }
+      .container { max-width: 100%; margin: 0; box-shadow: none; border-radius: 0; }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+    }
+
+    h1, h2, h3, .serif-font {
+      font-family: 'Newsreader', Georgia, serif;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9em;
+    }
+
+    /* Header Nav */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 40px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: #FAF8F4;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-name {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .doc-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: #EFEBE4;
+      padding: 4px 12px;
+      border-radius: 20px;
+      color: #4A4744;
+    }
+
+    /* Section Wrapper */
+    .section {
+      padding: 48px 48px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .section:last-child {
+      border-bottom: none;
+    }
+
+    .section-header {
+      margin-bottom: 28px;
+    }
+    .section-num {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent-blue);
+      margin-bottom: 4px;
+    }
+    .section-title {
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+    .section-desc {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+      }
+      .section {
+        padding: 32px 24px;
+      }
+      .top-bar {
+        padding: 20px 24px;
+      }
+    }
+
+    /* Cards */
+    .card {
+      border-radius: 8px;
+      padding: 18px 20px;
+      border: 1px solid transparent;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+    .card-body {
+      font-size: 13.5px;
+      color: #4A4844;
+      line-height: 1.5;
+    }
+
+    .card-cream { background: var(--card-cream); border-color: #E5DFD2; }
+    .card-sage { background: var(--card-sage); border-color: #C6D8CE; }
+    .card-sage .card-title { color: var(--accent-sage); }
+    .card-blue { background: var(--card-blue); border-color: #C9DAEB; }
+    .card-blue .card-title { color: var(--accent-blue); }
+    .card-lavender { background: var(--card-lavender); border-color: #D3D0E7; }
+    .card-lavender .card-title { color: var(--accent-lavender); }
+    .card-peach { background: var(--card-peach); border-color: #EBD9CE; }
+    .card-peach .card-title { color: var(--accent-peach); }
+    .card-white { background: #FFFFFF; border-color: #E6E2D9; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+
+    /* Code Block */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid #E2DCD1;
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #2D2B28;
+      overflow-x: auto;
+      margin-top: 14px;
+    }
+
+    /* Diagram Canvas */
+    .diagram-container {
+      background: #F4F1EA;
+      border: 1px solid #E5DFD4;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .diagram-caption {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A7671;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    /* Tables */
+    .editorial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #E5E1D8;
+      margin-top: 16px;
+    }
+    .editorial-table th {
+      background: #F1EDE4;
+      color: #3E3C39;
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid #E2DCD1;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .editorial-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #F2EFE8;
+      color: #43413E;
+      line-height: 1.45;
+    }
+    .editorial-table tr:last-child td { border-bottom: none; }
+
+    .tag-pill {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tag-green { background: #D5E8DC; color: #1E4F32; }
+    .tag-blue { background: #D6E4F2; color: #1B456C; }
+    .tag-lavender { background: #DFDCF2; color: #3C3470; }
+    .tag-peach { background: #F4DECF; color: #78361C; }
+
+    /* Cover Hero */
+    .cover-hero {
+      padding: 64px 48px 48px 48px;
+      background: #FAF9F5;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #E8E3D8;
+      color: #383531;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: 52px;
+      line-height: 1.0;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: var(--text-main);
+      margin-bottom: 14px;
+    }
+    .hero-subtitle {
+      font-size: 22px;
+      line-height: 1.35;
+      font-style: italic;
+      color: #4A4743;
+      margin-bottom: 32px;
+      max-width: 90%;
+    }
+    .author-card {
+      background: #F1EDE4;
+      border-left: 4px solid var(--accent-blue);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      max-width: 80%;
+    }
+    .author-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .author-meta {
+      font-size: 13px;
+      color: #5E5B56;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    /* Metric Highlight */
+    .stat-hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .stat-hero-card {
+      background: #F1EDE4;
+      border: 1px solid #E4DDD0;
+      border-radius: 8px;
+      padding: 18px 12px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 38px;
+      font-weight: 600;
+      color: var(--accent-sage);
+      line-height: 1.0;
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Top Bar Navigation / Header -->
+    <header class="top-bar">
+      <div class="brand-group">
+        <svg width="34" height="34" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+          <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24" cy="20" r="3.2" fill="#234E74"/>
+        </svg>
+        <div>
+          <div class="brand-name">VETRA</div>
+          <div class="brand-sub">Publication Series • Document 07</div>
+        </div>
+      </div>
+      <div class="doc-badge">Quality &amp; Reliability • August 2026</div>
+    </header>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 01 — COVER HERO                                                      -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="cover-hero">
+      <div class="hero-badge">
+        <span style="display:inline-block; width:6px; height:6px; background:var(--accent-blue); border-radius:50%;"></span>
+        Engineering Quality, Testing &amp; Reliability Monograph
+      </div>
+      <h1 class="hero-title">VETRA</h1>
+      <div class="hero-subtitle serif-font">
+        Engineering Quality, Testing &amp; Reliability<br/>
+        <span style="font-size: 16px; color: #69655E; font-style: normal;">Verification • CI/CD Quality Gates • Resilience Engineering • Production Confidence</span>
+      </div>
+
+      <div class="author-card">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-blue); font-weight: 700; margin-bottom: 2px;">Architected &amp; Engineered By</div>
+        <div class="author-name">Om Rajput</div>
+        <div class="author-meta">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          <strong>SVKM's Institute of Technology, Dhule</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 02 — WHY VERIFICATION MATTERS                                        -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">01 — Verification Philosophy</div>
+        <h2 class="section-title">Why Verification Matters: The Multi-Tier Quality Funnel</h2>
+        <p class="section-desc">A system can compile and run locally without being reliable. True quality is established through relentless multi-tier verification.</p>
+      </div>
+
+      <div class="card card-cream">
+        <p style="font-size: 14px; color: #383531; font-style: italic; line-height: 1.55;">
+          "Reliability is not a decorative badge added after coding; it is an engineered property of software systems. In Vetra, no feature is considered complete until it passes unit tests, contract serialization checks, static style analysis, secret leak scans, automated CI builds, and live smoke tests against cloud infrastructure."
+        </p>
+        <div style="margin-top: 8px; text-align: right; font-weight: 700; font-size: 13px; color: var(--text-main);">
+          — Om Rajput, Software Architect
+        </div>
+      </div>
+
+      <!-- Funnel Flow Diagram -->
+      <div class="diagram-container">
+        <svg width="100%" height="80" viewBox="0 0 700 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Step 1 -->
+          <rect x="10" y="20" width="85" height="40" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+          <text x="52" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#1C1B1A">1. Code</text>
+          <text x="52" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#6B6864">Java 21 / Dart</text>
+
+          <path d="M95 40 L115 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Step 2 -->
+          <rect x="115" y="20" width="95" height="40" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+          <text x="162" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#234E74">2. Unit Suite</text>
+          <text x="162" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#234E74">253 Tests</text>
+
+          <path d="M210 40 L230 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Step 3 -->
+          <rect x="230" y="20" width="95" height="40" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+          <text x="277" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#433B72">3. Static Checks</text>
+          <text x="277" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#433B72">Checkstyle / CodeQL</text>
+
+          <path d="M325 40 L345 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Step 4 -->
+          <rect x="345" y="20" width="95" height="40" rx="6" fill="#F8EEE8" stroke="#EBD9CE"/>
+          <text x="392" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#7E3E26">4. Secret Scan</text>
+          <text x="392" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#7E3E26">Gitleaks Pre-flight</text>
+
+          <path d="M440 40 L460 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Step 5 -->
+          <rect x="460" y="20" width="105" height="40" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+          <text x="512" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#23523B">5. AWS Staging</text>
+          <text x="512" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">20 Live E2E Tests</text>
+
+          <path d="M565 40 L585 40" stroke="#23523B" stroke-width="1.8"/>
+
+          <!-- Step 6 -->
+          <rect x="585" y="15" width="105" height="50" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+          <text x="637" y="35" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5px" font-weight="700" fill="#1C1B1A">6. Production</text>
+          <text x="637" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8px" font-weight="700" fill="#23523B">CONFIDENCE</text>
+          <text x="637" y="59" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7px" fill="#6B6864">Zero Regressions</text>
+        </svg>
+        <div class="diagram-caption">Figure 1.1: The Vetra Multi-Tier Quality and Progressive Confidence Funnel</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 03 — VETRA TESTING PYRAMID                                           -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">02 — Testing Hierarchy</div>
+        <h2 class="section-title">The Vetra Empirical Testing Pyramid</h2>
+        <p class="section-desc">Exhaustive distribution of tests across unit algorithms, repository boundaries, and live cloud contracts.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg width="100%" height="240" viewBox="0 0 600 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Top: Live Staging -->
+          <polygon points="300,10 400,60 200,60" fill="#E3ECE7" stroke="#C4D7CC"/>
+          <text x="300" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#23523B">LIVE CLOUD E2E (20 Tests)</text>
+          <text x="300" y="54" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">AWS ECS Fargate &bull; HTTPS :443</text>
+
+          <!-- Middle: Integration & APIs -->
+          <polygon points="200,65 400,65 460,135 140,135" fill="#E3EBF4" stroke="#C9DAEB"/>
+          <text x="300" y="95" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5px" font-weight="700" fill="#234E74">SERVICE &amp; REPOSITORY INTEGRATION (78 Tests)</text>
+          <text x="300" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8px" fill="#4B7094">Spring Data JPA Specifications &bull; Redis Lettuce Client &bull; AI Gateway Failover</text>
+
+          <!-- Base: Unit & Algorithms -->
+          <polygon points="140,140 460,140 540,225 60,225" fill="#FAF8F4" stroke="#D3CDC0"/>
+          <text x="300" y="172" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10.5px" font-weight="700" fill="#1C1B1A">UNIT &amp; DOMAIN SPECIFICATIONS (175 Tests)</text>
+          <text x="300" y="192" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8px" fill="#6B6864">Triage Rule Engines &bull; Drug Withdrawal Estimators &bull; DTO Serialization &bull; Token Mutex Queues</text>
+          <text x="300" y="210" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="8.5px" font-weight="700" fill="#234E74">TOTAL VERIFIED AUTOMATED TEST COUNT: 273 TESTS (100% PASSING)</text>
+        </svg>
+        <div class="diagram-caption">Figure 2.1: The Vetra Testing Pyramid with Verified Repository Test Counts</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 04 — BACKEND VERIFICATION                                            -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">03 — Backend Test Suite</div>
+        <h2 class="section-title">Backend Architecture Verification (253 Tests / 96 Suites)</h2>
+        <p class="section-desc">Automated validation of Spring Security filter chains, multi-agent AI gateways, and optimistic locking FSMs.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card card-white">
+          <div class="card-title">1. AI Subsystem (42 Tests)</div>
+          <p class="card-body">
+            - <span class="mono">FailoverManagerTest</span> (8 tests)<br/>
+            - <span class="mono">ClinicalTriageEngineTest</span> (4 tests)<br/>
+            - <span class="mono">AIBudgetManagerTest</span> (3 tests)<br/>
+            - <span class="mono">DiagnosisAgentTest</span> (2 tests)
+          </p>
+        </div>
+
+        <div class="card card-white">
+          <div class="card-title">2. Domain &amp; FSM (88 Tests)</div>
+          <p class="card-body">
+            - <span class="mono">AppointmentServiceTest</span> (FSM states)<br/>
+            - <span class="mono">AnimalSpecificationTest</span> (5 tests)<br/>
+            - <span class="mono">ClinicalCaseServiceTest</span> (3 tests)<br/>
+            - <span class="mono">AuthServiceTest</span> (JWT lifecycle)
+          </p>
+        </div>
+
+        <div class="card card-white">
+          <div class="card-title">3. Infrastructure (123 Tests)</div>
+          <p class="card-body">
+            - <span class="mono">RedisInfrastructureTest</span> (Cluster caches)<br/>
+            - <span class="mono">CacheConstantsTest</span> (TTL matrix)<br/>
+            - <span class="mono">AIObservationConventionTest</span><br/>
+            - <span class="mono">VetraApplicationTests</span> (Spring context)
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S   S U M M A R Y
+[INFO] -------------------------------------------------------
+[INFO] Running app.vetra.ai.gateway.FailoverManagerTest .................... [PASSED] (8 tests)
+[INFO] Running app.vetra.animal.specification.AnimalSpecificationTest ..... [PASSED] (5 tests)
+[INFO] Running app.vetra.ai.workflow.clinical.triage.ClinicalTriageEngineTest [PASSED] (4 tests)
+[INFO] Running app.vetra.auth.AuthServiceTest .............................. [PASSED] (3 tests)
+[INFO] Running app.vetra.infrastructure.redis.RedisInfrastructureTest ...... [PASSED] (2 tests)
+[INFO] Results: 253 tests run, 0 failures, 0 errors, 0 skipped. (100% Success Rate)
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 05 — LIVE FLUTTER → AWS STAGING VERIFICATION                        -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">04 — Live Cloud Integration</div>
+        <h2 class="section-title">Live AWS Staging Contract Verification (20/20 Passed)</h2>
+        <p class="section-desc">Testing the real Flutter mobile client against live AWS Application Load Balancer and ECS Fargate compute.</p>
+      </div>
+
+      <table class="editorial-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Domain Category</th>
+            <th style="width: 45%;">Verified Behavior &amp; Scenario</th>
+            <th style="width: 15%;">Endpoints</th>
+            <th style="width: 15%;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Health Probes</strong></td>
+            <td>Actuator liveness, readiness, and composite health probes.</td>
+            <td><span class="mono">/actuator/health</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+          <tr>
+            <td><strong>Farmer Lifecycle</strong></td>
+            <td>Registration with Gujarat village coordinates, login, and profile receipt.</td>
+            <td><span class="mono">/auth/farmer/*</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+          <tr>
+            <td><strong>Animal Passports</strong></td>
+            <td>Cattle digital ear-tag creation, species validation, and QR lookup.</td>
+            <td><span class="mono">/api/v1/animals</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+          <tr>
+            <td><strong>Veterinarian Auth</strong></td>
+            <td>Veterinarian onboarding with VCI license ID, login, and directory search.</td>
+            <td><span class="mono">/auth/vet/*</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+          <tr>
+            <td><strong>Appointment FSM</strong></td>
+            <td>Booking, veterinarian acceptance, and optimistic locking transitions.</td>
+            <td><span class="mono">/appointments</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+          <tr>
+            <td><strong>EVMR Records</strong></td>
+            <td>Veterinarian-only medical records, drug withdrawal times, and history linking.</td>
+            <td><span class="mono">/medical-records</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+          <tr>
+            <td><strong>Token Rotation</strong></td>
+            <td>Single-flight refresh exchange, updated Bearer token reuse, and logout blacklist.</td>
+            <td><span class="mono">/auth/refresh</span></td>
+            <td><span class="tag-pill tag-green">PASSED</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 06 — REGRESSION ENGINEERING: POSTGRESQL CASE STUDY                   -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">05 — Regression Engineering</div>
+        <h2 class="section-title">Case Study: The PostgreSQL Animal Search Defect</h2>
+        <p class="section-desc">How a subtle SQL parameter deduction defect was identified, diagnosed, solved via Criteria API, and permanently shielded with automated tests.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-peach">
+          <div class="card-title">1. Root Cause Analysis</div>
+          <p class="card-body">
+            In PostgreSQL, static JPQL queries containing nullable enum expressions like <span class="mono">(:species IS NULL OR a.species = :species)</span> caused Hibernate to bind <span class="mono">null</span> with <span class="mono">Types.VARBINARY</span> or <span class="mono">bytea</span>. When executed against RDS PostgreSQL 15, the query planner threw <span class="mono">PSQLException: could not determine data type of parameter $1</span>.
+          </p>
+        </div>
+
+        <div class="card card-sage">
+          <div class="card-title">2. JPA Criteria API Resolution</div>
+          <p class="card-body">
+            Replaced static JPQL with <span class="mono">AnimalSpecification</span> utilizing dynamic JPA Criteria API predicates. Null parameters are omitted entirely from the generated SQL <span class="mono">WHERE</span> clause, eliminating type inference ambiguity and producing clean index-optimized SQL.
+          </p>
+        </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg width="100%" height="70" viewBox="0 0 650 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="15" width="100" height="40" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+          <text x="60" y="32" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5px" font-weight="700" fill="#7E3E26">Defect Identified</text>
+          <text x="60" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7px" fill="#7E3E26">PSQLException</text>
+
+          <path d="M110 35 L135 35" stroke="#234E74" stroke-width="1.8"/>
+
+          <rect x="135" y="15" width="125" height="40" rx="4" fill="#F8EEE8" stroke="#EBD9CE"/>
+          <text x="197" y="32" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5px" font-weight="700" fill="#7E3E26">Root Cause Analysis</text>
+          <text x="197" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7px" fill="#7E3E26">JPQL null enum type</text>
+
+          <path d="M260 35 L285 35" stroke="#234E74" stroke-width="1.8"/>
+
+          <rect x="285" y="15" width="135" height="40" rx="4" fill="#E9E7F4" stroke="#D3D0E7"/>
+          <text x="352" y="32" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5px" font-weight="700" fill="#433B72">Criteria API Predicates</text>
+          <text x="352" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7px" fill="#433B72">AnimalSpecification</text>
+
+          <path d="M420 35 L445 35" stroke="#23523B" stroke-width="1.8"/>
+
+          <rect x="445" y="15" width="195" height="40" rx="4" fill="#E3ECE7" stroke="#C4D7CC"/>
+          <text x="542" y="32" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5px" font-weight="700" fill="#23523B">Automated Regression Suite (5 Tests)</text>
+          <text x="542" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7px" fill="#23523B">AnimalSpecificationTest &bull; PASSED</text>
+        </svg>
+        <div class="diagram-caption">Figure 5.1: Defect Root Cause Investigation and Permanent Test-Shielded Resolution</div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 07 — CI/CD QUALITY GATES & DEPENDENCY LIFECYCLE                      -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">06 — CI/CD Pipeline Engineering</div>
+        <h2 class="section-title">Automated Quality Gates &amp; Dependency Governance</h2>
+        <p class="section-desc">Four-stage continuous integration pipeline in .github/workflows/ci.yml with zero tolerance for regressions.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg width="100%" height="80" viewBox="0 0 680 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Gate 1 -->
+          <rect x="10" y="15" width="145" height="50" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+          <text x="82" y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#1C1B1A">1. Build &amp; Test</text>
+          <text x="82" y="46" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#234E74">Maven &bull; Checkstyle</text>
+          <text x="82" y="57" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">253 Tests (0 Violations)</text>
+
+          <path d="M155 40 L180 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Gate 2 -->
+          <rect x="180" y="15" width="145" height="50" rx="5" fill="#F8EEE8" stroke="#EBD9CE"/>
+          <text x="252" y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#7E3E26">2. Secret Scanning</text>
+          <text x="252" y="46" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#7E3E26">Gitleaks Pre-flight</text>
+          <text x="252" y="57" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">0 Leaked API Tokens</text>
+
+          <path d="M325 40 L350 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Gate 3 -->
+          <rect x="350" y="15" width="145" height="50" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+          <text x="422" y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#433B72">3. Docker &amp; ECR</text>
+          <text x="422" y="46" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#433B72">Keyless AWS OIDC</text>
+          <text x="422" y="57" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">Multi-stage Alpine JRE</text>
+
+          <path d="M495 40 L520 40" stroke="#234E74" stroke-width="1.8"/>
+
+          <!-- Gate 4 -->
+          <rect x="520" y="15" width="150" height="50" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+          <text x="595" y="33" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="9px" font-weight="700" fill="#23523B">4. ECS Staging Deploy</text>
+          <text x="595" y="46" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">Rolling Update &bull; ALB</text>
+          <text x="595" y="57" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5px" fill="#23523B">5/5 Smoke Tests Passed</text>
+        </svg>
+        <div class="diagram-caption">Figure 6.1: The Four Automated CI/CD Quality Gates in .github/workflows/ci.yml</div>
+      </div>
+
+      <div class="card card-white" style="margin-top: 16px;">
+        <div class="card-title">Dependabot Maintenance &amp; Dependency Governance Case Study</div>
+        <p class="card-body">
+          <strong>The Engineering Lesson: Never Merge Dependencies Blindly.</strong><br/>
+          In Stage 14, 8 automated Dependabot PRs were reviewed. 7 upgrades were successfully verified and merged (<span class="mono">Spring Boot 3.5.16</span>, <span class="mono">Lombok 1.18.46</span>, <span class="mono">SpringDoc 2.9.0</span>, <span class="mono">Resilience4j 2.4.0</span>, <span class="mono">AWS SDK BOM 2.51.2</span>, <span class="mono">actions/checkout v7</span>, <span class="mono">actions/setup-java v5</span>, <span class="mono">CodeQL v4</span>).<br/>
+          However, <strong>PR #28</strong> (<span class="mono">datasource-micrometer-spring-boot</span> from 1.0.6 to 2.2.1) was <strong>rejected and closed</strong> after CI compilation failed due to breaking class changes in Micrometer datasource auto-configuration with Spring Boot 3.5.16. This demonstrated critical architectural vigilance over blind automation.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 08 — RESILIENCE & FAILURE HANDLING                                   -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">07 — Resilience Engineering</div>
+        <h2 class="section-title">Resilience4j Circuit Breakers, Retries &amp; Controlled Failover</h2>
+        <p class="section-desc">Protecting system integrity against external AI gateway drops and transient database spikes.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card card-cream">
+          <div class="card-title">1. Circuit Breakers</div>
+          <p class="card-body">
+            Resilience4j circuit breakers monitor external Gemini API latency. When the failure rate exceeds 50% across a 10-call sliding window, the circuit trips to <span class="mono">OPEN</span> to prevent thread starvation.
+          </p>
+        </div>
+
+        <div class="card card-sage">
+          <div class="card-title">2. Exponential Backoff</div>
+          <p class="card-body">
+            Transient database connection blips and HTTP 503 gateway drops trigger bounded exponential backoff with randomized jitter to prevent server thundering herds.
+          </p>
+        </div>
+
+        <div class="card card-lavender">
+          <div class="card-title">3. Multi-Agent Failover</div>
+          <p class="card-body">
+            <span class="mono">FailoverManager</span> routes requests automatically to backup heuristic rule engines when primary LLM inference times out, ensuring veterinary operations continue uninterrupted.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 09 — OBSERVABILITY & HEALTH MONITORING                               -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">08 — SRE &amp; Observability</div>
+        <h2 class="section-title">Actuator Health Probes &amp; CloudWatch Alarm Suite</h2>
+        <p class="section-desc">Real-time health telemetry across Spring Boot Actuator, Prometheus metrics, and AWS CloudWatch alarms.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-white">
+          <div class="card-title">Spring Boot Actuator Probes</div>
+          <p class="card-body">
+            - <span class="mono">/actuator/health/liveness</span>: Validates JVM process execution for ECS task supervision.<br/>
+            - <span class="mono">/actuator/health/readiness</span>: Verifies HikariCP PostgreSQL and Lettuce Redis connectivity before accepting ALB traffic.<br/>
+            - <span class="mono">/actuator/prometheus</span>: Exports custom AI token usage, cache hit ratios, and HTTP latency histograms.
+          </p>
+        </div>
+
+        <div class="card card-blue">
+          <div class="card-title">12 AWS CloudWatch Alarms</div>
+          <p class="card-body">
+            - <strong>ALB 5XX Errors:</strong> Triggers P1 alert if 5XX response rate > 1% in 5 minutes.<br/>
+            - <strong>Target Latency:</strong> Alerts if p95 response time > 2000ms.<br/>
+            - <strong>ECS CPU &amp; Memory:</strong> Alerts if task resource utilization > 80%.<br/>
+            - <strong>RDS Storage &amp; Connections:</strong> Monitors database connection pool pressure and storage headroom.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 10 — SAFE VERIFICATION PRACTICES: STAGING FIRST                      -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">09 — Operational Safety</div>
+        <h2 class="section-title">Staging-First Verification &amp; Production Protection</h2>
+        <p class="section-desc">Strict blast-radius containment: AWS Production remains completely untouched during all testing cycles.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-sage">
+          <div class="card-title">Staging Environment (10.1.0.0/16)</div>
+          <p class="card-body">
+            - <strong>Infrastructure:</strong> Live verified on AWS ECS Fargate, RDS PostgreSQL, and Redis at <span class="mono">api.vetra.dpdns.org</span>.<br/>
+            - <strong>Deployment:</strong> Fully automated via GitHub Actions with OIDC IAM authentication.<br/>
+            - <strong>Purpose:</strong> Real-world integration testing, contract verification, and load simulation.
+          </p>
+        </div>
+
+        <div class="card card-cream">
+          <div class="card-title">Production Environment (10.0.0.0/16)</div>
+          <p class="card-body">
+            - <strong>Status:</strong> <span class="tag-pill tag-peach">DRAFTED HA SPEC — NOT YET APPLIED</span>.<br/>
+            - <strong>Safety Policy:</strong> Zero <span class="mono">terraform apply</span> or resource provisioning in production accounts.<br/>
+            - <strong>Blast Radius:</strong> Complete network, IAM, and state isolation between staging and production.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 11 — EVIDENCE SCOREBOARD                                             -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">10 — Empirical Scoreboard</div>
+        <h2 class="section-title">Empirical Evidence &amp; Verification Metrics</h2>
+        <p class="section-desc">Quantitative proof of codebase health, test coverage, and cloud infrastructure readiness.</p>
+      </div>
+
+      <div class="stat-hero-grid">
+        <div class="stat-hero-card">
+          <div class="stat-num">253</div>
+          <div class="stat-label">Backend Tests (100% Passed)</div>
+        </div>
+        <div class="stat-hero-card">
+          <div class="stat-num">20 / 20</div>
+          <div class="stat-label">Live AWS Staging Tests</div>
+        </div>
+        <div class="stat-hero-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Checkstyle Violations</div>
+        </div>
+        <div class="stat-hero-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Open Dependabot PRs</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 12 — PRODUCTION CONFIDENCE & LIMITATIONS                             -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">11 — Confidence Boundaries</div>
+        <h2 class="section-title">Verified Capabilities vs. Future Reliability Scope</h2>
+        <p class="section-desc">Academic honesty: distinguishing what has been empirically verified from what remains queued for future phases.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card card-sage">
+          <div class="card-title">Empirically Verified &amp; Proven</div>
+          <p class="card-body">
+            - <strong>Full Backend Test Suite:</strong> 253 automated tests covering auth, domain FSMs, and AI governance.<br/>
+            - <strong>Live Staging E2E Contract:</strong> 20 live HTTPS tests passing on <span class="mono">api.vetra.dpdns.org</span>.<br/>
+            - <strong>Zero Code Quality Violations:</strong> 0 Checkstyle warnings across entire Java codebase.<br/>
+            - <strong>Keyless CI/CD Security:</strong> GitHub OIDC IAM role assumption with zero static secrets.<br/>
+            - <strong>Dependency Compatibility:</strong> 7 clean upgrades merged, 1 incompatible upgrade rejected.
+          </p>
+        </div>
+
+        <div class="card card-peach">
+          <div class="card-title">Queued / Future Reliability Scope</div>
+          <p class="card-body">
+            - <strong>Production Load &amp; Chaos Testing:</strong> High-concurrency Locust/JMeter stress testing on production clusters.<br/>
+            - <strong>Real-Device Multi-OS Field Testing:</strong> Testing mobile client on low-end physical Android/iOS hardware.<br/>
+            - <strong>Offline SQLite Sync &amp; Conflict Resolution:</strong> Testing offline medical record synchronization in deadzones.<br/>
+            - <strong>Disaster Recovery Multi-Region Drill:</strong> Simulating full AWS region failover from Mumbai to Hyderabad.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <!-- 13 — CLOSING COLOPHON                                                -->
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+    <section class="section" style="text-align: center; background: #FAF9F5;">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent-blue); margin-bottom: 8px;">Engineering Publication Series • Document 07</div>
+      <h2 style="font-family: 'Newsreader', Georgia, serif; font-size: 32px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-main); margin-bottom: 6px;">
+        VETRA: Engineering Quality, Testing &amp; Reliability
+      </h2>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-size: 16px; font-style: italic; color: #524E48; margin-bottom: 24px;">
+        "Reliability is not a feature added at the end of development. It is the result of repeatedly verifying every layer of the system."
+      </div>
+
+      <div style="display: inline-block; background: #F1EDE4; padding: 18px 36px; border-radius: 10px; border: 1px solid #E2DCD1; max-width: 80%; text-align: center;">
+        <div style="font-size: 14px; font-weight: 700; color: var(--text-main);">Built &amp; Engineered by Om Rajput</div>
+        <div style="font-size: 12px; color: #585550; margin-top: 4px;">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          <strong>SVKM's Institute of Technology, Dhule</strong>
+        </div>
+        <div style="font-size: 11px; color: #7A7670; margin-top: 8px; font-style: italic;">
+          "Engineering verifiable systems for mission-critical veterinary field operations."
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid var(--border-subtle); padding-top: 18px; margin-top: 32px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #7A7670;">
+        <div><strong>Status:</strong> 253 Backend Tests + 20 Live Staging Tests Verified (100% Passing)</div>
+        <div class="mono">BUILD: VETRA-QUALITY-DOC07-2026</div>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>

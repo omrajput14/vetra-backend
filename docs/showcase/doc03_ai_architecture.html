@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VETRA — AI Intelligence &amp; Architecture | Om Rajput</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #EAE6DF;
+      color: #1C1B1A;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 8.3pt;
+      line-height: 1.44;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #FAF9F5;
+      margin: 0 auto 10mm auto;
+      padding: 15mm 19mm 13mm 19mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    @media print {
+      body { background: none; }
+      .page { margin: 0; box-shadow: none; }
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7pt;
+    }
+
+    .code-block {
+      background: #F4EFE6;
+      border: 1px solid #E2DCD1;
+      border-radius: 5px;
+      padding: 6px 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.5pt;
+      line-height: 1.35;
+      color: #2D2B28;
+      overflow-x: hidden;
+    }
+
+    /* Running Header & Footer */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 7px;
+      border-bottom: 1px solid rgba(28, 27, 26, 0.10);
+      margin-bottom: 8px;
+    }
+    .page-header .doc-title {
+      font-size: 6.6pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6B6864;
+    }
+    .page-header .sec-badge {
+      font-size: 6.3pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: #EFEBE4;
+      padding: 2px 7px;
+      border-radius: 8px;
+      color: #4A4744;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 7px;
+      border-top: 1px solid rgba(28, 27, 26, 0.10);
+      margin-top: 8px;
+      font-size: 6.8pt;
+      color: #7A7671;
+    }
+    .page-footer .page-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #1C1B1A;
+    }
+
+    /* Headings */
+    .section-headline {
+      margin-bottom: 6px;
+    }
+    .section-number {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #433B72;
+      margin-bottom: 1px;
+    }
+    .section-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16.5pt;
+      line-height: 1.15;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #1C1B1A;
+    }
+    .section-subtitle {
+      font-size: 8pt;
+      color: #615E59;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Card System */
+    .card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .card-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .card {
+      border-radius: 7px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .card-title {
+      font-size: 8.4pt;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #1C1B1A;
+    }
+    .card-text {
+      font-size: 7.6pt;
+      color: #4A4844;
+      line-height: 1.38;
+    }
+
+    /* Pastel Palettes */
+    .card-cream { background: #F3EFE6; border-color: #E5DFD2; }
+    .card-sage { background: #E3ECE7; border-color: #C6D8CE; }
+    .card-sage .card-title { color: #23523B; }
+    .card-lavender { background: #E9E7F4; border-color: #D3D0E7; }
+    .card-lavender .card-title { color: #433B72; }
+    .card-blue { background: #E3EBF4; border-color: #C9DAEB; }
+    .card-blue .card-title { color: #234E74; }
+    .card-peach { background: #F8EEE8; border-color: #EBD9CE; }
+    .card-peach .card-title { color: #7E3E26; }
+    .card-white { background: #FFFFFF; border-color: #E6E2D9; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+
+    /* Metrics Strip */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      background: #F1EDE4;
+      padding: 7px 11px;
+      border-radius: 7px;
+      border: 1px solid #E4DDD0;
+    }
+    .metric-item { display: flex; flex-direction: column; }
+    .metric-num {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 14pt;
+      font-weight: 600;
+      color: #1C1B1A;
+      line-height: 1.1;
+    }
+    .metric-label {
+      font-size: 6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6B6864;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    /* Tables */
+    .editorial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.3pt;
+      background: #FFFFFF;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #E5E1D8;
+    }
+    .editorial-table th {
+      background: #F1EDE4;
+      color: #3E3C39;
+      font-weight: 700;
+      text-align: left;
+      padding: 4px 7px;
+      border-bottom: 1px solid #E2DCD1;
+      font-size: 6.6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .editorial-table td {
+      padding: 4px 7px;
+      border-bottom: 1px solid #F2EFE8;
+      color: #43413E;
+      line-height: 1.32;
+    }
+    .editorial-table tr:last-child td { border-bottom: none; }
+
+    .tag-pill {
+      display: inline-block;
+      font-size: 5.6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .tag-green { background: #D5E8DC; color: #1E4F32; }
+    .tag-blue { background: #D6E4F2; color: #1B456C; }
+    .tag-lavender { background: #DFDCF2; color: #3C3470; }
+    .tag-peach { background: #F4DECF; color: #78361C; }
+    .tag-gray { background: #E6E3DC; color: #524E48; }
+
+    /* Diagrams */
+    .diagram-box {
+      background: #F4F1EA;
+      border: 1px solid #E5DFD4;
+      border-radius: 7px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .diagram-label {
+      font-size: 6pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A7671;
+      margin-top: 3px;
+      text-align: center;
+    }
+
+    /* Cover Specific */
+    .cover-page {
+      background: #FAF9F5;
+      padding: 22mm 22mm 18mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cover-brand {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 38pt;
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: #1C1B1A;
+      margin-bottom: 10px;
+    }
+    .cover-subtitle {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16pt;
+      line-height: 1.25;
+      font-style: italic;
+      color: #4A4743;
+      margin-bottom: 16px;
+      max-width: 90%;
+    }
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #E8E3D8;
+      color: #383531;
+      padding: 3px 9px;
+      border-radius: 14px;
+      font-size: 7pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .cover-author-block {
+      background: #F1EDE4;
+      border-left: 3px solid #433B72;
+      padding: 10px 14px;
+      border-radius: 0 7px 7px 0;
+      max-width: 80%;
+    }
+    .cover-author-name {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #1C1B1A;
+    }
+    .cover-author-meta {
+      font-size: 7.8pt;
+      color: #5E5B56;
+      margin-top: 1px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 01: COVER                                                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#433B72"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Publication Series • Document 03</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864; line-height: 1.35;">
+        DOC ID: PUB-VETRA-DOC-03<br/>
+        MODULE: AI INTELLIGENCE<br/>
+        DATE: AUGUST 2026
+      </div>
+    </div>
+
+    <div style="margin: auto 0;">
+      <div class="cover-badge">
+        <span style="display:inline-block; width:5px; height:5px; background:#433B72; border-radius:50%;"></span>
+        AI Systems &amp; Intelligence Architecture Monograph
+      </div>
+      <h1 class="cover-brand">VETRA</h1>
+      <div class="cover-subtitle">
+        AI Intelligence &amp; Architecture<br/>
+        <span style="font-size: 11.5pt; color: #69655E; font-style: normal;">AI Systems, Intelligence Pipelines &amp; Responsible Automation: Gateway Decoupling, Multi-Agent Orchestration, Governance Safety &amp; Human-in-the-Loop Controls</span>
+      </div>
+
+      <div class="cover-author-block">
+        <div style="font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: #433B72; font-weight: 700; margin-bottom: 2px;">Architected &amp; Engineered By</div>
+        <div class="cover-author-name">Om Rajput</div>
+        <div class="cover-author-meta">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          SVKM's Institute of Technology, Dhule
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 12px; border-top: 1px solid rgba(28, 27, 26, 0.12); font-size: 7pt; color: #6E6B65;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">AI Architecture Framework</div>
+        <div>Gateway Pattern • Governance Pipeline • Multi-Agent System • Resilience4j Failover • Redis Caching</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: 700; color: #1C1B1A;">Clinical Safety Guarantee</div>
+        <div>Human-in-the-Loop Validation Required • veterinarian_verified = true Database Invariant</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 02: SECTION 1 — AI IN VETRA: OPERATIONAL BOUNDARY               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Clinical Philosophy • Section 01</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">01 — Intelligence Boundary</div>
+      <h2 class="section-title">AI in Vetra: Philosophy &amp; Operational Role</h2>
+      <p class="section-subtitle">A strictly auxiliary clinical decision-support subsystem operating under licensed veterinary oversight.</p>
+    </div>
+
+    <div class="card card-cream" style="padding: 11px;">
+      <p style="font-size: 8pt; color: #383531; line-height: 1.48; font-style: italic;">
+        "In mission-critical agricultural medicine, AI must never be treated as an autonomous authority. Livestock health decisions carry legal, economic, and biosecurity consequences. In Vetra, AI is architected strictly as an auxiliary diagnostic and triage assistant. The core operating platform remains fully deterministic, while AI-generated suggestions must pass through explicit human verification before mutating official medical records."
+      </p>
+      <div style="margin-top: 6px; text-align: right; font-weight: 700; font-size: 7.5pt; color: #1C1B1A;">
+        — Om Rajput, System Architect
+      </div>
+    </div>
+
+    <div class="card-grid-3" style="margin-top: 4px;">
+      <div class="card card-white">
+        <div class="card-title">1. Deterministic Core</div>
+        <p class="card-text">PostgreSQL 15 and Spring Boot manage authoritative state: animal identities, immutable EVMR records, and spatial outbreak boundaries.</p>
+      </div>
+
+      <div class="card card-lavender">
+        <div class="card-title">2. AI Auxiliary Intelligence</div>
+        <p class="card-text">Multi-agent subsystem parses clinical imagery, estimates triage urgency, suggests differential diagnoses, and drafts structured treatment plans.</p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">3. Human-in-the-Loop</div>
+        <p class="card-text">Licensed veterinarians review, modify, or reject AI outputs. Only verified proposals (<span class="mono">veterinarian_verified = true</span>) enter medical records.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Deterministic Core -->
+        <rect x="20" y="20" width="165" height="110" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="102" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">Deterministic Platform Core</text>
+        <text x="102" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">PostgreSQL 15 • Redis 7</text>
+        <text x="102" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Immutable EVMR Records</text>
+        <text x="102" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">PostGIS Spatial Geometry</text>
+        <text x="102" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">@Transactional ACID</text>
+
+        <!-- Plus -->
+        <text x="205" y="80" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="14pt" font-weight="700" fill="#8C523A">+</text>
+
+        <!-- AI Subsystem -->
+        <rect x="225" y="20" width="170" height="110" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="310" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">Auxiliary AI Intelligence</text>
+        <text x="310" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">Visual Lesion Analysis</text>
+        <text x="310" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">Clinical Triage &amp; Evidence</text>
+        <text x="310" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">Multi-Agent Decision Support</text>
+        <text x="310" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#433B72">DefaultAIGateway</text>
+
+        <!-- Equals -->
+        <text x="415" y="80" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="14pt" font-weight="700" fill="#8C523A">&rarr;</text>
+
+        <!-- Human Oversight -->
+        <rect x="435" y="20" width="165" height="110" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="517" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Licensed Human Decision</text>
+        <text x="517" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Field Veterinarian Review</text>
+        <text x="517" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Differential Diagnosis Sign-off</text>
+        <text x="517" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Prescription Approval</text>
+        <text x="517" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" font-weight="600" fill="#23523B">veterinarian_verified=true</text>
+      </svg>
+      <div class="diagram-label">Figure 1.1: Tripartite Operational Responsibility Matrix in Vetra Platform</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">02 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 03: SECTION 2 — VETRA AI SUBSYSTEM ARCHITECTURE                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Subsystem Design • Section 02</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">02 — Subsystem Topology</div>
+      <h2 class="section-title">Vetra AI Subsystem Architecture</h2>
+      <p class="section-subtitle">Decoupled enterprise pipeline bridging mobile clients, governance filters, resilient failover, and clinical workflows.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="255" viewBox="0 0 620 255" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- 1. Client & Ingress Tier -->
+        <rect x="20" y="10" width="580" height="38" rx="5" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="35" y="27" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#3D3A36">TIER 1: CLIENT &amp; INGRESS • Flutter Mobile App &amp; Spring Boot REST Ingress</text>
+        <rect x="360" y="16" width="225" height="24" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="472" y="32" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6.2pt" fill="#8C523A">POST /api/v1/ai/scans • S3 Upload</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 48 L310 60" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- 2. AI Gateway Facade -->
+        <rect x="20" y="60" width="580" height="42" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="35" y="78" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#433B72">TIER 2: AI GATEWAY FACADE • DefaultAIGateway &amp; Prompt Resolution</text>
+        <text x="35" y="93" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">PromptRegistry • PromptRenderer (Variable Injection) • Capability Matching • SHA-256 Cache Key</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 102 L310 114" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- 3. Enterprise Governance Pipeline -->
+        <rect x="20" y="114" width="580" height="42" rx="5" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="35" y="132" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#23523B">TIER 3: ENTERPRISE GOVERNANCE PIPELINE • Pre/Post Execution Controls</text>
+        <text x="35" y="147" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">AISafetyFilter (Injection/Toxicity) • AIPolicyEngine (Model Allowlist) • AIBudgetManager • AIAuditService</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 156 L310 168" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- 4. Distributed Caching & Resilience Failover -->
+        <rect x="20" y="168" width="580" height="42" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="35" y="186" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#234E74">TIER 4: CACHING &amp; RESILIENCE • Redis Cache &amp; FailoverManager</text>
+        <text x="35" y="201" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#4B7094">Redis AICacheManager (24h TTL) • Resilience4j Retry &amp; CircuitBreaker • ProviderRouter Dynamic Selection</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 210 L310 220" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- 5. Provider Execution Tier -->
+        <rect x="20" y="220" width="580" height="30" rx="5" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="35" y="235" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#3D3A36">TIER 5: PROVIDER EXECUTION • GeminiAIProvider &amp; Fallback Providers</text>
+        <rect x="420" y="224" width="165" height="22" rx="3" fill="#FFFFFF" stroke="#C4BDB0"/>
+        <text x="502" y="238" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#1C1B1A">Gemini 1.5 Pro / Flash / NoOp</text>
+      </svg>
+      <div class="diagram-label">Figure 2.1: The Primary Vetra AI Subsystem &amp; Gateway Architecture</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Pure Orchestration Isolation</div>
+        <p class="card-text">
+          Domain services never interact with raw LLM APIs directly. All AI requests pass through <span class="mono">DefaultAIGateway</span>, ensuring centralized policy enforcement, prompt templating, and audit logging.
+        </p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Resilient Provider Fallback</div>
+        <p class="card-text">
+          If an upstream model endpoint experiences rate limits or timeouts, <span class="mono">FailoverManager</span> transparently retries or fails over to alternative registered providers without application failure.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">03 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 04: SECTION 3 — THE AI GATEWAY FACADE                           -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Gateway Pattern • Section 03</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">03 — Gateway Design</div>
+      <h2 class="section-title">The AI Gateway Facade (<span class="mono">DefaultAIGateway</span>)</h2>
+      <p class="section-subtitle">Decoupling clinical business logic from external AI SDKs and orchestrating multi-layer execution.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Why the Gateway Exists</div>
+        <p class="card-text">
+          - <strong>Zero Vendor Lock-in:</strong> Abstract interface (<span class="mono">AIGateway</span>) prevents direct dependencies on Google GenAI or third-party SDKs.<br/>
+          - <strong>Centralized Governance:</strong> Evaluates safety, policy, and budget constraints uniformly across all AI features.<br/>
+          - <strong>Performance &amp; Cost Control:</strong> Checks Redis cache with single-flight stampede protection before invoking remote models.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Gateway Responsibilities</div>
+        <p class="card-text">
+          1. Resolves <span class="mono">PromptDescriptor</span> from <span class="mono">PromptRegistry</span>.<br/>
+          2. Renders variables into templates via <span class="mono">PromptRenderer</span>.<br/>
+          3. Evaluates enterprise governance in <span class="mono">AIGovernancePipeline</span>.<br/>
+          4. Computes deterministic SHA-256 cache keys.<br/>
+          5. Delegates provider execution to <span class="mono">FailoverManager</span>.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Caller -->
+        <rect x="20" y="25" width="125" height="110" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="82" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Business Service</text>
+        <text x="82" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">AIScanService</text>
+        <text x="82" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">AIRequest(promptId)</text>
+        <text x="82" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">No LLM SDK Code</text>
+
+        <!-- Arrow -->
+        <path d="M145 80 L175 80" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- DefaultAIGateway -->
+        <rect x="175" y="25" width="220" height="110" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="285" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">DefaultAIGateway</text>
+        <text x="285" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">1. Resolve Prompt &amp; Render Context</text>
+        <text x="285" y="80" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">2. Execute AIGovernancePipeline</text>
+        <text x="285" y="95" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">3. Redis Cache Check (SHA-256)</text>
+        <text x="285" y="115" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#433B72">4. FailoverManager.execute()</text>
+
+        <!-- Arrow -->
+        <path d="M395 80 L425 80" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- Providers -->
+        <rect x="425" y="25" width="175" height="110" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="512" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Provider Router</text>
+        <text x="512" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">GeminiAIProvider</text>
+        <text x="512" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#6B6864">ClaudeProvider (Future)</text>
+        <text x="512" y="104" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#23523B">NoOpAIProvider (Test)</text>
+      </svg>
+      <div class="diagram-label">Figure 3.1: AI Gateway Request Decoupling &amp; Orchestration Flow</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Clean Exception Abstraction</div>
+      <p class="card-text">
+        All downstream HTTP or provider exceptions are caught and wrapped into typed domain exceptions (<span class="mono">AITimeoutException</span>, <span class="mono">AIRateLimitException</span>, <span class="mono">AIBudgetExceededException</span>, <span class="mono">AISafetyViolationException</span>) extending <span class="mono">AIException</span>.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">04 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 05: SECTION 4 — ENTERPRISE GOVERNANCE PIPELINE                  -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Safety &amp; Compliance • Section 04</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">04 — Enterprise Controls</div>
+      <h2 class="section-title">Enterprise Governance Pipeline (<span class="mono">AIGovernancePipeline</span>)</h2>
+      <p class="section-subtitle">Multi-stage pre-flight validation, safety screening, budget quotas, and post-execution accounting.</p>
+    </div>
+
+    <div class="card-grid-4">
+      <div class="card card-peach">
+        <div class="card-title">1. AISafetyFilter</div>
+        <p class="card-text">Inspects rendered prompts and inputs for prompt injection, toxic content, and sensitive PII before model dispatch.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">2. AIPolicyEngine</div>
+        <p class="card-text">Validates tenant authorization for requested capabilities and model tiers against enterprise policy rules.</p>
+      </div>
+      <div class="card card-cream">
+        <div class="card-title">3. AIBudgetManager</div>
+        <p class="card-text">Pre-flight checks on monthly token and dollar budget limits; records actual token usage and cost post-execution.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">4. AIAuditService</div>
+        <p class="card-text">Emits immutable audit telemetry records capturing prompt ID, tenant, token count, cost, and latency.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Pre-Execution Box -->
+        <rect x="20" y="20" width="260" height="120" rx="6" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="150" y="40" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#7E3E26">PRE-EXECUTION GOVERNANCE CHECKS</text>
+        
+        <rect x="35" y="52" width="230" height="22" rx="3" fill="#FFFFFF" stroke="#E6D3C8"/>
+        <text x="150" y="67" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#7E3E26">1. AISafetyFilter &rarr; Injection / Content Audit</text>
+
+        <rect x="35" y="78" width="230" height="22" rx="3" fill="#FFFFFF" stroke="#E6D3C8"/>
+        <text x="150" y="93" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#234E74">2. AIPolicyEngine &rarr; Tenant Capability Rules</text>
+
+        <rect x="35" y="104" width="230" height="22" rx="3" fill="#FFFFFF" stroke="#E6D3C8"/>
+        <text x="150" y="119" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#655947">3. AIBudgetManager &rarr; Pre-flight Quota Check</text>
+
+        <!-- Arrow -->
+        <path d="M280 80 L310 80" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- Execution Center -->
+        <circle cx="330" cy="80" r="18" fill="#E9E7F4" stroke="#D3D0E7" stroke-width="1.5"/>
+        <text x="330" y="83" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" font-weight="700" fill="#433B72">LLM</text>
+
+        <!-- Arrow -->
+        <path d="M350 80 L380 80" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- Post-Execution Box -->
+        <rect x="380" y="20" width="220" height="120" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="490" y="40" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">POST-EXECUTION ACCOUNTING</text>
+
+        <rect x="395" y="55" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="490" y="72" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">4. Record Actual Token &amp; Dollar Usage</text>
+
+        <rect x="395" y="88" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="490" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">5. AIAuditService &rarr; Emit Audit Event</text>
+      </svg>
+      <div class="diagram-label">Figure 4.1: The 5-Step Enterprise AI Governance and Accounting Pipeline</div>
+    </div>
+
+    <div class="card card-white" style="margin-top: 4px;">
+      <div class="card-title">Synchronous Pre-Flight Rejection</div>
+      <p class="card-text">
+        If a safety policy or token budget is breached, the pipeline immediately aborts execution before calling any external model, throwing <span class="mono">AISafetyViolationException</span> or <span class="mono">AIBudgetExceededException</span> (HTTP 422 Unprocessable Entity), saving LLM operational expenses.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">05 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 06: SECTION 5 — END-TO-END AI REQUEST LIFECYCLE                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Sequence Execution • Section 05</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">05 — Sequence Trace</div>
+      <h2 class="section-title">End-to-End AI Request Lifecycle</h2>
+      <p class="section-subtitle">The asynchronous sequence from mobile lesion capture to AI gateway processing and database persistence.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="240" viewBox="0 0 620 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Sequence Lifelines -->
+        <line x1="60" y1="30" x2="60" y2="215" stroke="#D3CDC0" stroke-dasharray="3 3"/>
+        <line x1="165" y1="30" x2="165" y2="215" stroke="#D3CDC0" stroke-dasharray="3 3"/>
+        <line x1="270" y1="30" x2="270" y2="215" stroke="#D3CDC0" stroke-dasharray="3 3"/>
+        <line x1="375" y1="30" x2="375" y2="215" stroke="#D3CDC0" stroke-dasharray="3 3"/>
+        <line x1="480" y1="30" x2="480" y2="215" stroke="#D3CDC0" stroke-dasharray="3 3"/>
+        <line x1="570" y1="30" x2="570" y2="215" stroke="#D3CDC0" stroke-dasharray="3 3"/>
+
+        <!-- Headers -->
+        <rect x="25" y="10" width="70" height="20" rx="3" fill="#E8E4DB" stroke="#C4BDB0"/>
+        <text x="60" y="24" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#1C1B1A">Flutter</text>
+
+        <rect x="130" y="10" width="70" height="20" rx="3" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="165" y="24" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#234E74">Controller</text>
+
+        <rect x="235" y="10" width="70" height="20" rx="3" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="270" y="24" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#433B72">Gateway</text>
+
+        <rect x="340" y="10" width="70" height="20" rx="3" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="375" y="24" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#23523B">Governance</text>
+
+        <rect x="445" y="10" width="70" height="20" rx="3" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="480" y="24" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#655947">Failover/AI</text>
+
+        <rect x="535" y="10" width="70" height="20" rx="3" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="570" y="24" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#3D3A36">Postgres</text>
+
+        <!-- Message 1: POST /ai/scans -->
+        <path d="M60 48 L165 48" stroke="#8C523A" stroke-width="1.2"/>
+        <text x="112" y="44" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#8C523A">1. POST /scans (image S3)</text>
+
+        <!-- Message 2: ScanService -> Gateway -->
+        <path d="M165 70 L270 70" stroke="#433B72" stroke-width="1.2"/>
+        <text x="217" y="66" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#433B72">2. execute(AIRequest)</text>
+
+        <!-- Message 3: Gateway -> Governance -->
+        <path d="M270 92 L375 92" stroke="#23523B" stroke-width="1.2"/>
+        <text x="322" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.2pt" fill="#23523B">3. Safety &amp; Budget Check</text>
+
+        <!-- Message 4: Governance -> Failover/Model -->
+        <path d="M375 114 L480 114" stroke="#655947" stroke-width="1.2"/>
+        <text x="427" y="110" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.2pt" fill="#655947">4. Provider Execute (Gemini)</text>
+
+        <!-- Message 5: Model Response -->
+        <path d="M480 136 L375 136" stroke="#655947" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <text x="427" y="132" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.2pt" fill="#655947">5. Raw JSON Payload</text>
+
+        <!-- Message 6: Governance Audit -->
+        <path d="M375 158 L270 158" stroke="#23523B" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <text x="322" y="154" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.2pt" fill="#23523B">6. Record Consumption</text>
+
+        <!-- Message 7: Gateway -> Controller -->
+        <path d="M270 180 L165 180" stroke="#433B72" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <text x="217" y="176" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#433B72">7. Return AIResponse</text>
+
+        <!-- Message 8: Save to DB -->
+        <path d="M165 198 L570 198" stroke="#3D3A36" stroke-width="1.2"/>
+        <text x="367" y="194" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#3D3A36">8. Save AIScan (veterinarian_verified=FALSE)</text>
+
+        <!-- Message 9: HTTP 201 Created -->
+        <path d="M165 214 L60 214" stroke="#8C523A" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <text x="112" y="210" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#8C523A">9. 201 Created (Diagnostic DTO)</text>
+      </svg>
+      <div class="diagram-label">Figure 5.1: Synchronous Execution Sequence Trace for Clinical Visual AI Scans</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Immutable S3 Storage Linkage</div>
+        <p class="card-text">
+          Photos are uploaded directly to Amazon S3 via presigned URLs before AI scan invocation. The database record references the permanent S3 URI, ensuring an immutable clinical image audit trail.
+        </p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Default Unverified Status</div>
+        <p class="card-text">
+          Every new AI scan record is persisted with <span class="mono">veterinarian_verified = false</span>. The proposal remains in a pending triage queue until an authenticated veterinarian executes review.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">06 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 07: SECTION 6 — SPECIALIZED MULTI-AGENT ARCHITECTURE            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Agent Architecture • Section 06</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">06 — Agent Specialization</div>
+      <h2 class="section-title">Specialized Clinical Multi-Agent Subsystem</h2>
+      <p class="section-subtitle">Coordinated expert agents dividing complex veterinary tasks into discrete, verifiable reasoning stages.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-lavender">
+        <div class="card-title">1. DiagnosisAgent (<span class="mono">DiagnosisAgentImpl</span>)</div>
+        <p class="card-text">
+          - <strong>Input:</strong> Visual lesion images, animal species, age, vital signs, reported clinical symptoms.<br/>
+          - <strong>Task:</strong> Evaluates pathology against veterinary disease database.<br/>
+          - <strong>Output:</strong> Ranked differential diagnoses with confidence scores and clinical rationale.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">2. TreatmentAgent (<span class="mono">TreatmentAgentImpl</span>)</div>
+        <p class="card-text">
+          - <strong>Input:</strong> Confirmed/suspected diagnosis, animal weight, lactation state.<br/>
+          - <strong>Task:</strong> Formulates evidence-based therapeutic protocols.<br/>
+          - <strong>Output:</strong> Recommended pharmacological interventions, dosages, and withdrawal periods.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-title">3. KnowledgeAgent (<span class="mono">KnowledgeAgentImpl</span>)</div>
+        <p class="card-text">
+          - <strong>Input:</strong> Clinical query strings and disease keywords.<br/>
+          - <strong>Task:</strong> Vector search against embedded veterinary clinical guidelines.<br/>
+          - <strong>Output:</strong> Verified clinical references and biosecurity protocols.
+        </p>
+      </div>
+
+      <div class="card card-peach">
+        <div class="card-title">4. ReportAgent (<span class="mono">ReportAgentImpl</span>)</div>
+        <p class="card-text">
+          - <strong>Input:</strong> Synthesized diagnostic and treatment agent outputs.<br/>
+          - <strong>Task:</strong> Formulates dual role-tailored communication views.<br/>
+          - <strong>Output:</strong> Technical summary for veterinarians; plain-language care guide for farmers.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Central Orchestrator -->
+        <circle cx="310" cy="75" r="32" fill="#E8E4DB" stroke="#D3CDC0" stroke-width="1.5"/>
+        <text x="310" y="73" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#1C1B1A">Agent</text>
+        <text x="310" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#1C1B1A">Registry</text>
+
+        <!-- Top Left: DiagnosisAgent -->
+        <rect x="25" y="20" width="155" height="48" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="102" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#433B72">DiagnosisAgent</text>
+        <text x="102" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#433B72">Differential Pathologies</text>
+        <path d="M180 44 L280 65" stroke="#433B72" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+        <!-- Bottom Left: TreatmentAgent -->
+        <rect x="25" y="82" width="155" height="48" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="102" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">TreatmentAgent</text>
+        <text x="102" y="114" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">Rx &amp; Withdrawal Periods</text>
+        <path d="M180 106 L280 85" stroke="#23523B" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+        <!-- Top Right: KnowledgeAgent -->
+        <rect x="440" y="20" width="155" height="48" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="517" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">KnowledgeAgent</text>
+        <text x="517" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#234E74">Guideline RAG Search</text>
+        <path d="M440 44 L340 65" stroke="#234E74" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+        <!-- Bottom Right: ReportAgent -->
+        <rect x="440" y="82" width="155" height="48" rx="5" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="517" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#7E3E26">ReportAgent</text>
+        <text x="517" y="114" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#7E3E26">Dual Role Synthesis</text>
+        <path d="M440 106 L340 85" stroke="#7E3E26" stroke-width="1.5" stroke-dasharray="2 2"/>
+      </svg>
+      <div class="diagram-label">Figure 6.1: Specialized Clinical Agent Division of Labor and Registry Coordination</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">07 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 08: SECTION 7 — CLINICAL WORKFLOW & TRIAGE ENGINE               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Triage &amp; Coordination • Section 07</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">07 — Clinical Pipeline</div>
+      <h2 class="section-title">Clinical Workflow &amp; Triage Engine</h2>
+      <p class="section-subtitle">Multi-stage pipeline orchestrating evidence aggregation, triage urgency ranking, and care coordination.</p>
+    </div>
+
+    <div class="card-grid-4">
+      <div class="card card-cream">
+        <div class="card-title">1. Evidence Aggregator</div>
+        <p class="card-text">Combines farmer observations, vital signs (temp, pulse), laboratory results, and sensor data into an immutable evidence package.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">2. Triage Engine</div>
+        <p class="card-text">Evaluates clinical acuity into four discrete tiers: <span class="mono">EMERGENT</span>, <span class="mono">URGENT</span>, <span class="mono">ROUTINE</span>, or <span class="mono">ELECTIVE</span>.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">3. Decision Support</div>
+        <p class="card-text">Computes explainable diagnostic candidates with uncertainty flags and differential justifications.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">4. Action Plan Engine</div>
+        <p class="card-text">Generates synchronized care plans: clinical triage for the vet, and quarantine instructions for the farmer.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Step 1 -->
+        <rect x="15" y="40" width="130" height="65" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="80" y="62" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">1. Evidence Aggregation</text>
+        <text x="80" y="78" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Observations • Vitals</text>
+        <text x="80" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">ClinicalEvidencePayload</text>
+
+        <!-- Arrow -->
+        <path d="M145 72 L165 72" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 2 -->
+        <rect x="165" y="40" width="130" height="65" rx="5" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="230" y="62" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#7E3E26">2. Clinical Triage</text>
+        <text x="230" y="78" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#7E3E26">Acuity: EMERGENT</text>
+        <text x="230" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#7E3E26">TriageExplanation</text>
+
+        <!-- Arrow -->
+        <path d="M295 72 L315 72" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 3 -->
+        <rect x="315" y="40" width="140" height="65" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="385" y="62" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#433B72">3. Decision Support</text>
+        <text x="385" y="78" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#433B72">Differential Pathologies</text>
+        <text x="385" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#433B72">DiseaseRanker (Score)</text>
+
+        <!-- Arrow -->
+        <path d="M455 72 L475 72" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Step 4 -->
+        <rect x="475" y="40" width="130" height="65" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="540" y="62" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">4. Action Formulation</text>
+        <text x="540" y="78" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">Vet &amp; Farmer Views</text>
+        <text x="540" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#23523B">ClinicalCareTaskEngine</text>
+      </svg>
+      <div class="diagram-label">Figure 7.1: The 4-Stage Clinical Case Workflow &amp; Care Task Orchestration Pipeline</div>
+    </div>
+
+    <div class="card card-white" style="margin-top: 4px;">
+      <div class="card-title">Care Task Escalation Engine</div>
+      <p class="card-text">
+        <span class="mono">CareTaskEscalationEngine</span> tracks active care assignments. If high-priority triage tasks (e.g. suspected anthrax or hemorrhagic septicemia) remain unacknowledged beyond configured thresholds, automated escalation events alert regional veterinary supervisors.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">08 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 09: SECTION 8 — PROMPT ENGINEERING & CONTEXT ASSEMBLY           -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Prompt Engineering • Section 08</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">08 — Context Assembly</div>
+      <h2 class="section-title">Prompt Engineering &amp; Context Assembly</h2>
+      <p class="section-subtitle">Structured prompt templates, variable hydration, and strict context boundary isolation.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Prompt Registry Architecture</div>
+        <p class="card-text">
+          - <strong>Template Decoupling:</strong> Prompts are defined as versioned templates in <span class="mono">PromptRegistry</span> rather than hardcoded strings.<br/>
+          - <strong>Capability Metadata:</strong> Each <span class="mono">PromptDescriptor</span> declares required capabilities (e.g. <span class="mono">VISION</span>, <span class="mono">STRUCTURED_OUTPUT</span>) used by <span class="mono">ProviderRouter</span>.<br/>
+          - <strong>Hydration:</strong> <span class="mono">PromptRenderer</span> injects validated animal demographics and clinical variables into template placeholders.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Zero-PII Context Boundary</div>
+        <p class="card-text">
+          Prompt templates exclude personal identifiable information (farmer name, phone number, national IDs). The LLM context contains strictly clinical attributes: species, breed, estimated weight, age, observed lesion description, and anonymized vital signs.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Representative Prompt Template: Bovine Lesion Analysis</div>
+      <div class="code-block">
+You are an expert board-certified veterinary pathologist assistant.
+Analyze the provided animal lesion image and clinical context to generate a differential diagnosis.
+
+CLINICAL CONTEXT:
+- Species: &#123;&#123;species&#125;&#125;
+- Breed: &#123;&#123;breed&#125;&#125; | Age: &#123;&#123;ageMonths&#125;&#125; months | Gender: &#123;&#123;gender&#125;&#125;
+- Reported Symptoms: &#123;&#123;symptoms&#125;&#125;
+- Vital Signs: Temp: &#123;&#123;temperatureC&#125;&#125; °C, Pulse: &#123;&#123;pulseBpm&#125;&#125; bpm
+
+REQUIREMENTS:
+1. Provide top 3 differential diagnoses with estimated confidence [0.0 - 1.0].
+2. Identify primary anatomical lesion characteristics and severity.
+3. Highlight mandatory biosecurity warnings if an infectious pathogen is suspected.
+4. Output STRICT JSON conforming to the DiagnosticInsightDto schema.
+      </div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-sage">
+        <div class="card-title">Deterministic Template Rendering</div>
+        <p class="card-text">
+          <span class="mono">PromptRenderer</span> validates that all mandatory placeholders are populated before dispatch, throwing <span class="mono">AIConfigurationException</span> if required variables are missing.
+        </p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Token Context Budgeting</div>
+        <p class="card-text">
+          Prompt lengths are bounded to prevent exceeding model context windows, guaranteeing fast sub-2.5s inference latencies across 4G rural field conditions.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">09 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 10: SECTION 9 — STRUCTURED OUTPUTS & SCHEMA VALIDATION          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Schema Validation • Section 09</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">09 — Schema Contracts</div>
+      <h2 class="section-title">Structured Output &amp; Strict Schema Validation</h2>
+      <p class="section-subtitle">Transforming stochastic model generations into strongly typed, validated Java domain DTOs.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Why Structured Output is Mandatory</div>
+        <p class="card-text">
+          Production backend systems cannot process unstructured conversational text. Vetra requires deterministic JSON structures that map directly to Java records and database columns, ensuring validation constraints (<span class="mono">@NotNull</span>, <span class="mono">@Min</span>, <span class="mono">@Max</span>) are verified before domain consumption.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Malformed Response Handling</div>
+        <p class="card-text">
+          If an LLM produces truncated JSON or invalid schema types, Jackson parsing fails and throws <span class="mono">AIInvalidResponseException</span>. <span class="mono">FailoverManager</span> captures the error and triggers an immediate single-retry or fallbacks to the rule-based clinical engine.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-lavender" style="margin-top: 4px;">
+      <div class="card-title">Schema Contract: <span class="mono">DiagnosticInsightDto</span></div>
+      <div class="code-block">
+public record DiagnosticInsightDto(
+    @NotBlank String primaryDiagnosis,
+    @DecimalMin("0.0") @DecimalMax("1.0") Double confidenceScore,
+    List&lt;DifferentialCandidate&gt; differentials,
+    String clinicalReasoning,
+    TriageAcuity triageLevel,
+    List&lt;String&gt; suggestedLabTests,
+    boolean biosecurityAlertRequired
+) &#123;&#125;
+      </div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Representative Validated Model Output Payload</div>
+      <div class="code-block">
+&#123;
+  "primaryDiagnosis": "Bovine Papillomatosis",
+  "confidenceScore": 0.88,
+  "differentials": [
+    &#123; "disease": "Lumpy Skin Disease", "confidence": 0.65 &#125;,
+    &#123; "disease": "Dermatophilosis", "confidence": 0.32 &#125;
+  ],
+  "clinicalReasoning": "Multiple proliferative nodular lesions observed along cervical region without systemic ulceration.",
+  "triageLevel": "ROUTINE",
+  "suggestedLabTests": ["Histopathology biopsy", "PCR viral assay"],
+  "biosecurityAlertRequired": false
+&#125;
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">10 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 11: SECTION 10 — AI SAFETY & HUMAN-IN-THE-LOOP                  -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Responsible AI • Section 10</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">10 — Clinical Safety</div>
+      <h2 class="section-title">AI Safety, Guardrails &amp; Human Verification</h2>
+      <p class="section-subtitle">Enforcing the <span class="mono">veterinarian_verified</span> database invariant and content safety boundaries.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-peach">
+        <div class="card-title">The Verification Invariant</div>
+        <p class="card-text">
+          In the <span class="mono">ai_scans</span> relational table, the column <span class="mono">veterinarian_verified</span> defaults to <span class="mono">FALSE</span>. AI suggestions cannot be used to generate official prescriptions, alter animal health status, or initiate quarantine protocols until an authenticated veterinarian reviews and approves the scan.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Prompt Injection Mitigation</div>
+        <p class="card-text">
+          <span class="mono">AISafetyFilter</span> uses strict input sanitation and delimiter boundaries. User-provided symptom strings are wrapped in isolated CDATA-style text blocks, neutralizing adversarial prompt override attempts.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Step 1: AI Scan Generation -->
+        <rect x="20" y="25" width="140" height="105" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="90" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#433B72">1. AI Scan Generated</text>
+        <text x="90" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#433B72">Diagnostic Insight Created</text>
+        <text x="90" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">ai_scans table</text>
+        <text x="90" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" font-weight="700" fill="#7E3E26">verified = FALSE</text>
+
+        <!-- Arrow -->
+        <path d="M160 77 L200 77" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- Step 2: Verification Gate -->
+        <rect x="200" y="25" width="220" height="105" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="310" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">2. Licensed Veterinarian Portal</text>
+        <text x="310" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Dr. Reviews AI Proposals &amp; Photo</text>
+        <text x="310" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">POST /api/v1/ai/scans/&#123;id&#125;/verify</text>
+        <text x="310" y="108" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">Authorized: ROLE_VETERINARIAN</text>
+
+        <!-- Arrow -->
+        <path d="M420 77 L460 77" stroke="#23523B" stroke-width="1.8"/>
+
+        <!-- Step 3: Medical Record -->
+        <rect x="460" y="25" width="140" height="105" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="530" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">3. Official EVMR</text>
+        <text x="530" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Immutable Medical Entry</text>
+        <text x="530" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Prescriptions Issued</text>
+        <text x="530" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">✓ Legal &amp; Clinical Truth</text>
+      </svg>
+      <div class="diagram-label">Figure 10.1: Human-in-the-Loop Verification Gate Prior to Medical Record Ingestion</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Rejection &amp; Overwrite Capabilities</div>
+      <p class="card-text">
+        Veterinarians can reject incorrect AI suggestions via <span class="mono">POST /api/v1/ai/scans/<built-in function id>/reject</span> or override the diagnosis with their clinical findings. Both the original AI prediction and the veterinarian's final correction are archived for auditability.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">11 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 12: SECTION 11 — RELIABILITY & FAILOVER                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Fault Tolerance • Section 11</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">11 — AI Resilience</div>
+      <h2 class="section-title">Reliability, Fault Tolerance &amp; Failover</h2>
+      <p class="section-subtitle">Per-provider Resilience4j circuit breakers, timeout thresholds, and graceful rule-based fallbacks.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-sage">
+        <div class="card-title">1. Timeouts (10s)</div>
+        <p class="card-text">Hard time limiter prevents slow external LLM inference from tying up backend Tomcat worker threads.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">2. Circuit Breakers</div>
+        <p class="card-text">Tracks per-provider failure rates. Opens after 50% failures in a 10-call sliding window to fast-fail traffic.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">3. Fallback Providers</div>
+        <p class="card-text">On provider exhaustion, routes automatically to <span class="mono">NoOpAIProvider</span> or deterministic rule engine without throwing 500 errors.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Gateway Inbound -->
+        <rect x="20" y="25" width="125" height="110" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="82" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Incoming Scan</text>
+        <text x="82" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">execute(AIRequest)</text>
+        <text x="82" y="90" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#23523B">Primary: Gemini</text>
+        <text x="82" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#6B6864">Timeout: 10,000ms</text>
+
+        <!-- Arrow -->
+        <path d="M145 80 L180 80" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- FailoverManager Engine -->
+        <rect x="180" y="25" width="220" height="110" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="290" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">FailoverManager Engine</text>
+        
+        <rect x="195" y="55" width="190" height="24" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="290" y="71" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">1. Execute Primary Provider (Gemini 1.5)</text>
+
+        <rect x="195" y="83" width="190" height="24" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="290" y="99" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#8C523A">2. Catch RateLimit / Timeout Exception</text>
+
+        <text x="290" y="123" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#7E3E26">3. Exclude Provider &amp; Trigger Fallback</text>
+
+        <!-- Arrow -->
+        <path d="M400 80 L435 80" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- Fallback Engine -->
+        <rect x="435" y="25" width="165" height="110" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="517" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Fallback Engine</text>
+        <text x="517" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Rule-Based Triage Matrix</text>
+        <text x="517" y="86" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Static Symptom Lookups</text>
+        <text x="517" y="108" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">✓ HTTP 200 OK Returned</text>
+      </svg>
+      <div class="diagram-label">Figure 11.1: FailoverManager Multi-Tier Resilience &amp; Rule-Based Fallback Flow</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Graceful Degradation Guarantee</div>
+      <p class="card-text">
+        Under total third-party AI provider outage, Vetra degrades gracefully: the platform continues operating all core veterinary functions (passports, appointments, EVMR records) while presenting rule-based diagnostic guidance tagged with <span class="mono">source = FALLBACK_RULES</span>.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">12 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 13: SECTION 12 — DISTRIBUTED AI CACHING (REDIS 7)               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Redis Architecture • Section 12</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">12 — Performance &amp; Caching</div>
+      <h2 class="section-title">Distributed AI Caching &amp; Stampede Protection</h2>
+      <p class="section-subtitle">Deterministic SHA-256 cache keys, 24-hour TTL policies, and single-flight concurrency locks.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Deterministic Cache Key Generation</div>
+        <p class="card-text">
+          <span class="mono">CacheKeyGenerator</span> computes cryptographic SHA-256 digests over: <span class="mono">promptId</span>, sorted variable keys/values, image hash (if present), and target model identifier. Identical symptom queries return cached responses in &lt;5ms.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Single-Flight Stampede Protection</div>
+        <p class="card-text">
+          When multiple concurrent requests query the same un-cached clinical context simultaneously, <span class="mono">AICacheManager</span> acquires a Redis mutex lock for that key. Only one request invokes the LLM API; other threads await the single cached result.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Input Vector -->
+        <rect x="20" y="25" width="135" height="105" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="87" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">Input Parameters</text>
+        <text x="87" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">promptId: "lesion_v1"</text>
+        <text x="87" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">species: "CATTLE"</text>
+        <text x="87" y="95" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">imageHash: "a4f8e9..."</text>
+        <text x="87" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#433B72">model: "gemini-1.5-pro"</text>
+
+        <!-- Arrow -->
+        <path d="M155 77 L190 77" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- SHA-256 Generator -->
+        <rect x="190" y="25" width="140" height="105" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="260" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">CacheKeyGenerator</text>
+        <text x="260" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Canonical Sort</text>
+        <text x="260" y="84" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">SHA-256 Hashing</text>
+        <text x="260" y="108" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">ai:cache:e9b14...</text>
+
+        <!-- Arrow -->
+        <path d="M330 77 L365 77" stroke="#433B72" stroke-width="1.8"/>
+
+        <!-- Redis Cache Hit/Miss -->
+        <rect x="365" y="25" width="235" height="105" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="482" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">Redis 7.1 Distributed Cache (24h TTL)</text>
+        
+        <rect x="380" y="58" width="205" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="482" y="74" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">CACHE HIT &rarr; Return Cached AIResponse (&lt;5ms)</text>
+
+        <rect x="380" y="90" width="205" height="26" rx="3" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="482" y="106" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#8C523A">CACHE MISS &rarr; Acquire Mutex &amp; Query Gemini</text>
+      </svg>
+      <div class="diagram-label">Figure 12.1: Deterministic SHA-256 Key Generation and Single-Flight Caching Flow</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">13 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 14: SECTION 13 — DOMAIN BOUNDARY & DATA INTEGRITY              -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Data Integrity • Section 13</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">13 — Data Governance</div>
+      <h2 class="section-title">Authoritative Domain Data vs. AI Output</h2>
+      <p class="section-subtitle">Strict architectural isolation between deterministic database truth and probabilistic machine predictions.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Authoritative Relational Truth</div>
+        <p class="card-text">
+          PostgreSQL tables (<span class="mono">animals</span>, <span class="mono">appointments</span>, <span class="mono">medical_records</span>, <span class="mono">disease_reports</span>) hold legal, clinical, and biosecurity truth. These records are created strictly by authenticated users, signed with transactional ACID guarantees, and protected by optimistic locking.
+        </p>
+      </div>
+
+      <div class="card card-lavender">
+        <div class="card-title">Probabilistic AI Proposals</div>
+        <p class="card-text">
+          AI outputs (diagnostic insights, triage scores, care tasks) are stored in dedicated auxiliary tables (<span class="mono">ai_scans</span>, <span class="mono">clinical_cases</span>) as **candidate proposals**. They never overwrite or mutate core animal records directly.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="155" viewBox="0 0 620 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Left: Relational Core -->
+        <rect x="20" y="20" width="220" height="120" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="130" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">Authoritative Domain Core (Postgres)</text>
+        <text x="130" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Animal Registry • Passports</text>
+        <text x="130" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Electronic Medical Records (EVMR)</text>
+        <text x="130" y="99" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Outbreak Geospatial Telemetry</text>
+        <text x="130" y="122" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">✓ 100% Deterministic &amp; Auditable</text>
+
+        <!-- Divider with Barrier -->
+        <line x1="280" y1="20" x2="280" y2="140" stroke="#8C523A" stroke-width="2" stroke-dasharray="4 4"/>
+        <rect x="250" y="68" width="60" height="24" rx="4" fill="#8C523A"/>
+        <text x="280" y="83" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" font-weight="700" fill="#FFFFFF">BARRIER</text>
+
+        <!-- Right: AI Subsystem -->
+        <rect x="340" y="20" width="260" height="120" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="470" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">Auxiliary Intelligence Subsystem</text>
+        <text x="470" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">AI Scan Candidates (ai_scans)</text>
+        <text x="470" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">Dynamic Prompt Context Builders</text>
+        <text x="470" y="99" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#433B72">Clinical Decision Support Steps</text>
+        <text x="470" y="122" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#8C523A">Stochastic Candidate Proposals</text>
+      </svg>
+      <div class="diagram-label">Figure 13.1: Strict Boundary Between Authoritative Core Data and AI Intelligence</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Unidirectional Read Flow</div>
+      <p class="card-text">
+        AI prompt builders are permitted to read authoritative animal and demographic data to hydrate context. However, AI responses can **never write directly** to core domain tables—they write exclusively to candidate triage entities until signed by a human.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">14 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 15: SECTION 14 — AI OBSERVABILITY & DISTRIBUTED TRACING         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Telemetry &amp; Metrics • Section 14</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">14 — Intelligence Telemetry</div>
+      <h2 class="section-title">AI Observability, Metrics &amp; Distributed Tracing</h2>
+      <p class="section-subtitle">Real-time token counting, inference latency tracking, and OpenTelemetry child spans.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-lavender">
+        <div class="card-title">Micrometer AI Metrics</div>
+        <p class="card-text"><span class="mono">ai_requests_total</span>, <span class="mono">ai_inference_duration_seconds</span>, and <span class="mono">ai_token_usage_total</span> tagged by promptId, tenantId, and modelId.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Distributed Tracing Spans</div>
+        <p class="card-text">Child spans created for <span class="mono">AIGateway.execute</span>, <span class="mono">AISafetyFilter.evaluate</span>, and <span class="mono">AIProvider.generate</span> with OpenTelemetry propagation.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Token &amp; Cost Telemetry</div>
+        <p class="card-text"><span class="mono">AIAuditService</span> logs prompt and completion token counts and estimated costs per inference call for financial accountability.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Root HTTP Span -->
+        <rect x="20" y="20" width="580" height="26" rx="4" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="35" y="37" font-family="JetBrains Mono, monospace" font-size="6.5pt" font-weight="700" fill="#1C1B1A">Root Span: POST /api/v1/ai/scans (traceId=c5946b...)</text>
+
+        <!-- Gateway Child Span -->
+        <rect x="50" y="52" width="520" height="24" rx="4" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="65" y="68" font-family="JetBrains Mono, monospace" font-size="6pt" font-weight="600" fill="#433B72">Child Span: DefaultAIGateway.execute (promptId=bovine_lesion_v1)</text>
+
+        <!-- Governance Child Span -->
+        <rect x="80" y="82" width="220" height="24" rx="4" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="95" y="98" font-family="JetBrains Mono, monospace" font-size="5.8pt" font-weight="600" fill="#23523B">Span: AISafetyFilter.evaluate (0.4ms)</text>
+
+        <!-- Provider Child Span -->
+        <rect x="310" y="82" width="260" height="24" rx="4" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="325" y="98" font-family="JetBrains Mono, monospace" font-size="5.8pt" font-weight="600" fill="#234E74">Span: GeminiAIProvider.generate (1,842ms)</text>
+
+        <!-- Audit Event -->
+        <rect x="80" y="112" width="490" height="24" rx="4" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="95" y="128" font-family="JetBrains Mono, monospace" font-size="5.8pt" font-weight="600" fill="#655947">Span: AIAuditService.recordAuditEvent (tokens=412, cost=$0.0006)</text>
+      </svg>
+      <div class="diagram-label">Figure 14.1: OpenTelemetry Trace Span Hierarchy Across the AI Execution Gateway</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">15 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 16: SECTION 15 — TESTING & VERIFICATION STRATEGY                -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Quality Assurance • Section 15</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">15 — AI Quality Engineering</div>
+      <h2 class="section-title">Testing, Mocking &amp; Verification Strategy</h2>
+      <p class="section-subtitle">70+ automated AI test cases covering prompt rendering, circuit breaker failover, and governance.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 22%;">Test Suite Layer</th>
+          <th style="width: 38%;">Target Components &amp; Scope</th>
+          <th style="width: 25%;">Mocking &amp; Technology</th>
+          <th style="width: 15%;">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Gateway &amp; Governance</strong></td>
+          <td><span class="mono">DefaultAIGatewayTest</span>, <span class="mono">AIGovernanceIntegrationTest</span>, <span class="mono">AISafetyFilterTest</span>.</td>
+          <td>JUnit 5, Mockito, In-Memory Registry</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Failover &amp; Circuit Breakers</strong></td>
+          <td><span class="mono">FailoverManagerTest</span>, rate limit recovery, provider exhaustion simulations.</td>
+          <td>Resilience4j In-Memory Registry</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Multi-Agent Implementations</strong></td>
+          <td><span class="mono">DiagnosisAgentTest</span>, <span class="mono">TreatmentAgentTest</span>, <span class="mono">ReportAgentTest</span>.</td>
+          <td>Mocked AI Gateway Responses</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Clinical Workflow Engine</strong></td>
+          <td><span class="mono">ClinicalWorkflowEngineTest</span>, <span class="mono">ClinicalTriageEngineTest</span>.</td>
+          <td>Rule Matrix &amp; State Validation</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Prompt &amp; Cache Testing</strong></td>
+          <td><span class="mono">PromptRendererTest</span>, <span class="mono">AICacheManagerTest</span>, SHA-256 key stability.</td>
+          <td>In-Memory Cache &amp; Template Assertions</td>
+          <td><span class="tag-pill tag-green">VERIFIED</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Deterministic Unit Verification</div>
+        <p class="card-text">
+          Unit and integration test suites execute against <span class="mono">NoOpAIProvider</span> and mocked gateway fixtures, verifying that all schema deserialization, circuit breakers, and error mapping execute deterministically with 0 external API costs.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Formal Evaluation Note (Honest Status)</div>
+        <p class="card-text">
+          Deterministic schema compliance and resilience failover are 100% verified. A formal statistical benchmark suite evaluating model precision against annotated clinical datasets is identified as a planned future phase.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">16 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 17: SECTION 16 — ENGINEERING DECISIONS & LIMITATIONS            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • AI Intelligence &amp; Architecture</div>
+      <div class="sec-badge">Engineering Rigor • Section 16</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">16 — Architectural Rigor</div>
+      <h2 class="section-title">Key Engineering Decisions &amp; Real Limitations</h2>
+      <p class="section-subtitle">Technical rationales, architectural trade-offs, and an honest assessment of current subsystem boundaries.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">1. Gateway Pattern over Direct SDKs</div>
+        <p class="card-text">
+          <strong>RATIONALE:</strong> Direct SDK calls cause vendor lock-in and chaotic governance. The Gateway pattern centralizes prompt templates, caching, and failover.<br/>
+          <strong>TRADE-OFF:</strong> Introduces internal gateway interface abstractions and extra layers.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">2. Human Verification Invariant</div>
+        <p class="card-text">
+          <strong>RATIONALE:</strong> Prevents AI hallucinations from contaminating legal medical histories or triggering incorrect antibiotics.<br/>
+          <strong>TRADE-OFF:</strong> Requires licensed veterinarian time for approval; not fully autonomous.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-peach" style="margin-top: 4px;">
+      <div class="card-title">Explicit Subsystem Limitations &amp; Boundary Analysis</div>
+      <div class="card-grid-3" style="margin-top: 4px;">
+        <div>
+          <div style="font-weight: 700; font-size: 7.2pt; color: #7E3E26;">1. Network Latency</div>
+          <div style="font-size: 6.8pt; color: #584C38;">Remote multimodal LLM inference takes 1.5–3.0s over cloud endpoints, requiring asynchronous loading indicators in mobile UI.</div>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 7.2pt; color: #7E3E26;">2. Novel Disease Hallucination</div>
+          <div style="font-size: 6.8pt; color: #584C38;">Rare or localized tropical livestock infections may produce lower confidence scores, requiring mandatory clinical review.</div>
+        </div>
+        <div>
+          <div style="font-weight: 700; font-size: 7.2pt; color: #7E3E26;">3. Cloud Dependency</div>
+          <div style="font-size: 6.8pt; color: #584C38;">Multimodal vision models currently execute in cloud endpoints; on-device edge model execution is planned for Phase 2.</div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">17 / 18</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 18: SECTION 17 & 18 — ROADMAP & CLOSING COLOPHON                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page" style="justify-content: space-between;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#433B72"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Publication Series • Document 03</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864;">
+        SECTION 17 • CLOSING COLOPHON
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: auto 0;">
+      <div style="font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #433B72; margin-bottom: 8px;">Engineering Publication Series • Document 03</div>
+      <h2 style="font-family: 'Newsreader', Georgia, serif; font-size: 26pt; font-weight: 500; letter-spacing: -0.02em; color: #1C1B1A; line-height: 1.1; margin-bottom: 8px;">
+        VETRA: AI Intelligence &amp; Architecture
+      </h2>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-size: 12.5pt; font-style: italic; color: #524E48; margin-bottom: 18px;">
+        AI Systems, Intelligence Pipelines &amp; Responsible Automation
+      </div>
+
+      <div style="display: inline-block; background: #F1EDE4; padding: 12px 24px; border-radius: 9px; border: 1px solid #E2DCD1; max-width: 80%; text-align: center;">
+        <div style="font-size: 10pt; font-weight: 700; color: #1C1B1A;">Built &amp; Engineered by Om Rajput</div>
+        <div style="font-size: 7.8pt; color: #585550; margin-top: 3px;">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          <strong>SVKM's Institute of Technology, Dhule</strong>
+        </div>
+        <div style="font-size: 7.2pt; color: #7A7670; margin-top: 6px; font-style: italic;">
+          "Engineering responsible auxiliary intelligence with strict human clinical oversight."
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid rgba(28, 27, 26, 0.12); padding-top: 12px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7pt; color: #7A7670;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Verification &amp; Architecture Summary</div>
+        <div>Gateway Pattern • Multi-Agent Orchestration • 70+ AI Tests Verified • Human-in-the-Loop Enforced.</div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+        BUILD HASH: VETRA-AI-DOC03-2026<br/>
+        PAGE 18 / 18
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

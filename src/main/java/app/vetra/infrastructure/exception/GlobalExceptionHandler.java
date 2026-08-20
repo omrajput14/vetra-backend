@@ -129,18 +129,19 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(
       DataIntegrityViolationException ex, HttpServletRequest request) {
 
+    String rootCause = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
     log.warn(
         "Database constraint violation on {} {}: {}",
         request.getMethod(),
         request.getRequestURI(),
-        ex.getMessage());
+        rootCause);
     recordSpanError(ex, false);
 
     return ResponseEntity.status(HttpStatus.CONFLICT)
         .body(
             ApiResponse.error(
                 HttpStatus.CONFLICT,
-                "A database constraint error occurred or a record with these details already exists."));
+                "Database constraint error: " + rootCause));
   }
 
   /** Handles malformed JSON request bodies. */

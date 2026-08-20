@@ -11,6 +11,7 @@ import app.vetra.ai.model.AIRequest;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.provider.AIProvider;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -54,25 +55,17 @@ public class GeminiAIProvider implements AIProvider {
           "Gemini Vision provider is disabled or missing API key configuration", "AI_003");
     }
 
-    long startTime = System.currentTimeMillis();
     String requestId = "GEM-" + UUID.randomUUID().toString().substring(0, 8);
-
     log.info(
         "GeminiAIProvider executing promptId={} model={}",
         request.promptId(),
         properties.getModel());
 
     try {
-      // Build request body manually for execute
-      Map<String, Object> textPart =
-          Map.of(
-              "text",
-              promptText
-                  + (request.imageUrl() != null
-                      ? "\\nAnalyze image at URL: " + request.imageUrl()
-                      : ""));
-      Map<String, Object> content = Map.of("parts", List.of(textPart));
-      Map<String, Object> requestPayload = Map.of("contents", List.of(content));
+      Map<String, Object> requestPayload = buildRequestPayload(request, promptText);
+      Duration timeout = properties.getTimeout() != null
+          ? properties.getTimeout()
+          : Duration.ofSeconds(30);
 
       String rawResponse =
           webClient
@@ -87,61 +80,72 @@ public class GeminiAIProvider implements AIProvider {
               .bodyValue(requestPayload)
               .retrieve()
               .bodyToMono(String.class)
-              .block(
-                  properties.getTimeout() != null
-                      ? properties.getTimeout()
-                      : Duration.ofSeconds(30));
-
-      String candidateText = extractCandidateText(rawResponse);
-      int promptTokens = extractPromptTokens(rawResponse);
-      int completionTokens = extractCompletionTokens(rawResponse);
-      String finishReason = extractFinishReason(rawResponse);
+              .block(timeout);
 
       return new AIResponse(
-          candidateText,
-          "v1", // Will be normalized by gateway
+          extractCandidateText(rawResponse),
+          "v1",
           providerName(),
           properties.getModel(),
-          promptTokens,
-          completionTokens,
-          finishReason);
+          extractPromptTokens(rawResponse),
+          extractCompletionTokens(rawResponse),
+          extractFinishReason(rawResponse));
 
     } catch (WebClientResponseException ex) {
-      log.error(
-          "Gemini Vision API HTTP error requestId={} status={} body={}",
-          requestId,
-          ex.getStatusCode(),
-          ex.getResponseBodyAsString());
-      if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED
-          || ex.getStatusCode() == HttpStatus.FORBIDDEN) {
-        throw new AIAuthenticationException(
-            "Invalid or unauthorized Gemini API key", providerName());
-      } else if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
-        throw new AIRateLimitException("Gemini API rate limit exceeded", providerName());
-      } else if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        throw new AITokenLimitExceededException(
-            "Gemini API request payload exceeded token or context limits", providerName());
-      } else if (ex.getStatusCode().is5xxServerError()) {
-        throw new AIProviderUnavailableException(
-            "Gemini API server error: " + ex.getStatusCode(), providerName());
-      }
-      throw new AIInferenceException(
-          "Gemini API returned error status: " + ex.getStatusCode(), providerName());
+      throw handleWebClientException(ex, requestId);
     } catch (Exception ex) {
-      log.error(
-          "Gemini Vision API request execution failed requestId={} error={}",
-          requestId,
-          ex.getMessage());
-      if (ex instanceof AIException aie) {
-        throw aie;
-      }
-      if (ex instanceof java.util.concurrent.TimeoutException
-          || (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("timeout"))) {
-        throw new AITimeoutException("Gemini Vision API request timed out", providerName());
-      }
-      throw new AIInferenceException(
-          "Gemini Vision API inference failed: " + ex.getMessage(), providerName());
+      throw handleGenericException(ex, requestId);
     }
+  }
+
+  private Map<String, Object> buildRequestPayload(AIRequest request, String promptText) {
+    List<Map<String, Object>> parts = new ArrayList<>();
+    String finalPrompt = promptText;
+
+    if (request.imageUrl() != null && !request.imageUrl().isBlank()) {
+      String img = request.imageUrl().trim();
+      if (img.startsWith("data:") && img.contains(";base64,")) {
+        int colonIdx = img.indexOf(':');
+        int semiIdx = img.indexOf(";base64,");
+        String mimeType = img.substring(colonIdx + 1, semiIdx);
+        String base64Data = img.substring(semiIdx + 8);
+        parts.add(Map.of("inline_data", Map.of("mime_type", mimeType, "data", base64Data)));
+      } else {
+        finalPrompt = promptText + "\nAnalyze image at URL: " + img;
+      }
+    }
+    parts.add(Map.of("text", finalPrompt));
+    return Map.of("contents", List.of(Map.of("parts", parts)));
+  }
+
+  private RuntimeException handleWebClientException(WebClientResponseException ex, String reqId) {
+    log.error("Gemini API HTTP error reqId={} status={} body={}", reqId, ex.getStatusCode(),
+        ex.getResponseBodyAsString());
+    if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED
+        || ex.getStatusCode() == HttpStatus.FORBIDDEN) {
+      return new AIAuthenticationException("Invalid or unauthorized Gemini API key", providerName());
+    } else if (ex.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+      return new AIRateLimitException("Gemini API rate limit exceeded", providerName());
+    } else if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
+      return new AITokenLimitExceededException(
+          "Gemini API request payload exceeded token limits", providerName());
+    } else if (ex.getStatusCode().is5xxServerError()) {
+      return new AIProviderUnavailableException(
+          "Gemini API server error: " + ex.getStatusCode(), providerName());
+    }
+    return new AIInferenceException("Gemini API error: " + ex.getStatusCode(), providerName());
+  }
+
+  private RuntimeException handleGenericException(Exception ex, String requestId) {
+    log.error("Gemini API request failed reqId={} error={}", requestId, ex.getMessage());
+    if (ex instanceof AIException aie) {
+      return aie;
+    }
+    if (ex instanceof java.util.concurrent.TimeoutException
+        || (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("timeout"))) {
+      return new AITimeoutException("Gemini Vision API request timed out", providerName());
+    }
+    return new AIInferenceException("Gemini Vision API failed: " + ex.getMessage(), providerName());
   }
 
   @Override
@@ -165,7 +169,6 @@ public class GeminiAIProvider implements AIProvider {
     if (rawResponse == null) {
       return "{}";
     }
-    // Basic text extraction from Gemini API JSON response candidates structure
     try {
       com.fasterxml.jackson.databind.JsonNode root =
           new com.fasterxml.jackson.databind.ObjectMapper().readTree(rawResponse);
@@ -178,7 +181,7 @@ public class GeminiAIProvider implements AIProvider {
         }
       }
     } catch (Exception ex) {
-      log.warn("Failed to extract candidate text, parsing raw response: {}", ex.getMessage());
+      log.warn("Failed to extract candidate text: {}", ex.getMessage());
     }
     return rawResponse;
   }

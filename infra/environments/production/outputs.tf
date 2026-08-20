@@ -42,3 +42,64 @@ output "redis_password_secret_arn" {
   description = "The ARN of the Secrets Manager secret containing the production Redis AUTH token"
   value       = module.redis.redis_password_secret_arn
 }
+
+# ── IAM / OIDC ────────────────────────────────────────────────────────────────
+
+output "github_actions_role_arn" {
+  description = "ARN of the IAM role assumed by GitHub Actions via OIDC"
+  value       = module.iam.github_actions_role_arn
+}
+
+output "github_actions_role_name" {
+  description = "Name of the IAM role assumed by GitHub Actions via OIDC"
+  value       = module.iam.github_actions_role_name
+}
+
+output "oidc_provider_arn" {
+  description = "ARN of the GitHub Actions OIDC Identity Provider"
+  value       = module.iam.oidc_provider_arn
+}
+
+# ── ECS Fargate & Application Load Balancer ───────────────────────────────────
+
+output "alb_dns_name" {
+  description = "Public DNS name of the Application Load Balancer"
+  value       = module.ecs.alb_dns_name
+}
+
+output "alb_arn" {
+  description = "ARN of the Application Load Balancer"
+  value       = module.ecs.alb_arn
+}
+
+output "target_group_arn" {
+  description = "ARN of the ALB Target Group"
+  value       = module.ecs.target_group_arn
+}
+
+output "ecs_cluster_name" {
+  description = "Name of the ECS Cluster"
+  value       = module.ecs.cluster_name
+}
+
+output "ecs_service_name" {
+  description = "Name of the ECS Service"
+  value       = module.ecs.service_name
+}
+
+output "jwt_secret_arn" {
+  description = "ARN of the Secrets Manager secret for JWT signing"
+  value       = module.ecs.jwt_secret_arn
+}
+
+# ── Observability & Monitoring (Stage 14.10 / 14.12) ──────────────────────────
+
+output "alerts_sns_topic_arn" {
+  description = "ARN of the SNS topic for production operational alerts"
+  value       = module.monitoring.alerts_sns_topic_arn
+}
+
+output "cloudwatch_dashboard_name" {
+  description = "Name of the operational CloudWatch dashboard"
+  value       = module.monitoring.dashboard_name
+}

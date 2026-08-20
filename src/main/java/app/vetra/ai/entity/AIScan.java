@@ -38,7 +38,7 @@ public class AIScan extends BaseEntity {
   @JoinColumn(name = "uploaded_by", nullable = false)
   private User uploadedBy;
 
-  @Column(name = "image_url", nullable = false, length = 512)
+  @Column(name = "image_url", nullable = false, columnDefinition = "TEXT")
   private String imageUrl;
 
   @Column(name = "image_hash", length = 64)

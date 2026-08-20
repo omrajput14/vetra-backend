@@ -188,7 +188,7 @@ vetra:
     # Provider-agnostic routing layer. Business logic references aliases only.
     # All provider-specific model IDs are confined to this section.
     gateway:
-      enabled: ${AI_GATEWAY_ENABLED:false}
+      enabled: ${AI_GATEWAY_ENABLED:true}
       default-provider: ${AI_GATEWAY_DEFAULT_PROVIDER:noop}
       default-model: ${AI_GATEWAY_DEFAULT_MODEL:noop-default}
       timeout: ${AI_GATEWAY_TIMEOUT:10s}
@@ -203,7 +203,7 @@ vetra:
           priority: 99
           resilience:
             max-retry-attempts: 1
-            wait-duration: 0ms
+            wait-duration: 10ms
             circuit-breaker-failure-rate-threshold: 100
         - name: gemini
           enabled: ${GEMINI_ENABLED:false}

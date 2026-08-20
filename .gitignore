@@ -44,6 +44,7 @@ aws-exports.js
 # Terraform/OpenTofu state files contain plaintext secrets.
 *.tfstate
 *.tfstate.*
+*.tfplan
 *.tfvars
 !*.tfvars.example
 .terraform/

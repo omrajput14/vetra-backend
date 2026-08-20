@@ -14,6 +14,7 @@ public final class AgentProperties {
   private final String knowledgePromptId;
   private final String reportPromptId;
   private final String triagePromptId;
+  private final String advisorPromptId;
 
   /**
    * Spring constructor binding.
@@ -23,18 +24,21 @@ public final class AgentProperties {
    * @param knowledgePromptId prompt ID for knowledge agent
    * @param reportPromptId prompt ID for report agent
    * @param triagePromptId prompt ID for triage agent
+   * @param advisorPromptId prompt ID for advisor agent
    */
   public AgentProperties(
       @DefaultValue("diagnosis.visual.v1") String diagnosisPromptId,
       @DefaultValue("treatment.recommendation.v1") String treatmentPromptId,
       @DefaultValue("knowledge.disease.v1") String knowledgePromptId,
       @DefaultValue("report.summary.v1") String reportPromptId,
-      @DefaultValue("triage.assessment.v1") String triagePromptId) {
+      @DefaultValue("triage.assessment.v1") String triagePromptId,
+      @DefaultValue("diagnosis.advisor.v1") String advisorPromptId) {
     this.diagnosisPromptId = diagnosisPromptId;
     this.treatmentPromptId = treatmentPromptId;
     this.knowledgePromptId = knowledgePromptId;
     this.reportPromptId = reportPromptId;
     this.triagePromptId = triagePromptId;
+    this.advisorPromptId = advisorPromptId;
   }
 
   /** Default constructor for fallback scenarios. */
@@ -44,7 +48,8 @@ public final class AgentProperties {
         "treatment.recommendation.v1",
         "knowledge.disease.v1",
         "report.summary.v1",
-        "triage.assessment.v1");
+        "triage.assessment.v1",
+        "diagnosis.advisor.v1");
   }
 
   /** Returns diagnosis prompt ID. */
@@ -70,5 +75,10 @@ public final class AgentProperties {
   /** Returns triage prompt ID. */
   public String getTriagePromptId() {
     return triagePromptId;
+  }
+
+  /** Returns advisor prompt ID. */
+  public String getAdvisorPromptId() {
+    return advisorPromptId;
   }
 }

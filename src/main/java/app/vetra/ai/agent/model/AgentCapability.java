@@ -8,5 +8,6 @@ public enum AgentCapability {
   IMAGE_ANALYSIS,
   KNOWLEDGE,
   SUMMARIZATION,
-  TRIAGE
+  TRIAGE,
+  ADVISOR
 }

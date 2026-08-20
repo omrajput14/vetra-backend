@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VETRA — Mobile Engineering &amp; Field Operations | Om Rajput</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #EAE6DF;
+      color: #1C1B1A;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 8.3pt;
+      line-height: 1.44;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #FAF9F5;
+      margin: 0 auto 10mm auto;
+      padding: 15mm 19mm 13mm 19mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    @media print {
+      body { background: none; }
+      .page { margin: 0; box-shadow: none; }
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7pt;
+    }
+
+    .code-block {
+      background: #F4EFE6;
+      border: 1px solid #E2DCD1;
+      border-radius: 5px;
+      padding: 6px 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.5pt;
+      line-height: 1.35;
+      color: #2D2B28;
+      overflow-x: hidden;
+    }
+
+    /* Running Header & Footer */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 7px;
+      border-bottom: 1px solid rgba(28, 27, 26, 0.10);
+      margin-bottom: 8px;
+    }
+    .page-header .doc-title {
+      font-size: 6.6pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6B6864;
+    }
+    .page-header .sec-badge {
+      font-size: 6.3pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: #EFEBE4;
+      padding: 2px 7px;
+      border-radius: 8px;
+      color: #4A4744;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 7px;
+      border-top: 1px solid rgba(28, 27, 26, 0.10);
+      margin-top: 8px;
+      font-size: 6.8pt;
+      color: #7A7671;
+    }
+    .page-footer .page-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #1C1B1A;
+    }
+
+    /* Headings */
+    .section-headline {
+      margin-bottom: 6px;
+    }
+    .section-number {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #234E74;
+      margin-bottom: 1px;
+    }
+    .section-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16.5pt;
+      line-height: 1.15;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #1C1B1A;
+    }
+    .section-subtitle {
+      font-size: 8pt;
+      color: #615E59;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Card System */
+    .card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .card-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .card {
+      border-radius: 7px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .card-title {
+      font-size: 8.4pt;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #1C1B1A;
+    }
+    .card-text {
+      font-size: 7.6pt;
+      color: #4A4844;
+      line-height: 1.38;
+    }
+
+    /* Pastel Palettes */
+    .card-cream { background: #F3EFE6; border-color: #E5DFD2; }
+    .card-sage { background: #E3ECE7; border-color: #C6D8CE; }
+    .card-sage .card-title { color: #23523B; }
+    .card-lavender { background: #E9E7F4; border-color: #D3D0E7; }
+    .card-lavender .card-title { color: #433B72; }
+    .card-blue { background: #E3EBF4; border-color: #C9DAEB; }
+    .card-blue .card-title { color: #234E74; }
+    .card-peach { background: #F8EEE8; border-color: #EBD9CE; }
+    .card-peach .card-title { color: #7E3E26; }
+    .card-white { background: #FFFFFF; border-color: #E6E2D9; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+
+    /* Tables */
+    .editorial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.3pt;
+      background: #FFFFFF;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #E5E1D8;
+    }
+    .editorial-table th {
+      background: #F1EDE4;
+      color: #3E3C39;
+      font-weight: 700;
+      text-align: left;
+      padding: 4px 7px;
+      border-bottom: 1px solid #E2DCD1;
+      font-size: 6.6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .editorial-table td {
+      padding: 4px 7px;
+      border-bottom: 1px solid #F2EFE8;
+      color: #43413E;
+      line-height: 1.32;
+    }
+    .editorial-table tr:last-child td { border-bottom: none; }
+
+    .tag-pill {
+      display: inline-block;
+      font-size: 5.6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .tag-green { background: #D5E8DC; color: #1E4F32; }
+    .tag-blue { background: #D6E4F2; color: #1B456C; }
+    .tag-lavender { background: #DFDCF2; color: #3C3470; }
+    .tag-peach { background: #F4DECF; color: #78361C; }
+
+    /* Diagrams */
+    .diagram-box {
+      background: #F4F1EA;
+      border: 1px solid #E5DFD4;
+      border-radius: 7px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .diagram-label {
+      font-size: 6pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A7671;
+      margin-top: 3px;
+      text-align: center;
+    }
+
+    /* Cover Specific */
+    .cover-page {
+      background: #FAF9F5;
+      padding: 22mm 22mm 18mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cover-brand {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 38pt;
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: #1C1B1A;
+      margin-bottom: 10px;
+    }
+    .cover-subtitle {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16pt;
+      line-height: 1.25;
+      font-style: italic;
+      color: #4A4743;
+      margin-bottom: 16px;
+      max-width: 90%;
+    }
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #E8E3D8;
+      color: #383531;
+      padding: 3px 9px;
+      border-radius: 14px;
+      font-size: 7pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .cover-author-block {
+      background: #F1EDE4;
+      border-left: 3px solid #234E74;
+      padding: 10px 14px;
+      border-radius: 0 7px 7px 0;
+      max-width: 80%;
+    }
+    .cover-author-name {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #1C1B1A;
+    }
+    .cover-author-meta {
+      font-size: 7.8pt;
+      color: #5E5B56;
+      margin-top: 1px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 01: COVER                                                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#234E74"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Publication Series • Document 05 / 06</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864; line-height: 1.35;">
+        DOC ID: PUB-VETRA-DOC-06<br/>
+        MODULE: MOBILE ENGINEERING<br/>
+        DATE: AUGUST 2026
+      </div>
+    </div>
+
+    <div style="margin: auto 0;">
+      <div class="cover-badge">
+        <span style="display:inline-block; width:5px; height:5px; background:#234E74; border-radius:50%;"></span>
+        Mobile Architecture &amp; Field Systems Monograph
+      </div>
+      <h1 class="cover-brand">VETRA</h1>
+      <div class="cover-subtitle">
+        Mobile Engineering &amp; Field Operations<br/>
+        <span style="font-size: 11.5pt; color: #69655E; font-style: normal;">Flutter Client Architecture • Secure Dio Networking • Thread-Safe Token Refresh • Live AWS Staging Integration</span>
+      </div>
+
+      <div class="cover-author-block">
+        <div style="font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: #234E74; font-weight: 700; margin-bottom: 2px;">Architected &amp; Engineered By</div>
+        <div class="cover-author-name">Om Rajput</div>
+        <div class="cover-author-meta">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          SVKM's Institute of Technology, Dhule
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 12px; border-top: 1px solid rgba(28, 27, 26, 0.12); font-size: 7pt; color: #6E6B65;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Mobile Engineering Framework</div>
+        <div>Flutter 3.x • Dio Interceptor Stack • FlutterSecureStorage • Mutex Refresh Queue • Randomized Jitter</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: 700; color: #1C1B1A;">Live Cloud Integration Proof</div>
+        <div>20/20 Live Integration Contract Tests Passing against https://api.vetra.dpdns.org</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 02: SECTION 01 — FIELD PRODUCT CONTEXT                          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Product Role • Section 01</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">01 — Field Product Role</div>
+      <h2 class="section-title">The Role of Mobile in Veterinary Operations</h2>
+      <p class="section-subtitle">Bridging rural smallholder farmers, field veterinarians, and regional cloud infrastructure.</p>
+    </div>
+
+    <div class="card card-cream" style="padding: 11px;">
+      <p style="font-size: 8pt; color: #383531; line-height: 1.48; font-style: italic;">
+        "In agrarian livestock healthcare, desktop web applications fail because veterinarians do not operate in offices—they work in remote barns, cattle sheds, and rural farms with volatile 4G network connectivity. Vetra Mobile was engineered not as a decorative frontend, but as an operational field instrument providing cryptographic identity, QR animal passports, appointment coordination, and real-time disease surveillance directly in the field."
+      </p>
+      <div style="margin-top: 6px; text-align: right; font-weight: 700; font-size: 7.5pt; color: #1C1B1A;">
+        — Om Rajput, System Architect
+      </div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-white">
+        <div class="card-title">1. Smallholder Farmer Workflow</div>
+        <p class="card-text">
+          - <strong>Animal Passports:</strong> Register cattle, buffalo, sheep, and goats with digital ear tags and QR passports.<br/>
+          - <strong>Appointment Booking:</strong> Find nearby verified veterinarians and schedule clinical consultations.<br/>
+          - <strong>Outbreak Alerts:</strong> Receive localized spatial biosecurity warnings within a 50km radius.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">2. Licensed Veterinarian Workflow</div>
+        <p class="card-text">
+          - <strong>QR Scanner Verification:</strong> Instant barcode lookup of full longitudinal medical histories.<br/>
+          - <strong>Clinical Records (EVMR):</strong> Record clinical diagnoses, prescribe medications, and calculate drug withdrawal periods.<br/>
+          - <strong>Disease Surveillance:</strong> Confirm active disease reports with GPS coordinates for regional epidemiological tracking.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Field User -->
+        <rect x="20" y="25" width="125" height="100" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="82" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">Field Veterinarian</text>
+        <text x="82" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Scans Animal Tag</text>
+        <text x="82" y="80" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">Clinical Inspection</text>
+        <text x="82" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">Flutter Mobile App</text>
+
+        <!-- Arrow -->
+        <path d="M145 75 L180 75" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- Cloud Core -->
+        <rect x="180" y="25" width="230" height="100" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="295" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">AWS Staging Ingress (TLS 1.3)</text>
+        <text x="295" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#234E74">Application Load Balancer &rarr; ECS Fargate</text>
+        <text x="295" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#234E74">Spring Boot EVMR Module Ingestion</text>
+        <text x="295" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">api.vetra.dpdns.org</text>
+
+        <!-- Arrow -->
+        <path d="M410 75 L445 75" stroke="#23523B" stroke-width="1.8"/>
+
+        <!-- Persistence -->
+        <rect x="445" y="25" width="155" height="100" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="522" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">Authoritative State</text>
+        <text x="522" y="68" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Immutable Medical Record</text>
+        <text x="522" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Redis Distributed Cache</text>
+        <text x="522" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">PostgreSQL 15</text>
+      </svg>
+      <div class="diagram-label">Figure 1.1: Mobile Field Operations Synchronous Data Flow into AWS Cloud Core</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">02 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 03: SECTION 02 — FLUTTER LAYERED ARCHITECTURE                   -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Client Design • Section 02</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">02 — Client Topology</div>
+      <h2 class="section-title">Layered Client Architecture &amp; State Management</h2>
+      <p class="section-subtitle">Inward-pointing separation of presentation, state management, repository contracts, and network core.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="255" viewBox="0 0 620 255" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Layer 1: Presentation -->
+        <rect x="20" y="10" width="580" height="38" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="35" y="27" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#1C1B1A">1. PRESENTATION LAYER • Flutter Widgets &amp; Screen Pages</text>
+        <text x="35" y="41" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">FarmerDashboard • VetDashboard • AnimalPassportPage • MedicalRecordPage • OutbreakMap</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 48 L310 58" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- Layer 2: Application / Providers -->
+        <rect x="20" y="58" width="580" height="42" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="35" y="76" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#234E74">2. APPLICATION &amp; STATE LAYER • ChangeNotifier Providers</text>
+        <text x="35" y="91" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#4B7094">AuthProvider • AnimalProvider • AppointmentProvider • MedicalRecordProvider • DashboardProvider</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 100 L310 110" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- Layer 3: Domain & Repositories -->
+        <rect x="20" y="110" width="580" height="42" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="35" y="128" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#433B72">3. DOMAIN &amp; REPOSITORY LAYER • Domain Models &amp; Repository Contracts</text>
+        <text x="35" y="143" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">AnimalRepository • AuthRepository • MedicalRecordRepository • AnimalDto • MedicalRecordDto</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 152 L310 162" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- Layer 4: Core Networking & Storage -->
+        <rect x="20" y="162" width="580" height="46" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="35" y="180" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#23523B">4. CORE NETWORKING &amp; SECURITY • Dio Stack &amp; Keychain Storage</text>
+        <text x="35" y="195" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">AuthInterceptor (401 Mutex) • RetryInterceptor (Backoff+Jitter) • SanitizedLogInterceptor • SecureStorage</text>
+
+        <!-- Down Arrow -->
+        <path d="M310 208 L310 218" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- Layer 5: Cloud Ingress -->
+        <rect x="20" y="218" width="580" height="30" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="35" y="233" font-family="Plus Jakarta Sans, sans-serif" font-size="7.2pt" font-weight="700" fill="#655947">5. AWS CLOUD INGRESS • HTTPS :443 TLS 1.3</text>
+        <text x="35" y="244" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">https://api.vetra.dpdns.org &rarr; AWS ALB &rarr; ECS Fargate</text>
+      </svg>
+      <div class="diagram-label">Figure 2.1: Vetra Flutter Layered Architecture and Inward Dependency Hierarchy</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Clean Presentation Isolation</div>
+        <p class="card-text">
+          Flutter widgets never make direct HTTP calls. UI components consume reactive state via <span class="mono">Provider</span>, while providers delegate data mutations to domain repository implementations.
+        </p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Contract-First DTO Serialization</div>
+        <p class="card-text">
+          All API payloads are parsed into typed Dart DTOs (<span class="mono">AnimalDto</span>, <span class="mono">AppointmentDto</span>, <span class="mono">MedicalRecordDto</span>) with defensive null-checks and enum fallbacks.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">03 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 04: SECTION 03 — ENVIRONMENT & APPCONFIG                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">AppConfig Architecture • Section 03</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">03 — Environment Isolation</div>
+      <h2 class="section-title">Centralized AppConfig &amp; Environment Selection</h2>
+      <p class="section-subtitle">Type-safe configuration switching between local development, AWS staging, and production.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-white">
+        <div class="card-title">1. Development</div>
+        <p class="card-text">
+          - <strong>URL:</strong> <span class="mono">http://10.0.2.2:8080</span> (Android Emulator) / <span class="mono">localhost</span>.<br/>
+          - <strong>Target:</strong> Local Docker Compose.<br/>
+          - <strong>Auth:</strong> Local Spring Security.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-title">2. AWS Staging (Live)</div>
+        <p class="card-text">
+          - <strong>URL:</strong> <span class="mono">https://api.vetra.dpdns.org</span>.<br/>
+          - <strong>Target:</strong> AWS ALB + ECS Fargate.<br/>
+          - <strong>Status:</strong> 🟢 Live Verified.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">3. Production</div>
+        <p class="card-text">
+          - <strong>URL:</strong> <span class="mono">https://api.vetra.app</span>.<br/>
+          - <strong>Target:</strong> AWS Multi-AZ Cluster.<br/>
+          - <strong>Status:</strong> <span class="tag-pill tag-peach">PLANNED PROD SPEC</span>.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Canonical Configuration: <span class="mono">lib/core/config/app_config.dart</span></div>
+      <div class="code-block">
+enum Environment &#123; development, staging, production &#125;
+
+class AppConfig &#123;
+  static Environment _environment = Environment.staging;
+  
+  static String get baseUrl &#123;
+    switch (_environment) &#123;
+      case Environment.staging:
+        return 'https://api.vetra.dpdns.org';
+      case Environment.production:
+        return 'https://api.vetra.app';
+      case Environment.development:
+        return defaultTargetPlatform == TargetPlatform.android
+            ? 'http://10.0.2.2:8080'
+            : 'http://localhost:8080';
+    &#125;
+  &#125;
+  static const Duration connectTimeout = Duration(seconds: 15);
+  static const Duration receiveTimeout = Duration(seconds: 15);
+  static const int maxRetries = 3;
+&#125;
+      </div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-sage">
+        <div class="card-title">Bounded Network Timeouts</div>
+        <p class="card-text">
+          Hard 15-second connection and receive timeouts prevent network requests from hanging indefinitely in rural deadzones, surfacing immediate UI feedback to field operators.
+        </p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Zero Hardcoded Endpoints</div>
+        <p class="card-text">
+          All API routes derive dynamically from <span class="mono">AppConfig.apiBaseUrl</span>, ensuring zero string concatenation bugs when switching deployment tiers.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">04 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 05: SECTION 04 — DIO NETWORKING STACK                           -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">HTTP Stack • Section 04</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">04 — Secure Networking</div>
+      <h2 class="section-title">Dio Networking Stack &amp; Interceptor Pipeline</h2>
+      <p class="section-subtitle">Chained request, response, and error interceptors providing transparent authentication and logging.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-lavender">
+        <div class="card-title">1. AuthInterceptor</div>
+        <p class="card-text">Injects Bearer JWT on authenticated routes; catches 401s to coordinate thread-safe token refresh.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">2. RetryInterceptor</div>
+        <p class="card-text">Provides bounded exponential backoff with randomized jitter on transient network timeouts.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">3. SanitizedLogInterceptor</div>
+        <p class="card-text">Strips authorization headers and redacts password/token JSON fields in debug console logs.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Caller -->
+        <rect x="20" y="25" width="105" height="100" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="72" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">UI / Provider</text>
+        <text x="72" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">dio.get()</text>
+        <text x="72" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">Initiate Request</text>
+
+        <!-- Arrow -->
+        <path d="M125 75 L155 75" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- Interceptor Chain -->
+        <rect x="155" y="20" width="290" height="110" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="300" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">DIO INTERCEPTOR CHAIN</text>
+        
+        <rect x="170" y="46" width="260" height="22" rx="3" fill="#FFFFFF" stroke="#C9DAEB"/>
+        <text x="300" y="61" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">1. AuthInterceptor (Inject Bearer JWT)</text>
+
+        <rect x="170" y="72" width="260" height="22" rx="3" fill="#FFFFFF" stroke="#C9DAEB"/>
+        <text x="300" y="87" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">2. RetryInterceptor (Backoff + Jitter)</text>
+
+        <rect x="170" y="98" width="260" height="22" rx="3" fill="#FFFFFF" stroke="#C9DAEB"/>
+        <text x="300" y="113" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">3. SanitizedLogInterceptor (Redact Secrets)</text>
+
+        <!-- Arrow -->
+        <path d="M445 75 L475 75" stroke="#234E74" stroke-width="1.8"/>
+
+        <!-- AWS Endpoint -->
+        <rect x="475" y="25" width="125" height="100" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="537" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">AWS ALB</text>
+        <text x="537" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">TLS 1.3 :443</text>
+        <text x="537" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">api.vetra.dpdns.org</text>
+      </svg>
+      <div class="diagram-label">Figure 4.1: Mobile Dio HTTP Request Interceptor and Transmission Pipeline</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">05 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 06: SECTION 05 — TOKEN REFRESH MUTEX QUEUE                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">401 Mutex Architecture • Section 05</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">05 — Token Governance</div>
+      <h2 class="section-title">Thread-Safe JWT Refresh Token Mutex &amp; Replay</h2>
+      <p class="section-subtitle">Single-flight refresh token rotation protecting against race conditions and expired sessions.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">The Concurrent 401 Problem</div>
+        <p class="card-text">
+          When an access token expires, multiple parallel API calls (e.g. dashboard statistics, appointment lists, unread notifications) fail with 401 simultaneously. Naive implementations send multiple refresh requests, which breaks single-use refresh token rotation.
+        </p>
+      </div>
+
+      <div class="card card-lavender">
+        <div class="card-title">The Single-Flight Completer Mutex Solution</div>
+        <p class="card-text">
+          <span class="mono">AuthInterceptor</span> flags <span class="mono">_isRefreshing = true</span> for the first 401, while queuing subsequent requests in a <span class="mono">List&lt;Completer&lt;String?&gt;&gt;</span>. Once the leader receives new tokens, all queued requests are replayed automatically with the updated Bearer token.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Request 1 & 2 -->
+        <rect x="20" y="30" width="115" height="36" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="77" y="52" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#1C1B1A">Req 1: GET /animals</text>
+
+        <rect x="20" y="80" width="115" height="36" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="77" y="102" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#1C1B1A">Req 2: GET /vets</text>
+
+        <!-- 401 Error -->
+        <path d="M135 48 L170 48" stroke="#7E3E26" stroke-width="1.5"/>
+        <path d="M135 98 L170 98" stroke="#7E3E26" stroke-width="1.5"/>
+        <text x="152" y="42" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#7E3E26">401</text>
+        <text x="152" y="92" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.2pt" fill="#7E3E26">401</text>
+
+        <!-- AuthInterceptor Mutex -->
+        <rect x="170" y="20" width="250" height="110" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="295" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#433B72">AuthInterceptor Mutex Queue</text>
+        
+        <rect x="185" y="46" width="220" height="26" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="295" y="58" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#23523B">Leader Thread: _isRefreshing=true</text>
+        <text x="295" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#433B72">POST /api/v1/auth/refresh</text>
+
+        <rect x="185" y="76" width="220" height="26" rx="3" fill="#FFFFFF" stroke="#D3D0E7"/>
+        <text x="295" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#234E74">Follower Thread: Awaits Mutex</text>
+        <text x="295" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#234E74">_refreshQueue.add(Completer)</text>
+
+        <text x="295" y="118" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#433B72">Save New Tokens to Hardware Keychain</text>
+
+        <!-- Replay Arrow -->
+        <path d="M420 75 L450 75" stroke="#23523B" stroke-width="1.8"/>
+
+        <!-- Success Replay -->
+        <rect x="450" y="25" width="150" height="100" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="525" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">Transparent Replay</text>
+        <text x="525" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">dio.fetch(reqOptions)</text>
+        <text x="525" y="82" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#3D5F4D">Updated Bearer JWT</text>
+        <text x="525" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="700" fill="#23523B">✓ 200 OK Returned to UI</text>
+      </svg>
+      <div class="diagram-label">Figure 5.1: Thread-Safe Refresh Token Mutex Queue and Transparent Request Replay Flow</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">06 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 07: SECTION 06 — CLIENT-SIDE SECURITY                          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Storage &amp; Logging • Section 06</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">06 — Client Security</div>
+      <h2 class="section-title">Client-Side Security &amp; Credential Sanitization</h2>
+      <p class="section-subtitle">Hardware-backed keystore persistence and automated debug log sanitization.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">1. FlutterSecureStorage Encryption</div>
+        <p class="card-text">
+          - <strong>iOS:</strong> Tokens and user roles are stored in the hardware-backed <strong>Apple Keychain</strong>.<br/>
+          - <strong>Android:</strong> Tokens are encrypted via <strong>AES-GCM / RSA</strong> using the Android Keystore system.<br/>
+          - <strong>Zero SharedPrefs:</strong> Sensitive credentials never touch unencrypted SharedPreferences.
+        </p>
+      </div>
+
+      <div class="card card-peach">
+        <div class="card-title">2. Sanitized Network Logging</div>
+        <p class="card-text">
+          - <span class="mono">SanitizedLogInterceptor</span> strips headers: <span class="mono">Authorization</span>, <span class="mono">Cookie</span>, <span class="mono">X-Auth-Token</span>.<br/>
+          - Redacts JSON keys: <span class="mono">password</span>, <span class="mono">accessToken</span>, <span class="mono">refreshToken</span>, <span class="mono">jwt</span>, <span class="mono">secret</span>.<br/>
+          - Prevents credential leakage into device logcats or telemetry.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Representative Redaction Logic: <span class="mono">lib/core/network/sanitized_log_interceptor.dart</span></div>
+      <div class="code-block">
+dynamic _sanitizeData(dynamic data) &#123;
+  if (data is Map) &#123;
+    final clean = &lt;String, dynamic&gt;&#123;&#125;;
+    data.forEach((key, value) &#123;
+      final keyStr = key.toString().toLowerCase();
+      if (_sensitiveBodyKeys.contains(keyStr)) &#123;
+        clean[key.toString()] = '[REDACTED]';
+      &#125; else if (value is Map || value is List) &#123;
+        clean[key.toString()] = _sanitizeData(value);
+      &#125; else &#123;
+        clean[key.toString()] = value;
+      &#125;
+    &#125;);
+    return clean;
+  &#125;
+  return data;
+&#125;
+      </div>
+    </div>
+
+    <div class="card card-sage" style="margin-top: 4px;">
+      <div class="card-title">Zero Sensitive Data Exposure</div>
+      <p class="card-text">
+        Even under active debugging mode in development builds, access tokens and farmer credentials cannot be captured via log inspection or ADB shell dumps.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">07 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 08: SECTION 07 — RETRY & EXPONENTIAL BACKOFF                    -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Retry with Jitter • Section 07</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">07 — Network Resilience</div>
+      <h2 class="section-title">Bounded Exponential Backoff with Randomized Jitter</h2>
+      <p class="section-subtitle">Preventing thundering herd problems on rural networks through intelligent retry policies.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-cream">
+        <div class="card-title">Exponential Backoff Mathematical Formula</div>
+        <p class="card-text">
+          <span style="font-family: 'Newsreader', Georgia, serif; font-size: 10pt; font-weight: 500; color: #1C1B1A;">
+            Delay(n) = min(BaseDelay &times; 2<sup>n-1</sup> + Jitter(0, 100ms), MaxDelay)
+          </span><br/><br/>
+          - <strong>Attempt 1:</strong> 500ms + random jitter<br/>
+          - <strong>Attempt 2:</strong> 1000ms + random jitter<br/>
+          - <strong>Attempt 3:</strong> 2000ms + random jitter (Ceiling: 3000ms).
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Selective Idempotency Policy</div>
+        <p class="card-text">
+          - <strong>Automatically Retried:</strong> <span class="mono">GET</span>, <span class="mono">HEAD</span>, <span class="mono">OPTIONS</span>, and requests with <span class="mono">retryable: true</span>.<br/>
+          - <strong>Never Blindly Retried:</strong> <span class="mono">POST</span> / <span class="mono">PATCH</span> state mutations (e.g. creating medical records, booking appointments) to prevent duplicate transactions.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Attempt 1 -->
+        <rect x="20" y="30" width="160" height="90" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="100" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#1C1B1A">Attempt 1 (Initial)</text>
+        <text x="100" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">GET /api/v1/animals</text>
+        <text x="100" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#7E3E26">Connection Drop (Timeout)</text>
+        <text x="100" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.8pt" font-weight="600" fill="#234E74">Backoff: 500ms + 42ms jitter</text>
+
+        <!-- Arrow -->
+        <path d="M180 75 L220 75" stroke="#234E74" stroke-width="1.5"/>
+
+        <!-- Attempt 2 -->
+        <rect x="220" y="30" width="180" height="90" rx="5" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="310" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#234E74">Attempt 2 (Retry 1)</text>
+        <text x="310" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#234E74">GET /api/v1/animals</text>
+        <text x="310" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#7E3E26">HTTP 503 Service Unavailable</text>
+        <text x="310" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.8pt" font-weight="600" fill="#234E74">Backoff: 1000ms + 78ms jitter</text>
+
+        <!-- Arrow -->
+        <path d="M400 75 L440 75" stroke="#23523B" stroke-width="1.5"/>
+
+        <!-- Attempt 3 -->
+        <rect x="440" y="30" width="160" height="90" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="520" y="52" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#23523B">Attempt 3 (Retry 2)</text>
+        <text x="520" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#23523B">GET /api/v1/animals</text>
+        <text x="520" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">HTTP 200 OK (Data Received)</text>
+        <text x="520" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.8pt" font-weight="600" fill="#23523B">✓ Seamless UI Recovery</text>
+      </svg>
+      <div class="diagram-label">Figure 7.1: Bounded Exponential Backoff with Randomized Jitter Recovery Sequence</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">08 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 09: SECTION 08 — LIVE AWS STAGING INTEGRATION (20/20 TESTS)     -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Integration Verification • Section 08</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">08 — Live Cloud Verification</div>
+      <h2 class="section-title">Live AWS Staging Contract Verification</h2>
+      <p class="section-subtitle">Empirical validation of the Flutter client against the live backend deployed in ap-south-1.</p>
+    </div>
+
+    <div class="card card-sage" style="padding: 10px; text-align: center;">
+      <div style="font-family: 'Newsreader', Georgia, serif; font-size: 24pt; font-weight: 600; color: #23523B; line-height: 1.1;">20 / 20</div>
+      <div style="font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #23523B;">
+        Live Integration Contract Tests Verified (100% Passed)
+      </div>
+      <div style="font-size: 6.8pt; color: #584C38; margin-top: 2px;">
+        Target: <span class="mono">https://api.vetra.dpdns.org</span> (AWS Application Load Balancer + ECS Fargate)
+      </div>
+    </div>
+
+    <table class="editorial-table" style="margin-top: 4px;">
+      <thead>
+        <tr>
+          <th style="width: 24%;">Domain Category</th>
+          <th style="width: 44%;">Test Flow &amp; API Contract Scope</th>
+          <th style="width: 18%;">Endpoints</th>
+          <th style="width: 14%;">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Health Probes</strong></td>
+          <td>Actuator liveness, readiness, and unified health status verification.</td>
+          <td><span class="mono">/actuator/health</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Farmer Auth</strong></td>
+          <td>Farmer registration, credential login, and session token receipt.</td>
+          <td><span class="mono">/auth/farmer/*</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Animal Passports</strong></td>
+          <td>Animal registration with ear tags, species validation, and QR retrieval.</td>
+          <td><span class="mono">/api/v1/animals</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Veterinarian Auth</strong></td>
+          <td>Veterinarian registration with VCI council ID, login, and directory search.</td>
+          <td><span class="mono">/auth/vet/*</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Appointment FSM</strong></td>
+          <td>Booking, veterinarian confirmation, and optimistic locking transitions.</td>
+          <td><span class="mono">/appointments</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>EVMR Records</strong></td>
+          <td>Veterinarian-only medical record creation, prescriptions, and withdrawal periods.</td>
+          <td><span class="mono">/medical-records</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+        <tr>
+          <td><strong>Token Rotation</strong></td>
+          <td>Refresh token exchange, new Bearer token authenticated reuse, and logout.</td>
+          <td><span class="mono">/auth/refresh</span></td>
+          <td><span class="tag-pill tag-green">PASSED</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Real Backend Integration</div>
+        <p class="card-text">
+          These integration tests do not use mocked responses or local stubs. They execute real HTTPS network calls against the AWS ECS Fargate staging cluster.
+        </p>
+      </div>
+
+      <div class="card card-blue">
+        <div class="card-title">Automated CI Regression Shield</div>
+        <p class="card-text">
+          Any breaking API changes in backend DTO structures or serialization formats immediately break these contract tests, preventing regressions.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">09 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 10: SECTION 09 — KEY ENGINEERING DECISIONS                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Architectural Rigor • Section 09</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">09 — Engineering Rigor</div>
+      <h2 class="section-title">Key Mobile Engineering Decisions &amp; Rationales</h2>
+      <p class="section-subtitle">Technical trade-offs and engineering reasoning behind the mobile implementation.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 25%;">Decision</th>
+          <th style="width: 35%;">Problem &amp; Technical Rationale</th>
+          <th style="width: 40%;">Engineering Benefit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Flutter over React Native</strong></td>
+          <td>Direct compilation to native ARM64 with Impeller/Skia engine for consistent rendering on budget Android devices.</td>
+          <td>Predictable 60 FPS performance, fast startup times, and deterministic UI layouts across heterogeneous rural hardware.</td>
+        </tr>
+        <tr>
+          <td><strong>Dio over <span class="mono">http</span> package</strong></td>
+          <td>Standard <span class="mono">http</span> lacks native support for interceptor chaining, request cancellation, and connection pooling.</td>
+          <td>Enables clean modular separation between <span class="mono">AuthInterceptor</span>, <span class="mono">RetryInterceptor</span>, and sanitized logging.</td>
+        </tr>
+        <tr>
+          <td><strong>Completer Mutex for 401</strong></td>
+          <td>Multiple simultaneous API calls during token expiry cause duplicate refresh token calls, breaking single-use token rotation.</td>
+          <td>Queues all concurrent requests behind a single refresh flight, replaying them seamlessly with zero user interruption.</td>
+        </tr>
+        <tr>
+          <td><strong>Randomized Retry Jitter</strong></td>
+          <td>Fixed interval retries cause synchronized thundering herds when network reconnects in rural areas.</td>
+          <td>Spreads server reconnection traffic evenly across time, protecting backend ALB targets from traffic spikes.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Production Stability Guarantee</div>
+      <p class="card-text">
+        By combining hardware-backed secure storage, interceptor chaining, and single-flight token mutex queues, the client achieves enterprise reliability under unstable rural network conditions.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">10 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 11: SECTION 10 — CURRENT STATE VS. ROADMAP                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • Mobile Engineering &amp; Field Operations</div>
+      <div class="sec-badge">Future Scope • Section 10</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">10 — Roadmap Separation</div>
+      <h2 class="section-title">Current Implementation vs. Planned Capabilities</h2>
+      <p class="section-subtitle">Strict honest accounting of verified client functionality versus queued roadmap features.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-sage">
+        <div class="card-title">Currently Implemented &amp; Verified</div>
+        <p class="card-text">
+          - <strong>Dio Networking Stack:</strong> Full interceptor chain with Bearer token injection and sanitized debug logging.<br/>
+          - <strong>JWT Mutex Refresh:</strong> Single-flight refresh token rotation with request replay.<br/>
+          - <strong>Secure Storage:</strong> Hardware Keychain / EncryptedSharedPreferences storage.<br/>
+          - <strong>Contract Verification:</strong> 20/20 live automated integration tests against AWS Staging.<br/>
+          - <strong>QR Animal Passports:</strong> Instant QR generation and camera scanner lookup.
+        </p>
+      </div>
+
+      <div class="card card-peach">
+        <div class="card-title">Planned / Future Capabilities</div>
+        <p class="card-text">
+          - <strong>Offline SQLite Cache:</strong> Local database caching for animal records in zero-connectivity deadzones.<br/>
+          - <strong>Offline Mutation Queue:</strong> Background queue syncing appointments and clinical notes upon reconnection.<br/>
+          - <strong>Push Notifications:</strong> Native Firebase Cloud Messaging (FCM) and Apple APNs device token registration.<br/>
+          - <strong>On-Device ML:</strong> Local TensorFlow Lite disease lesion pre-screening on mobile hardware.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Stage 15 Limitation Audit Note</div>
+      <p class="card-text">
+        Offline-first SQLite caching and FCM push notification registration require real physical test devices and will be executed in Stage 15 following production infrastructure deployment.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">11 / 16</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 12: SECTION 11 & 12 — CLOSING COLOPHON                          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page" style="justify-content: space-between;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#234E74"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Publication Series • Document 05 / 06</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864;">
+        SECTION 12 • CLOSING COLOPHON
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: auto 0;">
+      <div style="font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #234E74; margin-bottom: 8px;">Engineering Publication Series • Document 05 / 06</div>
+      <h2 style="font-family: 'Newsreader', Georgia, serif; font-size: 26pt; font-weight: 500; letter-spacing: -0.02em; color: #1C1B1A; line-height: 1.1; margin-bottom: 8px;">
+        VETRA: Mobile Engineering &amp; Field Operations
+      </h2>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-size: 12.5pt; font-style: italic; color: #524E48; margin-bottom: 18px;">
+        "Vetra Mobile is not simply a frontend client. It is the field-facing execution layer of the Vetra platform."
+      </div>
+
+      <div style="display: inline-block; background: #F1EDE4; padding: 12px 24px; border-radius: 9px; border: 1px solid #E2DCD1; max-width: 80%; text-align: center;">
+        <div style="font-size: 10pt; font-weight: 700; color: #1C1B1A;">Built &amp; Engineered by Om Rajput</div>
+        <div style="font-size: 7.8pt; color: #585550; margin-top: 3px;">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          <strong>SVKM's Institute of Technology, Dhule</strong>
+        </div>
+        <div style="font-size: 7.2pt; color: #7A7670; margin-top: 6px; font-style: italic;">
+          "Engineering resilient mobile clients for mission-critical veterinary field operations."
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid rgba(28, 27, 26, 0.12); padding-top: 12px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7pt; color: #7A7670;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Verification &amp; Client Summary</div>
+        <div>Flutter 3.x • Dio Interceptors • Mutex Refresh • 20/20 Live AWS Staging Tests Passing.</div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+        BUILD HASH: VETRA-MOBILE-DOC06-2026<br/>
+        PAGE 12 / 12
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

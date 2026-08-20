@@ -130,7 +130,7 @@ module "rds" {
   instance_class    = "db.t4g.medium" # HA Production DB
   allocated_storage = 100
   multi_az          = true
-  engine_version    = "15.7"
+  engine_version    = "15.13"
 }
 
 # ── ElastiCache Redis ─────────────────────────────────────────────────────────
@@ -146,4 +146,82 @@ module "redis" {
 
   node_type       = "cache.t4g.medium"
   num_cache_nodes = 2 # Automatic failover enabled
+}
+
+# ── IAM / OIDC GitHub Actions Deployment Role ─────────────────────────────────
+
+module "iam" {
+  source = "../../modules/iam"
+
+  environment        = "production"
+  project            = "vetra"
+  github_repository  = "omrajput14/vetra-backend"
+  github_branch      = "refs/heads/production"
+  ecr_repository_arn = module.ecr.repository_arn
+}
+
+# ── ECS Fargate & Application Load Balancer ───────────────────────────────────
+
+module "ecs" {
+  source = "../../modules/ecs"
+
+  environment = "production"
+  project     = "vetra"
+  aws_region  = "ap-south-1"
+
+  vpc_id             = module.vpc.vpc_id
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  private_subnet_ids = module.vpc.private_subnet_ids
+  sg_alb_id          = module.vpc.sg_alb_id
+  sg_ecs_id          = module.vpc.sg_ecs_id
+
+  ecr_repository_url = module.ecr.repository_url
+  image_tag          = "production-initial"
+
+  container_port = 8080
+  cpu            = 1024 # 1 vCPU for production baseline
+  memory         = 2048 # 2 GB RAM for production baseline
+  desired_count  = 2    # Multi-AZ baseline: 2 instances minimum across AZs
+
+  db_host                = module.rds.db_instance_address
+  db_port                = 5432
+  db_name                = module.rds.db_name
+  db_user                = module.rds.db_username
+  db_password_secret_arn = module.rds.db_password_secret_arn
+
+  redis_host                = module.redis.redis_primary_endpoint_address
+  redis_port                = module.redis.redis_port
+  redis_password_secret_arn = module.redis.redis_password_secret_arn
+
+  # Application Auto Scaling (Stage 14.11 / 14.12)
+  enable_autoscaling                = true
+  autoscaling_min_capacity          = 2
+  autoscaling_max_capacity          = 10
+  autoscaling_cpu_target_percentage = 70.0
+  autoscaling_request_count_target  = 1000
+  autoscaling_scale_out_cooldown    = 60
+  autoscaling_scale_in_cooldown     = 300
+
+  # HTTPS & SSL/TLS (Stage 14.8 / 14.12)
+  # ACM Certificate ARN placeholder: populate when production domain certificate is validated in ACM.
+  # When empty (""), the ALB listener defaults to HTTP forwarding on port 80.
+  certificate_arn = ""
+}
+
+# ── Observability & Monitoring (Stage 14.10 / 14.12) ──────────────────────────
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  environment = "production"
+  project     = "vetra"
+  aws_region  = "ap-south-1"
+
+  ecs_cluster_name           = module.ecs.cluster_name
+  ecs_service_name           = module.ecs.service_name
+  alb_arn_suffix             = module.ecs.alb_arn_suffix
+  target_group_arn_suffix    = module.ecs.target_group_arn_suffix
+  db_instance_id             = module.rds.db_instance_id
+  redis_replication_group_id = module.redis.replication_group_id
+  ecs_log_group_name         = module.ecs.log_group_name
 }

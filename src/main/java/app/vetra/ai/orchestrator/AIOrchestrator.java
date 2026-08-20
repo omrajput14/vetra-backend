@@ -16,6 +16,7 @@ import app.vetra.ai.model.AIExecutionContext;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.repository.AIScanRepository;
 import app.vetra.ai.repository.AIScanResultRepository;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -106,14 +107,15 @@ public class AIOrchestrator {
           result.model(),
           latencyMs);
 
-      metricsService.recordSuccess(AIProviderType.valueOf(result.provider().toUpperCase()), latencyMs);
-      
-      // Update scan with provider details resolved from the gateway
-      savedScan.setAiProvider(AIProviderType.valueOf(result.provider().toUpperCase()));
+      AIProviderType resolvedProvider = AIProviderType.fromString(result.provider());
+      metricsService.recordSuccess(resolvedProvider, latencyMs);
+
+      savedScan.setAiProvider(resolvedProvider);
       savedScan.setAiModel(result.model());
       savedScan.setStatus(AIScanStatus.COMPLETED);
       savedScan.setDiagnosis(parsedResult.diagnosis());
       savedScan.setConfidenceScore(parsedResult.confidence());
+      savedScan.setNotes(parsedResult.notesJson());
       savedScan = aiScanRepository.save(savedScan);
 
       persistInferenceResult(savedScan, result, parsedResult, latencyMs);
@@ -123,12 +125,10 @@ public class AIOrchestrator {
 
     } catch (Exception ex) {
       long latencyMs = System.currentTimeMillis() - startTime;
-      log.error(
-          "AI Inference Failed scanId={} error={}",
-          scan.getId(),
-          ex.getMessage());
-          
-      AIProviderType fallbackProvider = requestedProvider != null ? requestedProvider : AIProviderType.NONE;
+      log.error("AI Inference Failed scanId={} error={}", scan.getId(), ex.getMessage());
+
+      AIProviderType fallbackProvider =
+          requestedProvider != null ? requestedProvider : AIProviderType.NONE;
       metricsService.recordFailure(fallbackProvider, latencyMs);
 
       scan.setStatus(AIScanStatus.FAILED);
@@ -145,11 +145,15 @@ public class AIOrchestrator {
     }
   }
 
-  private void persistInferenceResult(AIScan scan, AIResponse result, DiagnosticParsedResult parsedResult, long latencyMs) {
+  private void persistInferenceResult(
+      AIScan scan,
+      AIResponse result,
+      DiagnosticParsedResult parsedResult,
+      long latencyMs) {
     AIScanResultEntity resultEntity =
         AIScanResultEntity.builder()
             .scan(scan)
-            .provider(AIProviderType.valueOf(result.provider().toUpperCase()))
+            .provider(AIProviderType.fromString(result.provider()))
             .model(result.model())
             .diagnosis(parsedResult.diagnosis())
             .confidence(parsedResult.confidence())
@@ -157,39 +161,65 @@ public class AIOrchestrator {
             .latencyMs(latencyMs)
             .requestId(scan.getId().toString())
             .tokensUsed(result.completionTokens())
-            .warnings(parsedResult.warnings() != null ? String.join("; ", parsedResult.warnings()) : null)
+            .warnings(
+                parsedResult.warnings() != null
+                    ? String.join("; ", parsedResult.warnings())
+                    : null)
             .build();
 
     aiScanResultRepository.save(resultEntity);
   }
-  
+
   private DiagnosticParsedResult parseResponseContent(String content) {
-      try {
-          String cleanJson = cleanMarkdownJson(content);
-          DiagnosticPayload payload = objectMapper.readValue(cleanJson, DiagnosticPayload.class);
-          
-          String diagnosis = payload.condition() != null ? payload.condition() : "Unspecified Observation";
-          if (payload.observations() != null && !payload.observations().isEmpty()) {
-            diagnosis += " | Observations: " + String.join(", ", payload.observations());
-          }
+    try {
+      String cleanJson = cleanMarkdownJson(content);
+      DiagnosticPayload payload = objectMapper.readValue(cleanJson, DiagnosticPayload.class);
 
-          BigDecimal confidence =
-              payload.confidence() != null ? payload.confidence() : BigDecimal.valueOf(0.50);
+      String diagnosis = payload.resolvedCondition();
+      BigDecimal confidence = payload.resolvedConfidence();
 
-          List<String> warnings = new ArrayList<>();
-          if (payload.recommendations() != null && !payload.recommendations().isEmpty()) {
-            warnings.add("Recommendations: " + String.join("; ", payload.recommendations()));
-          }
-          if (Boolean.TRUE.equals(payload.requiresVeterinarianReview())) {
-            warnings.add("Requires urgent veterinarian review");
-          }
-          return new DiagnosticParsedResult(diagnosis, confidence, warnings);
-      } catch (Exception e) {
-          log.warn("Failed to parse AI Response content, falling back to raw content. Error: {}", e.getMessage());
-          return new DiagnosticParsedResult("Unknown Observation", BigDecimal.valueOf(0.10), List.of("Failed to parse diagnostic JSON"));
+      List<String> warnings = new ArrayList<>();
+      if (Boolean.TRUE.equals(payload.requiresVeterinarianReview())) {
+        warnings.add("Requires veterinarian clinical review");
       }
+
+      StructuredNotesPayload notesPayload =
+          new StructuredNotesPayload(
+              payload.resolvedSeverity(),
+              payload.observations() != null ? payload.observations() : List.of(),
+              payload.resolvedRecommendedNextStep(),
+              payload.requiresVeterinarianReview() != null
+                  ? payload.requiresVeterinarianReview()
+                  : true,
+              payload.resolvedDisclaimer());
+
+      String notesJson = objectMapper.writeValueAsString(notesPayload);
+      return new DiagnosticParsedResult(diagnosis, confidence, notesJson, warnings);
+
+    } catch (Exception e) {
+      log.warn("Failed to parse diagnostic JSON, falling back. Error: {}", e.getMessage());
+      StructuredNotesPayload fallbackNotes =
+          new StructuredNotesPayload(
+              "UNKNOWN",
+              List.of("Automated feature extraction incomplete"),
+              "Veterinary clinical evaluation recommended for visual assessment.",
+              true,
+              "This is an AI-assisted preliminary assessment and is not a confirmed diagnosis.");
+
+      String notesJson;
+      try {
+        notesJson = objectMapper.writeValueAsString(fallbackNotes);
+      } catch (Exception ignored) {
+        notesJson = "{}";
+      }
+      return new DiagnosticParsedResult(
+          "Inconclusive / Insufficient Visual Evidence",
+          BigDecimal.valueOf(0.20),
+          notesJson,
+          List.of("Failed to parse diagnostic JSON"));
+    }
   }
-  
+
   private String cleanMarkdownJson(String text) {
     if (text == null) {
       return "{}";
@@ -205,7 +235,72 @@ public class AIOrchestrator {
     }
     return cleaned.trim();
   }
-  
-  private record DiagnosticPayload(String condition, BigDecimal confidence, List<String> observations, List<String> recommendations, Boolean requiresVeterinarianReview) {}
-  private record DiagnosticParsedResult(String diagnosis, BigDecimal confidence, List<String> warnings) {}
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  private record DiagnosticPayload(
+      String possibleCondition,
+      String condition,
+      BigDecimal confidence,
+      String severity,
+      List<String> observations,
+      String recommendedNextStep,
+      List<String> recommendations,
+      Boolean requiresVeterinarianReview,
+      String disclaimer) {
+
+    public String resolvedCondition() {
+      if (possibleCondition != null && !possibleCondition.isBlank()) {
+        return possibleCondition.trim();
+      }
+      if (condition != null && !condition.isBlank()) {
+        return condition.trim();
+      }
+      return "Inconclusive / Insufficient Visual Evidence";
+    }
+
+    public BigDecimal resolvedConfidence() {
+      if (confidence != null) {
+        return confidence.min(BigDecimal.ONE).max(BigDecimal.ZERO);
+      }
+      return BigDecimal.valueOf(0.50);
+    }
+
+    public String resolvedSeverity() {
+      if (severity != null && !severity.isBlank()) {
+        return severity.trim().toUpperCase();
+      }
+      return "UNKNOWN";
+    }
+
+    public String resolvedRecommendedNextStep() {
+      if (recommendedNextStep != null && !recommendedNextStep.isBlank()) {
+        return recommendedNextStep.trim();
+      }
+      if (recommendations != null && !recommendations.isEmpty()) {
+        return String.join("; ", recommendations);
+      }
+      return "Schedule a clinical examination with a licensed veterinarian for evaluation.";
+    }
+
+    public String resolvedDisclaimer() {
+      if (disclaimer != null && !disclaimer.isBlank()) {
+        return disclaimer.trim();
+      }
+      return "This is an AI-assisted preliminary assessment and is not a confirmed veterinary diagnosis.";
+    }
+  }
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public record StructuredNotesPayload(
+      String severity,
+      List<String> observations,
+      String recommendedNextStep,
+      Boolean requiresVeterinarianReview,
+      String disclaimer) {}
+
+  private record DiagnosticParsedResult(
+      String diagnosis,
+      BigDecimal confidence,
+      String notesJson,
+      List<String> warnings) {}
 }

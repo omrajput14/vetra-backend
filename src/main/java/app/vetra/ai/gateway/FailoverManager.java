@@ -26,6 +26,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import io.micrometer.tracing.Tracer;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -237,12 +238,17 @@ public class FailoverManager {
           ResilienceConfig res =
               providerConfig != null ? providerConfig.getResilience() : new ResilienceConfig();
 
+          Duration waitDuration = res.getWaitDuration();
+          if (waitDuration == null || waitDuration.toMillis() < 1) {
+            waitDuration = Duration.ofMillis(10);
+          }
+
           RetryConfig retryConfig =
               RetryConfig.custom()
                   .maxAttempts(res.getMaxRetryAttempts())
                   .intervalFunction(
                       IntervalFunction.ofExponentialBackoff(
-                          res.getWaitDuration(), res.getBackoffMultiplier()))
+                          waitDuration, res.getBackoffMultiplier()))
                   .retryExceptions(
                       AITimeoutException.class,
                       AIRateLimitException.class,

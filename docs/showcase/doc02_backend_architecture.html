@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VETRA — API &amp; Backend Architecture | Om Rajput</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #EAE6DF;
+      color: #1C1B1A;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 8.3pt;
+      line-height: 1.44;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      max-height: 297mm;
+      background: #FAF9F5;
+      margin: 0 auto 10mm auto;
+      padding: 15mm 19mm 13mm 19mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      page-break-after: always;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    @media print {
+      body { background: none; }
+      .page { margin: 0; box-shadow: none; }
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7pt;
+    }
+
+    .code-block {
+      background: #F4EFE6;
+      border: 1px solid #E2DCD1;
+      border-radius: 5px;
+      padding: 6px 9px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.5pt;
+      line-height: 1.35;
+      color: #2D2B28;
+      overflow-x: hidden;
+    }
+
+    /* Running Header & Footer */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 7px;
+      border-bottom: 1px solid rgba(28, 27, 26, 0.10);
+      margin-bottom: 8px;
+    }
+    .page-header .doc-title {
+      font-size: 6.6pt;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6B6864;
+    }
+    .page-header .sec-badge {
+      font-size: 6.3pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: #EFEBE4;
+      padding: 2px 7px;
+      border-radius: 8px;
+      color: #4A4744;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 7px;
+      border-top: 1px solid rgba(28, 27, 26, 0.10);
+      margin-top: 8px;
+      font-size: 6.8pt;
+      color: #7A7671;
+    }
+    .page-footer .page-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #1C1B1A;
+    }
+
+    /* Headings */
+    .section-headline {
+      margin-bottom: 6px;
+    }
+    .section-number {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #8C523A;
+      margin-bottom: 1px;
+    }
+    .section-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16.5pt;
+      line-height: 1.15;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      color: #1C1B1A;
+    }
+    .section-subtitle {
+      font-size: 8pt;
+      color: #615E59;
+      margin-top: 2px;
+      line-height: 1.35;
+    }
+
+    /* Card System */
+    .card-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .card-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 7px;
+    }
+    .card-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .card {
+      border-radius: 7px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .card-title {
+      font-size: 8.4pt;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #1C1B1A;
+    }
+    .card-text {
+      font-size: 7.6pt;
+      color: #4A4844;
+      line-height: 1.38;
+    }
+
+    /* Pastel Palettes */
+    .card-cream { background: #F3EFE6; border-color: #E5DFD2; }
+    .card-sage { background: #E3ECE7; border-color: #C6D8CE; }
+    .card-sage .card-title { color: #23523B; }
+    .card-lavender { background: #E9E7F4; border-color: #D3D0E7; }
+    .card-lavender .card-title { color: #433B72; }
+    .card-blue { background: #E3EBF4; border-color: #C9DAEB; }
+    .card-blue .card-title { color: #234E74; }
+    .card-peach { background: #F8EEE8; border-color: #EBD9CE; }
+    .card-peach .card-title { color: #7E3E26; }
+    .card-white { background: #FFFFFF; border-color: #E6E2D9; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+
+    /* Metrics Strip */
+    .metrics-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      background: #F1EDE4;
+      padding: 7px 11px;
+      border-radius: 7px;
+      border: 1px solid #E4DDD0;
+    }
+    .metric-item { display: flex; flex-direction: column; }
+    .metric-num {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 14pt;
+      font-weight: 600;
+      color: #1C1B1A;
+      line-height: 1.1;
+    }
+    .metric-label {
+      font-size: 6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6B6864;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    /* Tables */
+    .editorial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.3pt;
+      background: #FFFFFF;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #E5E1D8;
+    }
+    .editorial-table th {
+      background: #F1EDE4;
+      color: #3E3C39;
+      font-weight: 700;
+      text-align: left;
+      padding: 4px 7px;
+      border-bottom: 1px solid #E2DCD1;
+      font-size: 6.6pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .editorial-table td {
+      padding: 4px 7px;
+      border-bottom: 1px solid #F2EFE8;
+      color: #43413E;
+      line-height: 1.32;
+    }
+    .editorial-table tr:last-child td { border-bottom: none; }
+
+    .tag-pill {
+      display: inline-block;
+      font-size: 5.6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .tag-green { background: #D5E8DC; color: #1E4F32; }
+    .tag-blue { background: #D6E4F2; color: #1B456C; }
+    .tag-lavender { background: #DFDCF2; color: #3C3470; }
+    .tag-peach { background: #F4DECF; color: #78361C; }
+    .tag-gray { background: #E6E3DC; color: #524E48; }
+
+    /* Diagrams */
+    .diagram-box {
+      background: #F4F1EA;
+      border: 1px solid #E5DFD4;
+      border-radius: 7px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .diagram-label {
+      font-size: 6pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A7671;
+      margin-top: 3px;
+      text-align: center;
+    }
+
+    /* Cover Specific */
+    .cover-page {
+      background: #FAF9F5;
+      padding: 22mm 22mm 18mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cover-brand {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 38pt;
+      line-height: 0.95;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: #1C1B1A;
+      margin-bottom: 10px;
+    }
+    .cover-subtitle {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 16pt;
+      line-height: 1.25;
+      font-style: italic;
+      color: #4A4743;
+      margin-bottom: 16px;
+      max-width: 90%;
+    }
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #E8E3D8;
+      color: #383531;
+      padding: 3px 9px;
+      border-radius: 14px;
+      font-size: 7pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .cover-author-block {
+      background: #F1EDE4;
+      border-left: 3px solid #8C523A;
+      padding: 10px 14px;
+      border-radius: 0 7px 7px 0;
+      max-width: 80%;
+    }
+    .cover-author-name {
+      font-size: 11.5pt;
+      font-weight: 700;
+      color: #1C1B1A;
+    }
+    .cover-author-meta {
+      font-size: 7.8pt;
+      color: #5E5B56;
+      margin-top: 1px;
+      line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 01: COVER                                                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#3B6B55"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Publication Series • Document 02</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864; line-height: 1.35;">
+        DOC ID: PUB-VETRA-DOC-02<br/>
+        MODULE: BACKEND &amp; API<br/>
+        DATE: AUGUST 2026
+      </div>
+    </div>
+
+    <div style="margin: auto 0;">
+      <div class="cover-badge">
+        <span style="display:inline-block; width:5px; height:5px; background:#8C523A; border-radius:50%;"></span>
+        API &amp; Backend Architecture Monograph
+      </div>
+      <h1 class="cover-brand">VETRA</h1>
+      <div class="cover-subtitle">
+        API &amp; Backend Architecture<br/>
+        <span style="font-size: 11.5pt; color: #69655E; font-style: normal;">Engineering the Core Veterinary Operations Platform: Clean Architecture, Criteria Specifications, Security Filter Chains &amp; Distributed Telemetry</span>
+      </div>
+
+      <div class="cover-author-block">
+        <div style="font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: #8C523A; font-weight: 700; margin-bottom: 2px;">Architected &amp; Engineered By</div>
+        <div class="cover-author-name">Om Rajput</div>
+        <div class="cover-author-meta">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          SVKM's Institute of Technology, Dhule
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 12px; border-top: 1px solid rgba(28, 27, 26, 0.12); font-size: 7pt; color: #6E6B65;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Backend Runtime &amp; Framework</div>
+        <div>Java 21 LTS (Eclipse Temurin) • Spring Boot 3.5.16 • Spring Security 6 • Spring Data JPA • JJWT 0.12.6</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: 700; color: #1C1B1A;">Persistence &amp; Cache</div>
+        <div>PostgreSQL 15.13 (PostGIS Spatial) • Redis 7.1 (Distributed Cache) • Flyway 10 (V1-V14)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 02: BACKEND ENGINEERING OVERVIEW                                -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">System Engineering • Section 01</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">01 — Core System Role</div>
+      <h2 class="section-title">Backend Engineering Overview</h2>
+      <p class="section-subtitle">The central coordination engine governing clinical records, authentication invariants, spatial surveillance, and transactional boundaries.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Core Backend Responsibilities</div>
+        <p class="card-text">
+          1. <strong>Deterministic Business Invariants:</strong> Enforcing state machine transitions for appointments and immutable EVMR medical history.<br/>
+          2. <strong>Zero-Trust Identity:</strong> Stateless HMAC-SHA512 JWT verification, cryptographic refresh rotation, and tenant scoping.<br/>
+          3. <strong>Geospatial Surveillance:</strong> Executing PostGIS spatial queries (<span class="mono">ST_DWithin</span>) for real-time outbreak clustering.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Execution Context</div>
+        <p class="card-text">
+          The backend runs as containerized tasks on AWS ECS Fargate within private VPC subnets. It exposes versioned RESTful APIs (<span class="mono">/api/v1</span>) behind an AWS Application Load Balancer terminating TLS 1.3 on port 443 with automatic HTTP port 80 redirect.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="165" viewBox="0 0 620 165" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Client -->
+        <rect x="20" y="20" width="100" height="125" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="70" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Flutter Mobile</text>
+        <text x="70" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">Farmer / Vet Client</text>
+        <text x="70" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">Dio Network</text>
+        <text x="70" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#23523B">Secure Vault</text>
+        <text x="70" y="125" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#6B6864">HTTPS 443</text>
+
+        <!-- Arrow -->
+        <path d="M120 82 L150 82" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Ingress ALB -->
+        <rect x="150" y="20" width="110" height="125" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="205" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">AWS ALB Ingress</text>
+        <text x="205" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">ACM Certificate</text>
+        <text x="205" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">Port 80 -> 443</text>
+        <text x="205" y="105" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">301 Redirect</text>
+        <text x="205" y="125" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#234E74">api.vetra.dpdns.org</text>
+
+        <!-- Arrow -->
+        <path d="M260 82 L290 82" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Spring Boot Backend -->
+        <rect x="290" y="20" width="180" height="125" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="380" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Spring Boot 3.5.16 Core</text>
+        <rect x="305" y="52" width="150" height="20" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="380" y="66" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">Security Filter &amp; Controller</text>
+
+        <rect x="305" y="76" width="150" height="20" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="380" y="90" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">Domain Services (@Transactional)</text>
+
+        <rect x="305" y="100" width="150" height="20" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="380" y="114" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#1C1B1A">Criteria API &amp; Spatial Repos</text>
+
+        <!-- Arrow -->
+        <path d="M470 82 L500 82" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Persistence & Cache -->
+        <rect x="500" y="20" width="105" height="125" rx="6" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="552" y="45" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#3D3A36">Data Tier</text>
+        <text x="552" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#5A554E">PostgreSQL 15</text>
+        <text x="552" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">PostGIS GiST</text>
+        <text x="552" y="100" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#5A554E">Redis 7.1 Cache</text>
+        <text x="552" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">AWS S3 Vault</text>
+      </svg>
+      <div class="diagram-label">Figure 1.1: High-Level End-to-End Vetra Backend Execution Architecture</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Contract Immutability Guarantee</div>
+      <p class="card-text">
+        Every API response is encapsulated in a strongly typed <span class="mono">ApiResponse&lt;T&gt;</span> envelope. If a business violation occurs, a typed <span class="mono">BaseDomainException</span> triggers the <span class="mono">GlobalExceptionHandler</span>, ensuring consistent RFC 7807 error structures with zero unhandled stack traces leaked to clients.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">02 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 03: TECHNOLOGY STACK & DEPENDENCY MATRIX                        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Dependency Architecture • Section 02</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">02 — Dependencies</div>
+      <h2 class="section-title">Backend Technology Stack &amp; BOM Matrix</h2>
+      <p class="section-subtitle">Verified production libraries, enterprise frameworks, and build coordinates configured in <span class="mono">pom.xml</span>.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 24%;">Component / Layer</th>
+          <th style="width: 32%;">Artifact &amp; Version</th>
+          <th style="width: 44%;">Architectural Role &amp; Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Runtime &amp; Parent</strong></td>
+          <td><span class="mono">spring-boot-starter-parent:3.5.16</span><br/><span class="mono">Java 21 LTS (Eclipse Temurin)</span></td>
+          <td>Core enterprise foundation; provides modern virtual threads, pattern matching, and managed dependency convergence.</td>
+        </tr>
+        <tr>
+          <td><strong>Web &amp; Reactive</strong></td>
+          <td><span class="mono">spring-boot-starter-web</span><br/><span class="mono">spring-boot-starter-webflux</span></td>
+          <td>Provides embedded Apache Tomcat servlet container and non-blocking WebClient for asynchronous external integrations.</td>
+        </tr>
+        <tr>
+          <td><strong>Security &amp; JWT</strong></td>
+          <td><span class="mono">spring-boot-starter-security</span><br/><span class="mono">io.jsonwebtoken:jjwt-api:0.12.6</span></td>
+          <td>Stateless security filter chain with HMAC-SHA512 token parsing, BCrypt password hashing (strength 12), and method security.</td>
+        </tr>
+        <tr>
+          <td><strong>Persistence &amp; Spatial</strong></td>
+          <td><span class="mono">spring-boot-starter-data-jpa</span><br/><span class="mono">hibernate-spatial:6.x</span><br/><span class="mono">postgresql:runtime</span></td>
+          <td>Hibernate 6 ORM with PostGIS spatial geometry mapping (<span class="mono">Point</span> coordinates, spatial queries, and GiST indexes).</td>
+        </tr>
+        <tr>
+          <td><strong>Schema Migrations</strong></td>
+          <td><span class="mono">flyway-core</span><br/><span class="mono">flyway-database-postgresql</span></td>
+          <td>Deterministic database version control executing 14 ordered SQL migration scripts (<span class="mono">V1</span> through <span class="mono">V14</span>) at application startup.</td>
+        </tr>
+        <tr>
+          <td><strong>Cache Infrastructure</strong></td>
+          <td><span class="mono">spring-boot-starter-data-redis</span><br/><span class="mono">spring-boot-starter-cache</span></td>
+          <td>Multi-level distributed caching with Redis standalone/cluster topology, TTL expiration policies, and serialization.</td>
+        </tr>
+        <tr>
+          <td><strong>Fault Tolerance</strong></td>
+          <td><span class="mono">resilience4j-spring-boot3:2.4.0</span><br/><span class="mono">resilience4j-micrometer:2.4.0</span></td>
+          <td>Circuit breaker state machines, rate limiters, and exponential backoff retry mechanisms for external system isolation.</td>
+        </tr>
+        <tr>
+          <td><strong>Observability</strong></td>
+          <td><span class="mono">micrometer-tracing-bridge-otel</span><br/><span class="mono">opentelemetry-exporter-otlp</span><br/><span class="mono">datasource-micrometer:1.0.6</span></td>
+          <td>Distributed tracing spans, JDBC connection pool telemetry via HikariCP, and OTLP span exports to Grafana Tempo.</td>
+        </tr>
+        <tr>
+          <td><strong>Cloud Storage SDK</strong></td>
+          <td><span class="mono">software.amazon.awssdk:s3:2.51.2</span><br/><span class="mono">software.amazon.awssdk:sts:2.51.2</span></td>
+          <td>AWS SDK v2 client for presigned URL generation and secure binary asset storage in Amazon S3 buckets.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Dependency Convergence Strategy</div>
+        <p class="card-text">
+          All transient Spring dependencies are managed strictly via the Spring Boot 3.5.16 parent BOM and AWS SDK BOM (2.51.2), preventing jar hell and binary classpath conflicts.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Static Quality Enforcement</div>
+        <p class="card-text">
+          The build pipeline enforces Google Java Style standards via <span class="mono">maven-checkstyle-plugin:3.6.0</span> with 0 violations permitted, and automated Gitleaks SAST scanning on every commit.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">03 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 04: MODULAR MONOLITH & CLEAN ARCHITECTURE                       -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Clean Architecture • Section 03</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">03 — Architecture</div>
+      <h2 class="section-title">Modular Monolith &amp; Package Boundaries</h2>
+      <p class="section-subtitle">Enforcing inward-pointing Clean Architecture dependencies and bounded context isolation in Java 21.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-white">
+        <div class="card-title">1. Presentation Layer</div>
+        <p class="card-text">REST Controllers validate HTTP requests using JSR-380 annotations (<span class="mono">@Valid</span>) and map domain outputs to standardized DTO envelopes.</p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">2. Application Services</div>
+        <p class="card-text">Encapsulate business use cases, transactional boundaries (<span class="mono">@Transactional</span>), and cross-module business rule orchestrations.</p>
+      </div>
+      <div class="card card-white">
+        <div class="card-title">3. Domain &amp; Repositories</div>
+        <p class="card-text">JPA Entities, PostGIS geometries, and dynamic <span class="mono">Specification</span> builders isolated behind repository interfaces.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="165" viewBox="0 0 620 165" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Module 1: Animal -->
+        <rect x="20" y="20" width="130" height="125" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="85" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">app.vetra.animal</text>
+        <line x1="20" y1="50" x2="150" y2="50" stroke="#C4D7CC"/>
+        <text x="30" y="68" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">AnimalController</text>
+        <text x="30" y="84" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">AnimalService</text>
+        <text x="30" y="100" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">AnimalRepository</text>
+        <text x="30" y="116" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">AnimalSpecification</text>
+        <text x="30" y="132" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#23523B">Animal (Entity)</text>
+
+        <!-- Module 2: Appointment -->
+        <rect x="170" y="20" width="130" height="125" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="235" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">app.vetra.appointment</text>
+        <line x1="170" y1="50" x2="300" y2="50" stroke="#C9DAEB"/>
+        <text x="180" y="68" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">AppointmentController</text>
+        <text x="180" y="84" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">AppointmentService</text>
+        <text x="180" y="100" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">AppointmentRepository</text>
+        <text x="180" y="116" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">AppointmentStatus (Enum)</text>
+        <text x="180" y="132" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#234E74">Appointment (Entity)</text>
+
+        <!-- Module 3: Medical Record -->
+        <rect x="320" y="20" width="130" height="125" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="385" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#433B72">app.vetra.medicalrecord</text>
+        <line x1="320" y1="50" x2="450" y2="50" stroke="#D3D0E7"/>
+        <text x="330" y="68" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">MedicalRecordController</text>
+        <text x="330" y="84" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">MedicalRecordService</text>
+        <text x="330" y="100" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">MedicalRecordRepo</text>
+        <text x="330" y="116" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">PrescriptionDto</text>
+        <text x="330" y="132" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#433B72">MedicalRecord (Entity)</text>
+
+        <!-- Module 4: Disease Surveillance -->
+        <rect x="470" y="20" width="130" height="125" rx="6" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="535" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#7E3E26">app.vetra.disease</text>
+        <line x1="470" y1="50" x2="600" y2="50" stroke="#EBD9CE"/>
+        <text x="480" y="68" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">OutbreakController</text>
+        <text x="480" y="84" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">DiseaseReportController</text>
+        <text x="480" y="100" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">DiseaseReportService</text>
+        <text x="480" y="116" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">PostGIS Spatial Index</text>
+        <text x="480" y="132" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#7E3E26">DiseaseReport (Entity)</text>
+      </svg>
+      <div class="diagram-label">Figure 3.1: Package Boundaries and Domain Aggregates in Vetra Modular Monolith</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Shared Infrastructure Package (<span class="mono">app.vetra.infrastructure</span>)</div>
+      <p class="card-text">
+        Cross-cutting technical concerns are isolated inside <span class="mono">app.vetra.infrastructure</span>: <span class="mono">security</span> (JWT Filter &amp; BCrypt), <span class="mono">exception</span> (GlobalExceptionHandler), <span class="mono">cache</span> (Redis configurations), and <span class="mono">metrics</span> (Prometheus &amp; Micrometer Observation).
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">04 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 05: REQUEST EXECUTION LIFECYCLE                                 -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Execution Pipeline • Section 04</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">04 — Request Pipeline</div>
+      <h2 class="section-title">End-to-End Request Execution Lifecycle</h2>
+      <p class="section-subtitle">The precise 9-stage journey of an HTTP request from AWS ALB ingress to database persistence and JSON serialization.</p>
+    </div>
+
+    <div class="diagram-box">
+      <svg width="100%" height="255" viewBox="0 0 620 255" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Stage 1: Ingress -->
+        <rect x="20" y="10" width="175" height="42" rx="4" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="30" y="26" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#234E74">1. AWS ALB Ingress</text>
+        <text x="30" y="42" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#4B7094">TLS 1.3 Termination • Port 80 Redirect</text>
+
+        <!-- Arrow -->
+        <path d="M195 31 L220 31" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 2: Tracing Filters -->
+        <rect x="220" y="10" width="180" height="42" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="230" y="26" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#1C1B1A">2. Tracing &amp; Logging Filter</text>
+        <text x="230" y="42" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#6B6864">RequestIdFilter • TraceHeaderFilter</text>
+
+        <!-- Arrow -->
+        <path d="M400 31 L425 31" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 3: Security Filter -->
+        <rect x="425" y="10" width="175" height="42" rx="4" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="435" y="26" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#23523B">3. JwtAuthenticationFilter</text>
+        <text x="435" y="42" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#385F49">HMAC-512 Validate • SecurityContext</text>
+
+        <!-- Down Arrow from 3 to 4 -->
+        <path d="M512 52 L512 70" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 4: DispatcherServlet & Controller -->
+        <rect x="425" y="70" width="175" height="42" rx="4" fill="#E8E4DB" stroke="#D3CDC0"/>
+        <text x="435" y="86" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#3D3A36">4. DispatcherServlet</text>
+        <text x="435" y="102" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">Controller Mapping • URI Matching</text>
+
+        <!-- Left Arrow -->
+        <path d="M425 91 L400 91" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 5: Validation & DTO Unpacking -->
+        <rect x="220" y="70" width="180" height="42" rx="4" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="230" y="86" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#1C1B1A">5. JSR-380 Validation (@Valid)</text>
+        <text x="230" y="102" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">BindingResult • Field Error Check</text>
+
+        <!-- Left Arrow -->
+        <path d="M220 91 L195 91" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 6: Application Service Layer -->
+        <rect x="20" y="70" width="175" height="42" rx="4" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="30" y="86" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#655947">6. Application Service</text>
+        <text x="30" y="102" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#584C38">@Transactional • Domain Invariants</text>
+
+        <!-- Down Arrow from 6 to 7 -->
+        <path d="M107 112 L107 130" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 7: Criteria Specifications & Repos -->
+        <rect x="20" y="130" width="175" height="42" rx="4" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="30" y="146" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#23523B">7. Criteria Specifications</text>
+        <text x="30" y="162" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">AnimalSpecification • Predicates</text>
+
+        <!-- Right Arrow -->
+        <path d="M195 151 L220 151" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 8: PostgreSQL 15 & Redis -->
+        <rect x="220" y="130" width="180" height="42" rx="4" fill="#EDE9DF" stroke="#D6D0C4"/>
+        <text x="230" y="146" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#3D3A36">8. PostgreSQL 15 &amp; Redis</text>
+        <text x="230" y="162" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#5A554E">PostGIS Spatial Query • HikariCP</text>
+
+        <!-- Right Arrow -->
+        <path d="M400 151 L425 151" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- Stage 9: Response Mapping & Envelope -->
+        <rect x="425" y="130" width="175" height="42" rx="4" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="435" y="146" font-family="Plus Jakarta Sans, sans-serif" font-size="7pt" font-weight="700" fill="#7E3E26">9. Response Mapping</text>
+        <text x="435" y="162" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#7E3E26">ApiResponse.of(data)</text>
+
+        <!-- Bottom Banner: Exception Handler Interception -->
+        <rect x="20" y="186" width="580" height="48" rx="5" fill="#FFFFFF" stroke="#E2DCD1"/>
+        <text x="35" y="204" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">GlobalExceptionHandler Interception Pipeline (@RestControllerAdvice)</text>
+        <text x="35" y="222" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#5E5A54">Catches BaseDomainException, MethodArgumentNotValidException, OptimisticLockingFailureException &rarr; Injects Micrometer error tags &rarr; Returns RFC 7807 Error Envelope</text>
+      </svg>
+      <div class="diagram-label">Figure 4.1: The Complete Vetra Inbound Request Execution &amp; Exception Handling Pipeline</div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Distributed Trace Correlation</div>
+        <p class="card-text">
+          <span class="mono">TraceHeaderFilter</span> extracts or generates W3C traceparent headers (<span class="mono">traceId</span>, <span class="mono">spanId</span>) and binds them into Logback's Mapped Diagnostic Context (MDC), ensuring 100% trace correlation across every log statement.
+        </p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Transactional Isolation Level</div>
+        <p class="card-text">
+          Application services run with Spring's default <span class="mono">ISOLATION_READ_COMMITTED</span> and <span class="mono">PROPAGATION_REQUIRED</span>, guaranteeing that concurrent requests observe committed database states only.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">05 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 06: AUTHENTICATION & SECURITY FILTER CHAIN                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Security Design • Section 05</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">05 — Security Internals</div>
+      <h2 class="section-title">Authentication &amp; Security Filter Chain</h2>
+      <p class="section-subtitle">Stateless cryptographic JWT authentication, BCrypt password hashing, and Spring Security 6 FilterChain architecture.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">SecurityFilterChain Configuration</div>
+        <p class="card-text">
+          - <strong>CSRF:</strong> Explicitly disabled (<span class="mono">AbstractHttpConfigurer::disable</span>) as the REST API is purely stateless.<br/>
+          - <strong>Session Creation:</strong> <span class="mono">SessionCreationPolicy.STATELESS</span> (no HttpSession).<br/>
+          - <strong>Password Encoder:</strong> <span class="mono">BCryptPasswordEncoder</span> (strength 12).<br/>
+          - <strong>Exception Entry Point:</strong> <span class="mono">CustomAuthenticationEntryPoint</span> formatting 401 Unauthorized errors as JSON envelopes.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Access Token (JWT) Anatomy</div>
+        <p class="card-text">
+          - <strong>Algorithm:</strong> HMAC-SHA512 via JJWT 0.12.6.<br/>
+          - <strong>Subject (<span class="mono">sub</span>):</strong> User email address.<br/>
+          - <strong>Custom Claims:</strong> <span class="mono">userId</span> (UUID), <span class="mono">role</span> (<span class="mono">ROLE_FARMER</span> | <span class="mono">ROLE_VETERINARIAN</span>).<br/>
+          - <strong>Expiration:</strong> Configured in <span class="mono">JwtProperties</span> (default: 86,400s / 24 hours).
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Client -->
+        <rect x="20" y="20" width="115" height="120" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="77" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Flutter Client</text>
+        <text x="77" y="65" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#6B6864">HTTP Request</text>
+        <text x="77" y="85" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">Authorization:</text>
+        <text x="77" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">Bearer &lt;token&gt;</text>
+        <text x="77" y="122" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">Dio Interceptor</text>
+
+        <!-- Arrow -->
+        <path d="M135 80 L165 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- JwtAuthenticationFilter -->
+        <rect x="165" y="20" width="190" height="120" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="260" y="40" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">JwtAuthenticationFilter</text>
+        <text x="260" y="58" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">1. Extract Bearer token string</text>
+        <text x="260" y="74" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">2. JwtUtil: verify HMAC-512 signature</text>
+        <text x="260" y="90" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">3. Load UserDetails via email</text>
+        <text x="260" y="106" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">4. Build UsernamePasswordAuthToken</text>
+        <text x="260" y="124" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">5. SecurityContextHolder.setAuth()</text>
+
+        <!-- Arrow -->
+        <path d="M355 80 L385 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Downstream Execution -->
+        <rect x="385" y="20" width="215" height="120" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="492" y="40" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#655947">Downstream Controller / Service</text>
+        <text x="492" y="62" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">@AuthenticationPrincipal UserDetails</text>
+        <text x="492" y="80" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">@PreAuthorize("hasRole('VET')")</text>
+        <text x="492" y="98" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#584C38">Principal ID scoped in SQL queries</text>
+        <text x="492" y="122" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">✓ Zero Principal Spoofing</text>
+      </svg>
+      <div class="diagram-label">Figure 5.1: Spring Security 6 Stateless JWT Filter Chain &amp; Principal Population Flow</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Public Endpoint Whitelist</div>
+      <p class="card-text">
+        Configured in <span class="mono">SecurityConfig.PUBLIC_ENDPOINTS</span>: <span class="mono">/api/v1/auth/farmer/register</span>, <span class="mono">/api/v1/auth/farmer/login</span>, <span class="mono">/api/v1/auth/vet/register</span>, <span class="mono">/api/v1/auth/vet/login</span>, <span class="mono">/api/v1/auth/refresh</span>, <span class="mono">/api/v1/auth/logout</span>, <span class="mono">/actuator/health/**</span>, and <span class="mono">/v3/api-docs/**</span>. All other paths require authenticated bearer tokens.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">06 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 07: TOKEN LIFECYCLE, ROTATION & REVOCATION                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Refresh &amp; Revocation • Section 06</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">06 — Token Governance</div>
+      <h2 class="section-title">Refresh Token Rotation &amp; Revocation Engine</h2>
+      <p class="section-subtitle">Single-use cryptographically random refresh token rotation and database-backed session termination.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Refresh Token Schema (<span class="mono">refresh_tokens</span>)</div>
+        <p class="card-text">
+          - <strong>Token Value:</strong> Cryptographically secure 256-bit random UUID string.<br/>
+          - <strong>State Flags:</strong> <span class="mono">revoked (BOOLEAN)</span>, <span class="mono">expiry_date (TIMESTAMP)</span>.<br/>
+          - <strong>Entity Link:</strong> Belongs to <span class="mono">User</span> (<span class="mono">user_id</span> foreign key).<br/>
+          - <strong>Rotation Invariant:</strong> When consumed, the old token is marked revoked and a fresh token is issued.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Revocation &amp; Logout Invariant</div>
+        <p class="card-text">
+          Calling <span class="mono">POST /api/v1/auth/logout</span> sets <span class="mono">revoked = TRUE</span> on the active refresh token. Subsequent attempts to rotate with that token fail immediately with HTTP 401 Unauthorized, terminating compromised sessions.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Client Request -->
+        <rect x="20" y="25" width="125" height="110" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="82" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">1. Refresh Call</text>
+        <text x="82" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">POST /auth/refresh</text>
+        <text x="82" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#6B6864">Payload: refreshToken</text>
+        <text x="82" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">Mutex Queued</text>
+
+        <!-- Arrow -->
+        <path d="M145 80 L175 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- RefreshTokenService -->
+        <rect x="175" y="25" width="200" height="110" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="275" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">2. RefreshTokenService</text>
+        <text x="275" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">1. Find token in PostgreSQL</text>
+        <text x="275" y="86" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">2. Verify not expired &amp; not revoked</text>
+        <text x="275" y="102" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">3. Set old token revoked = true</text>
+        <text x="275" y="118" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">4. Generate new Token Pair</text>
+
+        <!-- Arrow -->
+        <path d="M375 80 L405 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Response -->
+        <rect x="405" y="25" width="195" height="110" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="502" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">3. AuthResponse DTO</text>
+        <text x="502" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#234E74">accessToken: eyJhbGciOi...</text>
+        <text x="502" y="88" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#234E74">refreshToken: 8a4c1e9...</text>
+        <text x="502" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">✓ Mobile Keychain Updated</text>
+      </svg>
+      <div class="diagram-label">Figure 6.1: Refresh Token Single-Use Rotation &amp; Database State Transition Flow</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Mobile Token Desynchronization Prevention</div>
+      <p class="card-text">
+        In the Flutter client, <span class="mono">AuthInterceptor</span> wraps token refresh calls behind an asynchronous <span class="mono">Completer</span> mutex queue. When multiple concurrent requests encounter 401 Unauthorized, only the first triggers <span class="mono">POST /api/v1/auth/refresh</span>; all other queued requests await the single rotation result and replay transparently.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">07 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 08: MULTI-TENANT ISOLATION & RBAC                               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Security &amp; RBAC • Section 07</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">07 — Authorization</div>
+      <h2 class="section-title">Multi-Tenant Isolation &amp; Role-Based Access</h2>
+      <p class="section-subtitle">Principal-based SQL predicate scoping and Spring Security declarative method authorization.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Role-Based Access Control (RBAC)</div>
+        <p class="card-text">
+          - <span class="mono">ROLE_FARMER:</span> Register animals, book clinical appointments, view own herd passports and medical history.<br/>
+          - <span class="mono">ROLE_VETERINARIAN:</span> Accept appointments, record immutable clinical EVMR entries, issue prescriptions, and submit disease reports.<br/>
+          - <strong>Enforcement:</strong> <span class="mono">@EnableMethodSecurity(prePostEnabled = true)</span> with <span class="mono">@PreAuthorize</span> guards on controllers.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Tenant Data Isolation Principle</div>
+        <p class="card-text">
+          Data queries never rely on client-supplied farmer IDs in request bodies. The backend extracts the authenticated <span class="mono">userId</span> from <span class="mono">SecurityContextHolder</span> and injects it into JPA Criteria Predicates (<span class="mono">farmer.id = :farmerId</span>). Cross-tenant queries return empty result sets rather than unauthorized data.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Farmer Request -->
+        <rect x="20" y="20" width="130" height="120" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="85" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Farmer Persona</text>
+        <text x="85" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">ROLE_FARMER</text>
+        <text x="85" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Principal: Farmer #42</text>
+        <text x="85" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">GET /api/v1/animals</text>
+        <text x="85" y="125" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#6B6864">Scoped to Herd #42</text>
+
+        <!-- Middle: Scoping Filter -->
+        <rect x="180" y="20" width="260" height="120" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="310" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Criteria API Predicate Generator</text>
+        
+        <rect x="195" y="52" width="230" height="24" rx="4" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="310" y="68" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#655947">cb.equal(root.get("farmer").get("id"), farmerId)</text>
+
+        <rect x="195" y="82" width="230" height="24" rx="4" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="310" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#23523B">cb.equal(root.get("isDeleted"), false)</text>
+
+        <text x="310" y="125" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">✓ Zero Multi-Tenant Data Leakage</text>
+
+        <!-- Right: Vet Persona -->
+        <rect x="470" y="20" width="130" height="120" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="535" y="42" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">Vet Persona</text>
+        <text x="535" y="65" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#1C1B1A">ROLE_VETERINARIAN</text>
+        <text x="535" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">Principal: Vet #18</text>
+        <text x="535" y="105" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">POST /medical-records</text>
+        <text x="535" y="125" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#6B6864">Authorized to create EVMR</text>
+      </svg>
+      <div class="diagram-label">Figure 7.1: Multi-Tenant Query Scoping and Role-Based Authorization Engine</div>
+    </div>
+
+    <div class="card card-peach" style="margin-top: 4px;">
+      <div class="card-title">Unauthorized Resource Access Handling</div>
+      <p class="card-text">
+        If an authenticated farmer attempts to access an animal or record belonging to another tenant (<span class="mono">animal.getFarmer().getId() != principal.getId()</span>), the service immediately throws <span class="mono">UnauthorizedResourceAccessException</span> which maps to HTTP 403 Forbidden.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">08 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 09: REST API: AUTHENTICATION & PROFILES                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">REST Endpoints • Section 08</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">08 — API Contracts</div>
+      <h2 class="section-title">REST API: Authentication &amp; User Profiles</h2>
+      <p class="section-subtitle">Endpoint specifications, JSON payloads, and validation constraints for user onboarding and credential exchange.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Method</th>
+          <th style="width: 32%;">Endpoint</th>
+          <th style="width: 36%;">Request / Validation Invariants</th>
+          <th style="width: 18%;">Response Payload</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/auth/farmer/register</span></td>
+          <td><span class="mono">FarmerRegisterRequest</span>: email, password (min 8 chars), fullName, farmName, location.</td>
+          <td><span class="mono">AuthResponse</span> (tokens + profile)</td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/auth/vet/register</span></td>
+          <td><span class="mono">VetRegisterRequest</span>: email, password, fullName, licenseNumber, clinicAddress, specialization.</td>
+          <td><span class="mono">AuthResponse</span> (tokens + profile)</td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/auth/farmer/login</span></td>
+          <td><span class="mono">LoginRequest</span>: email, password (BCrypt verification).</td>
+          <td><span class="mono">AuthResponse</span> (tokens + profile)</td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/auth/vet/login</span></td>
+          <td><span class="mono">LoginRequest</span>: email, password (BCrypt verification).</td>
+          <td><span class="mono">AuthResponse</span> (tokens + profile)</td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/auth/refresh</span></td>
+          <td><span class="mono">RefreshTokenRequest</span>: valid, non-revoked refresh token string.</td>
+          <td><span class="mono">AuthResponse</span> (new token pair)</td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/auth/logout</span></td>
+          <td><span class="mono">RefreshTokenRequest</span>: revokes refresh token in database.</td>
+          <td><span class="mono">ApiResponse&lt;Void&gt;</span> (200 OK)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Representative Request: Farmer Login</div>
+        <div class="code-block">
+POST /api/v1/auth/farmer/login
+Content-Type: application/json
+
+&#123;
+  "email": "farmer.ramesh@vetra.app",
+  "password": "SecurePassword123!"
+&#125;
+        </div>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Representative Response: AuthResponse</div>
+        <div class="code-block">
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+&#123;
+  "success": true,
+  "statusCode": 200,
+  "message": "Authentication successful",
+  "data": &#123;
+    "accessToken": "eyJhbGciOiJIUzUxMiIs...",
+    "refreshToken": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "tokenType": "Bearer",
+    "expiresIn": 86400,
+    "user": &#123;
+      "id": "c5946b52-df21-419b-a7eb-6c1eb2ea7231",
+      "email": "farmer.ramesh@vetra.app",
+      "role": "ROLE_FARMER",
+      "fullName": "Ramesh Patil"
+    &#125;
+  &#125;
+&#125;
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">09 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 10: REST API: ANIMAL PASSPORT & DYNAMIC SEARCH                  -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">REST Endpoints • Section 09</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">09 — API Contracts</div>
+      <h2 class="section-title">REST API: Animal Passport &amp; Dynamic Search</h2>
+      <p class="section-subtitle">Endpoint contracts, unique QR identification, and multi-parameter dynamic Specification search.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Method</th>
+          <th style="width: 32%;">Endpoint</th>
+          <th style="width: 36%;">Purpose &amp; Parameters</th>
+          <th style="width: 18%;">Auth / Scope</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/animals</span></td>
+          <td>Register animal: <span class="mono">tagNumber</span>, <span class="mono">species</span>, <span class="mono">gender</span>, <span class="mono">dob</span>, <span class="mono">breed</span>, <span class="mono">name</span>.</td>
+          <td><span class="tag-pill tag-green">ROLE_FARMER</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/animals</span></td>
+          <td>List all animals owned by authenticated farmer.</td>
+          <td><span class="tag-pill tag-green">ROLE_FARMER</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/animals/{id}</span></td>
+          <td>Get animal details by UUID primary key.</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/animals/tag/{tagNumber}</span></td>
+          <td>Lookup animal by unique ear tag identifier.</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/animals/qr/{qrCodeId}</span></td>
+          <td>Digital Animal Passport lookup via scanned QR code.</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/animals/search</span></td>
+          <td>Dynamic search: <span class="mono">tagNumber</span>, <span class="mono">species</span>, <span class="mono">gender</span>, <span class="mono">name</span>, <span class="mono">breed</span>.</td>
+          <td><span class="tag-pill tag-green">ROLE_FARMER</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Dynamic Search Request Parameters</div>
+        <div class="code-block">
+GET /api/v1/animals/search?species=CATTLE&amp;gender=FEMALE&amp;page=0&amp;size=20
+Authorization: Bearer eyJhbGciOiJIUzUxMiIs...
+
+# Dynamic Criteria Engine executes:
+SELECT a FROM Animal a 
+WHERE a.farmer.id = :farmerId 
+  AND a.isDeleted = false 
+  AND a.species = 'CATTLE' 
+  AND a.gender = 'FEMALE'
+ORDER BY a.createdAt DESC
+        </div>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Animal DTO Response Structure</div>
+        <div class="code-block">
+&#123;
+  "success": true,
+  "statusCode": 200,
+  "data": &#123;
+    "id": "e4a3b129-87c2-4821-b3fa-9f829a3e2101",
+    "tagNumber": "MH-18-CT-9042",
+    "name": "Gauri",
+    "species": "CATTLE",
+    "breed": "Gir",
+    "gender": "FEMALE",
+    "dateOfBirth": "2022-04-15",
+    "qrCodeId": "QR-MH18-9042-VETRA",
+    "healthStatus": "HEALTHY",
+    "createdAt": "2026-08-16T10:00:00Z"
+  &#125;
+&#125;
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">10 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 11: REST API: APPOINTMENTS & STATE MACHINE                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Clinical Workflows • Section 10</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">10 — State Management</div>
+      <h2 class="section-title">REST API: Appointments &amp; State Machine</h2>
+      <p class="section-subtitle">Clinical appointment booking lifecycle, status state machine, and optimistic locking concurrency control.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Appointment State Machine Invariants</div>
+        <p class="card-text">
+          - <span class="mono">REQUESTED:</span> Farmer creates visit request for an animal.<br/>
+          - <span class="mono">CONFIRMED:</span> Veterinarian accepts and schedules date/time.<br/>
+          - <span class="mono">IN_PROGRESS:</span> Clinical triage underway at farm/clinic.<br/>
+          - <span class="mono">COMPLETED:</span> Finalized upon creation of medical record.<br/>
+          - <span class="mono">CANCELLED:</span> Allowed only from <span class="mono">REQUESTED</span> or <span class="mono">CONFIRMED</span>.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Optimistic Locking Concurrency Control</div>
+        <p class="card-text">
+          <span class="mono">Appointment</span> entities include a <span class="mono">@Version Long version</span> column. If a farmer cancels while a veterinarian confirms simultaneously, Hibernate throws <span class="mono">OptimisticLockingFailureException</span>, caught by <span class="mono">GlobalExceptionHandler</span> as HTTP 409 Conflict.
+        </p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- State 1: REQUESTED -->
+        <rect x="20" y="45" width="100" height="55" rx="6" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="70" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">REQUESTED</text>
+        <text x="70" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#584C38">Farmer Booked</text>
+
+        <!-- Arrow -->
+        <path d="M120 72 L160 72" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- State 2: CONFIRMED -->
+        <rect x="160" y="45" width="100" height="55" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="210" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#234E74">CONFIRMED</text>
+        <text x="210" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#4B7094">Vet Scheduled</text>
+
+        <!-- Arrow -->
+        <path d="M260 72 L300 72" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- State 3: IN_PROGRESS -->
+        <rect x="300" y="45" width="110" height="55" rx="6" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="355" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#433B72">IN_PROGRESS</text>
+        <text x="355" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#655D93">Clinical Visit</text>
+
+        <!-- Arrow -->
+        <path d="M410 72 L450 72" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- State 4: COMPLETED -->
+        <rect x="450" y="45" width="100" height="55" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="500" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">COMPLETED</text>
+        <text x="500" y="85" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" fill="#3D5F4D">EVMR Finalized</text>
+
+        <!-- CANCELLED Branch -->
+        <rect x="210" y="110" width="180" height="30" rx="4" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="300" y="129" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.8pt" font-weight="700" fill="#7E3E26">CANCELLED (Terminal State)</text>
+        <path d="M70 100 L70 125 L210 125" stroke="#7E3E26" stroke-width="1.2" stroke-dasharray="2 2"/>
+        <path d="M210 100 L210 110" stroke="#7E3E26" stroke-width="1.2" stroke-dasharray="2 2"/>
+      </svg>
+      <div class="diagram-label">Figure 10.1: Clinical Appointment Lifecycle &amp; State Machine Transitions</div>
+    </div>
+
+    <table class="editorial-table" style="margin-top: 4px;">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Method</th>
+          <th style="width: 32%;">Endpoint</th>
+          <th style="width: 36%;">Payload / State Transition</th>
+          <th style="width: 18%;">Auth / Scope</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/appointments</span></td>
+          <td>Create appointment: <span class="mono">animalId</span>, <span class="mono">vetId</span>, <span class="mono">scheduledTime</span>, <span class="mono">notes</span>.</td>
+          <td><span class="tag-pill tag-green">ROLE_FARMER</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/appointments</span></td>
+          <td>List appointments (scoped to current farmer or veterinarian).</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-peach">PATCH</span></td>
+          <td><span class="mono">/api/v1/appointments/{id}/status</span></td>
+          <td>Transition status: <span class="mono">&#123;"status": "CONFIRMED"&#125;</span>.</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">11 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 12: REST API: IMMUTABLE MEDICAL RECORDS (EVMR)                  -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Clinical Documentation • Section 11</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">11 — Clinical Documentation</div>
+      <h2 class="section-title">REST API: Immutable Medical Records (EVMR)</h2>
+      <p class="section-subtitle">Veterinarian clinical entry contracts, prescription lineage, and immutable electronic health history.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Clinical Record Invariants</div>
+        <p class="card-text">
+          1. <strong>Veterinarian-Only Authoring:</strong> Enforced via <span class="mono">@PreAuthorize("hasRole('VETERINARIAN')")</span>.<br/>
+          2. <strong>Appointment Linkage:</strong> Every record references a valid <span class="mono">Appointment</span> and transitions its state to <span class="mono">COMPLETED</span>.<br/>
+          3. <strong>Immutable History:</strong> Once created, clinical entries cannot be modified or deleted, preserving medical and legal auditability.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Prescription &amp; Withdrawal Tracking</div>
+        <p class="card-text">
+          Prescriptions record drug names, dosages, durations, and mandatory <strong>withdrawal periods</strong> (days required before milk/meat can enter the human food chain), preventing Antimicrobial Resistance (AMR).
+        </p>
+      </div>
+    </div>
+
+    <table class="editorial-table" style="margin-top: 4px;">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Method</th>
+          <th style="width: 32%;">Endpoint</th>
+          <th style="width: 36%;">Request / Parameters</th>
+          <th style="width: 18%;">Auth / Scope</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/medical-records</span></td>
+          <td><span class="mono">CreateMedicalRecordRequest</span>: appointmentId, diagnosis, treatment, prescriptions.</td>
+          <td><span class="tag-pill tag-blue">ROLE_VETERINARIAN</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/medical-records/{id}</span></td>
+          <td>Get medical record details by record UUID.</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/medical-records/animal/{animalId}</span></td>
+          <td>Chronological medical history for digital animal passport.</td>
+          <td><span class="tag-pill tag-gray">AUTHENTICATED</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Representative Request: Create Medical Record</div>
+        <div class="code-block">
+POST /api/v1/medical-records
+Content-Type: application/json
+
+&#123;
+  "appointmentId": "a1b2c3d4-...",
+  "diagnosis": "Acute Bovine Mastitis",
+  "treatment": "Intramammary antibiotic infusion",
+  "prescriptions": [
+    &#123;
+      "medicineName": "Amoxicillin Trihydrate",
+      "dosage": "15 mg/kg daily",
+      "durationDays": 5,
+      "withdrawalDays": 7
+    &#125;
+  ]
+&#125;
+        </div>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">Immutable Record Response Envelope</div>
+        <div class="code-block">
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+&#123;
+  "success": true,
+  "statusCode": 201,
+  "message": "Medical record created successfully",
+  "data": &#123;
+    "id": "m9876543-21ef-...",
+    "animalId": "e4a3b129-...",
+    "veterinarianName": "Dr. Sneha Kulkarni",
+    "diagnosis": "Acute Bovine Mastitis",
+    "treatment": "Intramammary infusion",
+    "createdAt": "2026-08-16T11:30:00Z"
+  &#125;
+&#125;
+        </div>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">12 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 13: REST API: EPIDEMIOLOGICAL DISEASE SURVEILLANCE              -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Spatial Epidemiology • Section 12</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">12 — Geospatial Intelligence</div>
+      <h2 class="section-title">REST API: Disease Surveillance &amp; Spatial Radar</h2>
+      <p class="section-subtitle">PostGIS geospatial point indexing, outbreak detection, and proximity queries (<span class="mono">ST_DWithin</span>).</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Geospatial Data Modeling (PostGIS)</div>
+        <p class="card-text">
+          - <strong>Coordinates:</strong> Stored as <span class="mono">GEOMETRY(Point, 4326)</span> in <span class="mono">disease_reports</span> and <span class="mono">outbreaks</span>.<br/>
+          - <strong>Spatial Indexes:</strong> Accelerated via PostGIS <span class="mono">GiST</span> spatial indexes.<br/>
+          - <strong>Proximity Calculation:</strong> Uses spheroidal distance calculation (<span class="mono">ST_DWithin(location, ST_MakePoint(lng, lat), radius)</span>).
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Real-Time Outbreak Clustering</div>
+        <p class="card-text">
+          When multiple disease reports of the same infectious pathogen occur within a defined radius and temporal window, the backend flags a spatial cluster and triggers outbreak containment telemetry.
+        </p>
+      </div>
+    </div>
+
+    <table class="editorial-table" style="margin-top: 4px;">
+      <thead>
+        <tr>
+          <th style="width: 14%;">Method</th>
+          <th style="width: 32%;">Endpoint</th>
+          <th style="width: 36%;">Spatial Query Parameters</th>
+          <th style="width: 18%;">Response Payload</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="tag-pill tag-blue">POST</span></td>
+          <td><span class="mono">/api/v1/disease-reports</span></td>
+          <td>Submit report: <span class="mono">diseaseName</span>, <span class="mono">species</span>, <span class="mono">latitude</span>, <span class="mono">longitude</span>, <span class="mono">affectedCount</span>.</td>
+          <td><span class="mono">DiseaseReportDto</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/disease-reports</span></td>
+          <td>List reports with optional filters (species, status, date range).</td>
+          <td><span class="mono">Page&lt;DiseaseReportDto&gt;</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/outbreaks/active</span></td>
+          <td>Spatial query: <span class="mono">latitude</span>, <span class="mono">longitude</span>, <span class="mono">radiusKm</span> (default: 25km).</td>
+          <td><span class="mono">List&lt;OutbreakDto&gt;</span></td>
+        </tr>
+        <tr>
+          <td><span class="tag-pill tag-green">GET</span></td>
+          <td><span class="mono">/api/v1/outbreaks/spatial-clusters</span></td>
+          <td>Aggregated density clusters for map heatmap rendering.</td>
+          <td><span class="mono">List&lt;ClusterDto&gt;</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="135" viewBox="0 0 620 135" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Spatial Center -->
+        <circle cx="310" cy="65" r="50" fill="#F8EEE8" stroke="#E6D3C8" stroke-dasharray="3 3"/>
+        <circle cx="310" cy="65" r="28" fill="#F4DECF" stroke="#7E3E26" stroke-width="1.2"/>
+        <circle cx="310" cy="65" r="4" fill="#7E3E26"/>
+        <text x="310" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="700" fill="#7E3E26">Outbreak Epicenter</text>
+        <text x="310" y="86" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#7E3E26">Radius: 25 km</text>
+
+        <!-- Incidents -->
+        <circle cx="280" cy="55" r="3" fill="#8C523A"/>
+        <circle cx="335" cy="75" r="3" fill="#8C523A"/>
+        <circle cx="320" cy="50" r="3" fill="#8C523A"/>
+
+        <!-- PostGIS SQL Box -->
+        <rect x="20" y="20" width="180" height="95" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="30" y="38" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">PostGIS Spatial SQL</text>
+        <text x="30" y="56" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">SELECT * FROM outbreaks o</text>
+        <text x="30" y="70" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">WHERE ST_DWithin(</text>
+        <text x="30" y="84" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">  o.center_location,</text>
+        <text x="30" y="98" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">  ST_MakePoint(:lng,:lat),</text>
+        <text x="30" y="112" font-family="JetBrains Mono, monospace" font-size="5.5pt" fill="#8C523A">  :radiusMeters)</text>
+
+        <!-- Mobile Radar App -->
+        <rect x="420" y="20" width="180" height="95" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="430" y="38" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">Mobile Radar Output</text>
+        <text x="430" y="58" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">✓ Foot &amp; Mouth Disease Alert</text>
+        <text x="430" y="76" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">✓ Distance: 12.4 km South-East</text>
+        <text x="430" y="94" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">✓ Biosecurity Protocol Sent</text>
+      </svg>
+      <div class="diagram-label">Figure 12.1: PostGIS Spatial Outbreak Radius Query and Mobile Radar Alert Execution</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">13 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 14: DYNAMIC JPA CRITERIA SPECIFICATIONS                         -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">JPA Criteria Engine • Section 13</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">13 — Dynamic Query Engine</div>
+      <h2 class="section-title">Dynamic JPA Criteria API &amp; Specifications</h2>
+      <p class="section-subtitle">How <span class="mono">AnimalSpecification.java</span> solved PostgreSQL prepared statement parameter deduction failures.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-peach">
+        <div class="card-title">The Legacy Static JPQL Failure</div>
+        <p class="card-text">
+          A static JPQL query <span class="mono">(:species IS NULL OR a.species = :species)</span> produced <span class="mono">PSQLException: could not determine data type of parameter $X</span> on PostgreSQL RDS when optional enum or UUID parameters were null.
+        </p>
+      </div>
+
+      <div class="card card-sage">
+        <div class="card-title">The Dynamic Criteria Solution</div>
+        <p class="card-text">
+          Using <span class="mono">JpaSpecificationExecutor</span>, <span class="mono">AnimalSpecification</span> builds predicates dynamically at runtime. If a search filter is null or blank, no predicate is added, generating clean SQL with 0 untyped parameters.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-white" style="margin-top: 4px;">
+      <div class="card-title">Source Code: <span class="mono">AnimalSpecification.java</span> Implementation</div>
+      <div class="code-block">
+public class AnimalSpecification &#123;
+
+  public static Specification&lt;Animal&gt; filterAnimals(
+      UUID farmerId, String tagNumber, Species species, AnimalGender gender, String name, String breed) &#123;
+
+    return (Root&lt;Animal&gt; root, CriteriaQuery&lt;?&gt; query, CriteriaBuilder cb) -&gt; &#123;
+      List&lt;Predicate&gt; predicates = new ArrayList&lt;&gt;();
+
+      // Mandatory multi-tenant isolation predicate
+      if (farmerId != null) &#123;
+        predicates.add(cb.equal(root.get("farmer").get("id"), farmerId));
+      &#125;
+      predicates.add(cb.equal(root.get("isDeleted"), false));
+
+      // Dynamic optional predicates — appended ONLY when non-null
+      if (tagNumber != null &amp;&amp; !tagNumber.trim().isEmpty()) &#123;
+        predicates.add(cb.like(cb.lower(root.get("tagNumber")), "%" + tagNumber.trim().toLowerCase() + "%"));
+      &#125;
+      if (species != null) &#123;
+        predicates.add(cb.equal(root.get("species"), species));
+      &#125;
+      if (gender != null) &#123;
+        predicates.add(cb.equal(root.get("gender"), gender));
+      &#125;
+      if (name != null &amp;&amp; !name.trim().isEmpty()) &#123;
+        predicates.add(cb.like(cb.lower(root.get("name")), "%" + name.trim().toLowerCase() + "%"));
+      &#125;
+
+      return cb.and(predicates.toArray(new Predicate[0]));
+    &#125;;
+  &#125;
+&#125;
+      </div>
+    </div>
+
+    <div class="card-grid-2" style="margin-top: 4px;">
+      <div class="card card-cream">
+        <div class="card-title">Compile-Time Type Safety</div>
+        <p class="card-text">
+          Criteria API provides compile-time checking of entity attributes, eliminating runtime SQL syntax errors and enabling seamless schema refactoring across domain entities.
+        </p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">Live AWS RDS Staging Verification</div>
+        <p class="card-text">
+          Verified live on Amazon RDS PostgreSQL 15.13 across all 6 search permutations: Tag-only, Tag+Species, Tag+Gender, Species+Gender, All filters, and No filters. 100% tests returned 200 OK.
+        </p>
+      </div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">14 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 15: RELATIONAL DATA PERSISTENCE & FLYWAY                        -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Relational Schema • Section 14</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">14 — Persistence Layer</div>
+      <h2 class="section-title">Relational Schema &amp; Flyway Migrations</h2>
+      <p class="section-subtitle">PostgreSQL 15 relational entities, UUID v4 primary keys, and 14 versioned Flyway database migrations.</p>
+    </div>
+
+    <table class="editorial-table">
+      <thead>
+        <tr>
+          <th style="width: 15%;">Migration</th>
+          <th style="width: 35%;">Tables &amp; Extensions Created</th>
+          <th style="width: 50%;">Key Constraints, Indexes &amp; Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="mono">V1__extensions</span></td>
+          <td><span class="mono">uuid-ossp</span>, <span class="mono">postgis</span></td>
+          <td>Enables database-level UUID v4 generation and spatial geometry types.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V2__schema</span></td>
+          <td><span class="mono">users</span>, <span class="mono">farmer_profiles</span>, <span class="mono">vet_profiles</span></td>
+          <td>User authentication credentials, BCrypt hashes, user roles, profile linkage.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V3__animals</span></td>
+          <td><span class="mono">animals</span></td>
+          <td>Livestock identities, unique <span class="mono">tag_number</span>, species, breed, QR identifiers.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V4__appointments</span></td>
+          <td><span class="mono">appointments</span></td>
+          <td>Clinical visit booking, status enums, scheduled timestamps, optimistic lock version.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V5__records</span></td>
+          <td><span class="mono">medical_records</span>, <span class="mono">prescriptions</span></td>
+          <td>Immutable clinical diagnoses, treatments, drug dosages, withdrawal tracking.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V8__ai_scans</span></td>
+          <td><span class="mono">ai_scans</span></td>
+          <td>Diagnostic image scan records with <span class="mono">veterinarian_verified</span> invariant.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V11__surveillance</span></td>
+          <td><span class="mono">disease_reports</span>, <span class="mono">outbreaks</span></td>
+          <td>Geospatial coordinates (<span class="mono">Point, 4326</span>) with PostGIS GiST spatial indexes.</td>
+        </tr>
+        <tr>
+          <td><span class="mono">V14__refresh_tok</span></td>
+          <td><span class="mono">refresh_tokens</span></td>
+          <td>Cryptographic 256-bit refresh token persistence with revocation audit flags.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="150" viewBox="0 0 620 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- users -->
+        <rect x="20" y="20" width="115" height="110" rx="5" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="77" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#1C1B1A">users</text>
+        <text x="30" y="58" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="30" y="74" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">email (UNIQUE)</text>
+        <text x="30" y="90" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">role (ENUM)</text>
+        <text x="30" y="106" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">version (BIGINT)</text>
+
+        <!-- Arrow -->
+        <path d="M135 65 L170 65" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- farmer_profiles -->
+        <rect x="170" y="20" width="125" height="110" rx="5" fill="#F3EFE6" stroke="#E5DFD2"/>
+        <text x="232" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#655947">farmer_profiles</text>
+        <text x="180" y="58" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="180" y="74" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">user_id (FK)</text>
+        <text x="180" y="90" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">farm_name</text>
+        <text x="180" y="106" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">animal_count</text>
+
+        <!-- Arrow -->
+        <path d="M295 65 L330 65" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- animals -->
+        <rect x="330" y="20" width="125" height="110" rx="5" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="392" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#23523B">animals</text>
+        <text x="340" y="58" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="340" y="74" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">farmer_id (FK)</text>
+        <text x="340" y="90" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">tag_number (UQ)</text>
+        <text x="340" y="106" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">qr_code_id</text>
+
+        <!-- Arrow -->
+        <path d="M455 65 L490 65" stroke="#8C523A" stroke-width="1.5"/>
+
+        <!-- appointments & records -->
+        <rect x="490" y="20" width="110" height="110" rx="5" fill="#E9E7F4" stroke="#D3D0E7"/>
+        <text x="545" y="38" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5pt" font-weight="700" fill="#433B72">clinical_records</text>
+        <text x="500" y="58" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#8C523A">id (UUID PK)</text>
+        <text x="500" y="74" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">animal_id (FK)</text>
+        <text x="500" y="90" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">vet_id (FK)</text>
+        <text x="500" y="106" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#43413E">diagnosis</text>
+      </svg>
+      <div class="diagram-label">Figure 14.1: Relational Schema Entity Topology &amp; Foreign Key Relationships</div>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">15 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 16: DISTRIBUTED CACHING (REDIS 7)                               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Redis Infrastructure • Section 15</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">15 — Performance</div>
+      <h2 class="section-title">Distributed Caching &amp; Invalidation (Redis 7)</h2>
+      <p class="section-subtitle">Multi-region TTL caching, serialization envelopes, and proactive invalidation via Spring Cache.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-cream">
+        <div class="card-title">ANIMAL_PASSPORT (30m)</div>
+        <p class="card-text">Caches full animal profile and vaccination history. Evicted on animal update or new medical record creation.</p>
+      </div>
+      <div class="card card-sage">
+        <div class="card-title">VET_PROFILE (1h)</div>
+        <p class="card-text">Caches verified veterinary credentials, clinic address, and active availability slots for fast booking lookups.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">DASHBOARD_STATS (15m)</div>
+        <p class="card-text">Caches aggregated herd counts, upcoming visits, and active local alerts, reducing heavy database aggregation queries.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Client Query -->
+        <rect x="20" y="25" width="120" height="110" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="80" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Read Request</text>
+        <text x="80" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">GET /animals/{id}</text>
+        <text x="80" y="92" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#23523B">@Cacheable</text>
+        <text x="80" y="112" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#6B6864">key="#id"</text>
+
+        <!-- Arrow -->
+        <path d="M140 80 L180 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Redis Cache Hit/Miss -->
+        <rect x="180" y="25" width="220" height="110" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="290" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">Redis 7.1 Distributed Cache</text>
+        
+        <rect x="195" y="58" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#A9C7B6"/>
+        <text x="290" y="75" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#23523B">CACHE HIT &rarr; Return Cached DTO (&lt;5ms)</text>
+
+        <rect x="195" y="92" width="190" height="26" rx="3" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="290" y="109" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" font-weight="600" fill="#8C523A">CACHE MISS &rarr; Query PostgreSQL &amp; Populate Cache</text>
+
+        <!-- Arrow -->
+        <path d="M400 80 L440 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Invalidation Event -->
+        <rect x="440" y="25" width="160" height="110" rx="6" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="520" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#7E3E26">Mutation Event</text>
+        <text x="520" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#7E3E26">PUT /animals/{id}</text>
+        <text x="520" y="92" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#7E3E26">@CacheEvict(key="#id")</text>
+        <text x="520" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">✓ Instant Cache Purge</text>
+      </svg>
+      <div class="diagram-label">Figure 15.1: Redis Read-Through Caching and Mutation Invalidation Architecture</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Redis Serialization &amp; TLS Security</div>
+      <p class="card-text">
+        Configured via <span class="mono">RedisConfig.java</span>: Redis keys are serialized with <span class="mono">StringRedisSerializer</span>, and values are serialized with <span class="mono">GenericJackson2JsonRedisSerializer</span> with ISO-8601 timestamp support. In production, Redis operates with mandatory in-transit TLS encryption.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">16 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 17: EXCEPTION HANDLING & ERROR STANDARDIZATION                  -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Error Architecture • Section 16</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">16 — Error Architecture</div>
+      <h2 class="section-title">Exception Handling &amp; Standardized Envelopes</h2>
+      <p class="section-subtitle">Typed domain exception taxonomy, RFC 7807 problem details alignment, and Micrometer span tagging.</p>
+    </div>
+
+    <div class="card-grid-2">
+      <div class="card card-white">
+        <div class="card-title">Standardized Response Envelope (<span class="mono">ApiResponse&lt;T&gt;</span>)</div>
+        <p class="card-text">
+          Every HTTP response conforms to a deterministic schema:<br/>
+          - <span class="mono">success (BOOLEAN)</span>: Indicates execution status.<br/>
+          - <span class="mono">statusCode (INT)</span>: Canonical HTTP status code.<br/>
+          - <span class="mono">message (STRING)</span>: Human-readable status or error summary.<br/>
+          - <span class="mono">data (T)</span>: Strongly-typed payload (null on errors).<br/>
+          - <span class="mono">errors (List&lt;FieldError&gt;)</span>: Validation error map.<br/>
+          - <span class="mono">timestamp (Instant)</span>: ISO-8601 server timestamp.
+        </p>
+      </div>
+
+      <div class="card card-white">
+        <div class="card-title">Domain Exception Hierarchy</div>
+        <p class="card-text">
+          - <span class="mono">ResourceNotFoundException</span> &rarr; HTTP 404 Not Found.<br/>
+          - <span class="mono">ConflictException</span> &rarr; HTTP 409 Conflict.<br/>
+          - <span class="mono">UnauthorizedResourceAccessException</span> &rarr; HTTP 403 Forbidden.<br/>
+          - <span class="mono">BusinessRuleException</span> &rarr; HTTP 422 Unprocessable Entity.<br/>
+          - <span class="mono">MethodArgumentNotValidException</span> &rarr; HTTP 400 Bad Request.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-peach" style="margin-top: 4px;">
+      <div class="card-title">Standard RFC 7807 Validation Error Envelope</div>
+      <div class="code-block">
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+&#123;
+  "success": false,
+  "statusCode": 400,
+  "message": "Request validation failed",
+  "data": null,
+  "errors": [
+    &#123;
+      "field": "tagNumber",
+      "message": "Ear tag number cannot be blank"
+    &#125;,
+    &#123;
+      "field": "species",
+      "message": "Species must be one of: CATTLE, BUFFALO, SHEEP, GOAT"
+    &#125;
+  ],
+  "timestamp": "2026-08-16T12:00:00Z"
+&#125;
+      </div>
+    </div>
+
+    <div class="card card-sage" style="margin-top: 4px;">
+      <div class="card-title">Micrometer Span Error Tagging</div>
+      <p class="card-text">
+        <span class="mono">GlobalExceptionHandler</span> automatically attaches error events and tags to the active Micrometer span when an exception occurs, ensuring that failed requests surface instantly in Grafana Tempo tracing dashboards with complete stack trace context.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">17 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 18: RELIABILITY ENGINEERING (RESILIENCE4J)                      -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Resilience4j • Section 17</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">17 — Fault Tolerance</div>
+      <h2 class="section-title">Reliability Engineering &amp; Circuit Breakers</h2>
+      <p class="section-subtitle">Resilience4j 2.4.0 circuit breaker state transitions, timeout thresholds, and graceful fallback execution.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-sage">
+        <div class="card-title">Sliding Window (10 Calls)</div>
+        <p class="card-text">Tracks the outcome of the last 10 requests. If failure rate exceeds 50%, circuit transitions from CLOSED to OPEN.</p>
+      </div>
+      <div class="card card-peach">
+        <div class="card-title">Fast-Fail OPEN State (30s)</div>
+        <p class="card-text">In OPEN state, incoming calls fast-fail immediately to fallback providers without hitting degrading external endpoints.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">HALF-OPEN Probing (3 Calls)</div>
+        <p class="card-text">After 30s, circuit allows 3 canary requests. If all succeed, it transitions back to CLOSED; otherwise returns to OPEN.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- CLOSED -->
+        <rect x="20" y="25" width="165" height="110" rx="6" fill="#E3ECE7" stroke="#C4D7CC"/>
+        <text x="102" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5pt" font-weight="700" fill="#23523B">CLOSED STATE</text>
+        <text x="102" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Normal execution</text>
+        <text x="102" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Failure rate &lt; 50%</text>
+        <text x="102" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#23523B">Traffic Allowed</text>
+
+        <!-- Arrow to OPEN -->
+        <path d="M185 65 L225 65" stroke="#7E3E26" stroke-width="1.8"/>
+        <text x="205" y="58" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.8pt" font-weight="700" fill="#7E3E26">&gt;50% Fail</text>
+
+        <!-- OPEN -->
+        <rect x="225" y="25" width="170" height="110" rx="6" fill="#F8EEE8" stroke="#EBD9CE"/>
+        <text x="310" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5pt" font-weight="700" fill="#7E3E26">OPEN STATE</text>
+        <text x="310" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#7E3E26">Fast-fail to Fallback</text>
+        <text x="310" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#7E3E26">Wait Duration: 30s</text>
+        <text x="310" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#7E3E26">Zero Remote Calls</text>
+
+        <!-- Arrow to HALF-OPEN -->
+        <path d="M395 65 L435 65" stroke="#234E74" stroke-width="1.8"/>
+        <text x="415" y="58" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="5.8pt" font-weight="700" fill="#234E74">After 30s</text>
+
+        <!-- HALF-OPEN -->
+        <rect x="435" y="25" width="165" height="110" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="517" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8.5pt" font-weight="700" fill="#234E74">HALF-OPEN STATE</text>
+        <text x="517" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">3 Trial Probes Allowed</text>
+        <text x="517" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">Success &rarr; CLOSED</text>
+        <text x="517" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" font-weight="600" fill="#234E74">Failure &rarr; OPEN</text>
+      </svg>
+      <div class="diagram-label">Figure 17.1: Resilience4j Circuit Breaker State Transition &amp; Recovery Workflow</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">Fallback Provider Implementation</div>
+      <p class="card-text">
+        When external AI diagnosis or image upload services fail, <span class="mono">FailoverManager</span> routes requests to a local rule-based fallback provider, ensuring the client receives a structured response rather than an unhandled 500 error.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">18 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 19: OBSERVABILITY, METRICS & TELEMETRY                          -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page">
+    
+    <div class="page-header">
+      <div class="doc-title">VETRA • API &amp; Backend Architecture</div>
+      <div class="sec-badge">Production Telemetry • Section 18</div>
+    </div>
+    
+    
+    <div class="section-headline">
+      <div class="section-number">18 — Telemetry</div>
+      <h2 class="section-title">Observability, Metrics &amp; Distributed Tracing</h2>
+      <p class="section-subtitle">Spring Boot Actuator probes, Prometheus metrics, and OpenTelemetry distributed tracing.</p>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-sage">
+        <div class="card-title">Liveness &amp; Readiness</div>
+        <p class="card-text"><span class="mono">/actuator/health/liveness</span> confirms internal JVM health. <span class="mono">/actuator/health/readiness</span> probes PostgreSQL &amp; Redis connectivity for ALB traffic draining.</p>
+      </div>
+      <div class="card card-blue">
+        <div class="card-title">Prometheus Telemetry</div>
+        <p class="card-text"><span class="mono">/actuator/prometheus</span> exports HTTP request rates, JVM memory pool allocations, garbage collection pauses, and HikariCP connection pool metrics.</p>
+      </div>
+      <div class="card card-lavender">
+        <div class="card-title">OpenTelemetry Tracing</div>
+        <p class="card-text"><span class="mono">micrometer-tracing-bridge-otel</span> automatically creates spans for HTTP requests, Spring Security filters, and JDBC database queries.</p>
+      </div>
+    </div>
+
+    <div class="diagram-box" style="margin-top: 4px;">
+      <svg width="100%" height="160" viewBox="0 0 620 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Trace Origin -->
+        <rect x="20" y="25" width="130" height="110" rx="6" fill="#FFFFFF" stroke="#D3CDC0"/>
+        <text x="85" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#1C1B1A">Incoming HTTP</text>
+        <text x="85" y="70" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="6pt" fill="#8C523A">POST /api/v1/...</text>
+        <text x="85" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="5.8pt" fill="#6B6864">traceId: c5946b...</text>
+        <text x="85" y="112" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.2pt" fill="#23523B">MDC Bound</text>
+
+        <!-- Arrow -->
+        <path d="M150 80 L180 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Observation Pipeline -->
+        <rect x="180" y="25" width="220" height="110" rx="6" fill="#E3ECE7" stroke="#C6D8CE"/>
+        <text x="290" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#23523B">Micrometer Observation Registry</text>
+        <text x="290" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Span 1: HTTP Controller Execution</text>
+        <text x="290" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Span 2: Application Service Transaction</text>
+        <text x="290" y="106" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#3D5F4D">Span 3: HikariCP JDBC SQL Query</text>
+        <text x="290" y="124" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" font-weight="600" fill="#23523B">OTLP Exporter (Port 4318)</text>
+
+        <!-- Arrow -->
+        <path d="M400 80 L430 80" stroke="#8C523A" stroke-width="1.8"/>
+
+        <!-- Monitoring Sinks -->
+        <rect x="430" y="25" width="170" height="110" rx="6" fill="#E3EBF4" stroke="#C9DAEB"/>
+        <text x="515" y="48" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8pt" font-weight="700" fill="#234E74">Observability Sinks</text>
+        <text x="515" y="70" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">Grafana Tempo (Spans)</text>
+        <text x="515" y="88" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">Prometheus Server (Metrics)</text>
+        <text x="515" y="106" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6.5pt" fill="#4B7094">AWS CloudWatch Logs</text>
+        <text x="515" y="124" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="6pt" font-weight="600" fill="#234E74">12 CloudWatch Alarms</text>
+      </svg>
+      <div class="diagram-label">Figure 18.1: Full-Stack Micrometer Tracing, Metrics and Telemetry Export Pipeline</div>
+    </div>
+
+    <div class="card card-cream" style="margin-top: 4px;">
+      <div class="card-title">HikariCP JDBC Connection Tracing</div>
+      <p class="card-text">
+        Configured via <span class="mono">datasource-micrometer-spring-boot:1.0.6</span>: every SQL query executed by Hibernate is automatically instrumented as a child span within the active HTTP trace, showing exact SQL query strings and execution latencies in Grafana Tempo.
+      </p>
+    </div>
+
+    
+    <div class="page-footer">
+      <div class="author-credit"><strong>Om Rajput</strong> — B.Tech CSE (Data Science), SVKM's Institute of Technology, Dhule</div>
+      <div class="page-number">19 / 20</div>
+    </div>
+    
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- PAGE 20: CLOSING COLOPHON                                            -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div class="page cover-page" style="justify-content: space-between;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#EAE5DB"/>
+  <path d="M14 15L24 35L34 15" stroke="#1F1E1D" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="20" r="3.2" fill="#3B6B55"/>
+</svg>
+        <div>
+          <div style="font-size: 10.5pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #1C1B1A;">VETRA</div>
+          <div style="font-size: 7pt; color: #6B6864; text-transform: uppercase; letter-spacing: 0.06em;">Publication Series • Document 02</div>
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 6.8pt; color: #6B6864;">
+        SECTION 19 • CLOSING COLOPHON
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: auto 0;">
+      <div style="font-size: 7.2pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #8C523A; margin-bottom: 8px;">Engineering Publication Series • Document 02</div>
+      <h2 style="font-family: 'Newsreader', Georgia, serif; font-size: 26pt; font-weight: 500; letter-spacing: -0.02em; color: #1C1B1A; line-height: 1.1; margin-bottom: 8px;">
+        VETRA: API &amp; Backend Architecture
+      </h2>
+      <div style="font-family: 'Newsreader', Georgia, serif; font-size: 12.5pt; font-style: italic; color: #524E48; margin-bottom: 18px;">
+        Engineering the Core Veterinary Operations Platform
+      </div>
+
+      <div style="display: inline-block; background: #F1EDE4; padding: 12px 24px; border-radius: 9px; border: 1px solid #E2DCD1; max-width: 80%; text-align: center;">
+        <div style="font-size: 10pt; font-weight: 700; color: #1C1B1A;">Built &amp; Engineered by Om Rajput</div>
+        <div style="font-size: 7.8pt; color: #585550; margin-top: 3px;">
+          B.Tech in Computer Science &amp; Engineering (Data Science)<br/>
+          <strong>SVKM's Institute of Technology, Dhule</strong>
+        </div>
+        <div style="font-size: 7.2pt; color: #7A7670; margin-top: 6px; font-style: italic;">
+          "Clean Architecture, Relational Integrity &amp; Resilient Cloud Systems."
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid rgba(28, 27, 26, 0.12); padding-top: 12px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 7pt; color: #7A7670;">
+      <div>
+        <div style="font-weight: 700; color: #1C1B1A;">Technical Verification Summary</div>
+        <div>253/253 Backend Tests Passed • 0 Checkstyle Violations • PostgreSQL 15 &amp; Redis 7 Active on Staging.</div>
+      </div>
+      <div style="text-align: right; font-family: 'JetBrains Mono', monospace;">
+        BUILD HASH: VETRA-BACKEND-DOC02-2026<br/>
+        PAGE 20 / 20
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
