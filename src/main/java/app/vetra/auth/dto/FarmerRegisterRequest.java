@@ -16,4 +16,34 @@ public record FarmerRegisterRequest(
     String state,
     Double latitude,
     Double longitude,
-    Integer animalCount) {}
+    Integer animalCount,
+    String preferredLanguage) {
+
+  @SuppressWarnings("checkstyle:ParameterNumber")
+  public FarmerRegisterRequest(
+      String email,
+      String phone,
+      String password,
+      String fullName,
+      String farmName,
+      String village,
+      String district,
+      String state,
+      Double latitude,
+      Double longitude,
+      Integer animalCount) {
+    this(
+        email,
+        phone,
+        password,
+        fullName,
+        farmName,
+        village,
+        district,
+        state,
+        latitude,
+        longitude,
+        animalCount,
+        "en");
+  }
+}

@@ -42,6 +42,10 @@ public class User extends BaseEntity {
   @Column(name = "is_active", nullable = false)
   private boolean isActive = true;
 
+  @Builder.Default
+  @Column(name = "preferred_language", nullable = false, length = 10)
+  private String preferredLanguage = "en";
+
   public String getEmail() {
     return email;
   }
@@ -82,6 +86,14 @@ public class User extends BaseEntity {
     isActive = active;
   }
 
+  public String getPreferredLanguage() {
+    return preferredLanguage;
+  }
+
+  public void setPreferredLanguage(String preferredLanguage) {
+    this.preferredLanguage = preferredLanguage != null && !preferredLanguage.isBlank() ? preferredLanguage : "en";
+  }
+
   public static UserBuilder builder() {
     return new UserBuilder();
   }
@@ -92,6 +104,7 @@ public class User extends BaseEntity {
     private String passwordHash;
     private UserRole role;
     private boolean isActive = true;
+    private String preferredLanguage = "en";
 
     public UserBuilder email(String email) {
       this.email = email;
@@ -118,6 +131,11 @@ public class User extends BaseEntity {
       return this;
     }
 
+    public UserBuilder preferredLanguage(String preferredLanguage) {
+      this.preferredLanguage = preferredLanguage != null && !preferredLanguage.isBlank() ? preferredLanguage : "en";
+      return this;
+    }
+
     public User build() {
       User user = new User();
       user.setEmail(this.email);
@@ -125,6 +143,7 @@ public class User extends BaseEntity {
       user.setPasswordHash(this.passwordHash);
       user.setRole(this.role);
       user.setActive(this.isActive);
+      user.setPreferredLanguage(this.preferredLanguage != null ? this.preferredLanguage : "en");
       return user;
     }
   }

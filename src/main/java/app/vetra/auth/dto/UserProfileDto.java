@@ -12,6 +12,7 @@ public record UserProfileDto(
     String phone,
     UserRole role,
     boolean isActive,
+    String preferredLanguage,
     String fullName,
     String farmName,
     String village,
@@ -25,4 +26,49 @@ public record UserProfileDto(
     String specialization,
     String clinicName,
     Integer yearsExperience,
-    Boolean isAvailable) {}
+    Boolean isAvailable) {
+
+  @SuppressWarnings("checkstyle:ParameterNumber")
+  public UserProfileDto(
+      UUID id,
+      String email,
+      String phone,
+      UserRole role,
+      boolean isActive,
+      String fullName,
+      String farmName,
+      String village,
+      String district,
+      String state,
+      Double latitude,
+      Double longitude,
+      Integer animalCount,
+      String registrationNumber,
+      String qualification,
+      String specialization,
+      String clinicName,
+      Integer yearsExperience,
+      Boolean isAvailable) {
+    this(
+        id,
+        email,
+        phone,
+        role,
+        isActive,
+        "en",
+        fullName,
+        farmName,
+        village,
+        district,
+        state,
+        latitude,
+        longitude,
+        animalCount,
+        registrationNumber,
+        qualification,
+        specialization,
+        clinicName,
+        yearsExperience,
+        isAvailable);
+  }
+}

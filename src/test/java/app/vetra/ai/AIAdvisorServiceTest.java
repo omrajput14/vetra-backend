@@ -220,4 +220,29 @@ public class AIAdvisorServiceTest {
           "Assessment must not report denied symptoms as present");
     }
   }
+
+  @Test
+  void testLanguageInstructionForwardingMarathiAndHindi() {
+    String farmerEmail = registerFarmer("farmer_adv_lang@vetra.app", "+919876543207");
+    AnimalResponse animal = createAnimal(farmerEmail, "TAG-ADV-LANG");
+
+    // Start session in Marathi
+    CreateAdvisorSessionRequest marathiReq =
+        new CreateAdvisorSessionRequest("माझी गाय चारा खात नाहीये", "mr");
+    AIAdvisorSessionResponse turn1 =
+        advisorService.createSession(farmerEmail, animal.id(), marathiReq);
+
+    assertNotNull(turn1);
+    assertEquals(1, turn1.turnCount());
+
+    // Send follow-up in Marathi
+    AdvisorMessageRequest msgReq =
+        new AdvisorMessageRequest("पाणी व्यवस्थित पीत आहे, ताप नाही", "mr");
+    AIAdvisorSessionResponse turn2 =
+        advisorService.sendMessage(farmerEmail, turn1.id(), msgReq);
+
+    assertNotNull(turn2);
+    assertNotNull(turn2.assessment());
+    assertEquals(AIAdvisorSessionStatus.ASSESSMENT_GENERATED, turn2.status());
+  }
 }

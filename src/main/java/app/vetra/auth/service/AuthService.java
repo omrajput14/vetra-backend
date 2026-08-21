@@ -79,6 +79,10 @@ public class AuthService {
             .passwordHash(passwordEncoder.encode(request.password()))
             .role(UserRole.FARMER)
             .isActive(true)
+            .preferredLanguage(
+                request.preferredLanguage() != null && !request.preferredLanguage().isBlank()
+                    ? request.preferredLanguage()
+                    : "en")
             .build();
 
     user = userRepository.save(user);
@@ -125,6 +129,10 @@ public class AuthService {
             .passwordHash(passwordEncoder.encode(request.password()))
             .role(UserRole.VETERINARIAN)
             .isActive(true)
+            .preferredLanguage(
+                request.preferredLanguage() != null && !request.preferredLanguage().isBlank()
+                    ? request.preferredLanguage()
+                    : "en")
             .build();
 
     user = userRepository.save(user);
@@ -353,6 +361,23 @@ public class AuthService {
         accessToken, rawRefreshToken, "Bearer", jwtUtil.getExpirationMs() / 1000, profileDto);
   }
 
+  /** Updates the user's preferred language and evicts cache. */
+  @Transactional
+  @CacheEvict(
+      value = CacheNames.USER_PROFILES,
+      key = "T(app.vetra.infrastructure.cache.CacheKeys).userProfileKey(#currentUserIdentifier)")
+  public UserProfileDto updateUserLanguagePreference(
+      String currentUserIdentifier, String language) {
+    User user =
+        userRepository
+            .findByIdentifier(currentUserIdentifier)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
+
+    user.setPreferredLanguage(language);
+    user = userRepository.save(user);
+    return getCurrentUserProfileDto(user);
+  }
+
   /** Retrieves user profile DTO from user entity based on role. */
   public UserProfileDto getCurrentUserProfileDto(User user) {
     if (user.getRole() == UserRole.FARMER) {
@@ -368,6 +393,7 @@ public class AuthService {
         user.getPhone(),
         user.getRole(),
         user.isActive(),
+        user.getPreferredLanguage(),
         null,
         null,
         null,
@@ -399,6 +425,7 @@ public class AuthService {
         user.getPhone(),
         user.getRole(),
         user.isActive(),
+        user.getPreferredLanguage(),
         p != null ? p.getFullName() : null,
         p != null ? p.getFarmName() : null,
         p != null ? p.getVillage() : null,
@@ -422,6 +449,7 @@ public class AuthService {
         user.getPhone(),
         user.getRole(),
         user.isActive(),
+        user.getPreferredLanguage(),
         v != null ? v.getFullName() : null,
         null,
         null,
@@ -442,7 +470,7 @@ public class AuthService {
    * Tags the current Micrometer trace span with the authenticated user role.
    *
    * <p>{@code user.role} is a bounded enum value (FARMER | VETERINARIAN). It is safe to include as
-   * a span tag \u2014 not PII, not high-cardinality, and directly useful for filtering traces by
+   * a span tag — not PII, not high-cardinality, and directly useful for filtering traces by
    * user type in Grafana Tempo.
    *
    * @param role the authenticated user's role

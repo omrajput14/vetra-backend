@@ -16,4 +16,34 @@ public record VetRegisterRequest(
     String clinicName,
     Integer yearsExperience,
     Double latitude,
-    Double longitude) {}
+    Double longitude,
+    String preferredLanguage) {
+
+  @SuppressWarnings("checkstyle:ParameterNumber")
+  public VetRegisterRequest(
+      String email,
+      String phone,
+      String password,
+      String fullName,
+      String registrationNumber,
+      String qualification,
+      String specialization,
+      String clinicName,
+      Integer yearsExperience,
+      Double latitude,
+      Double longitude) {
+    this(
+        email,
+        phone,
+        password,
+        fullName,
+        registrationNumber,
+        qualification,
+        specialization,
+        clinicName,
+        yearsExperience,
+        latitude,
+        longitude,
+        "en");
+  }
+}

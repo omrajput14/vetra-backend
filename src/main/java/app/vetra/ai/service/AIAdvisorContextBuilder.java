@@ -152,4 +152,20 @@ public class AIAdvisorContextBuilder {
 
     return sb.toString().trim();
   }
+
+  /**
+   * Builds explicit language generation instructions for the AI model based on user preference.
+   *
+   * @param language ISO language code ('mr', 'hi', 'en')
+   * @return language instruction string
+   */
+  public String buildLanguageInstruction(String language) {
+    if ("mr".equalsIgnoreCase(language) || "marathi".equalsIgnoreCase(language)) {
+      return "LANGUAGE: MARATHI (मराठी). You MUST generate all user-facing strings ('replyMessage', 'followUpQuestions', condition reasoning, 'userReportedSymptoms', 'keyObservations', 'recommendedNextStep', and 'disclaimer') in clear, natural Marathi. Keep the JSON keys and status/risk enum values in English. The disclaimer must be: 'हे एक एआय-सहाय्यक प्राथमिक मूल्यांकन आहे आणि हे पुष्टी केलेले पशुवैद्यकीय निदान नाही. क्लिनिकल निदान आणि उपचारांसाठी परवानाधारक पशुवैद्यांचा सल्ला घ्या.'";
+    } else if ("hi".equalsIgnoreCase(language) || "hindi".equalsIgnoreCase(language)) {
+      return "LANGUAGE: HINDI (हिंदी). You MUST generate all user-facing strings ('replyMessage', 'followUpQuestions', condition reasoning, 'userReportedSymptoms', 'keyObservations', 'recommendedNextStep', and 'disclaimer') in clear, natural Hindi. Keep the JSON keys and status/risk enum values in English. The disclaimer must be: 'यह एक एआई-सहायक प्रारंभिक मूल्यांकन है और यह कोई पुष्ट पशु चिकित्सा निदान नहीं है। नैदानिक निदान और उपचार के लिए किसी लाइसेंस प्राप्त पशुचिकित्सक से परामर्श लें।'";
+    } else {
+      return "LANGUAGE: ENGLISH. Generate all responses in clear, professional English.";
+    }
+  }
 }

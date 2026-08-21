@@ -133,7 +133,10 @@ public class AIAdvisorService {
         user.getId());
 
     if (request != null && request.initialMessage() != null && !request.initialMessage().isBlank()) {
-      return executeMessageTurn(user, session, request.initialMessage().trim());
+      String language = request.preferredLanguage() != null && !request.preferredLanguage().isBlank()
+          ? request.preferredLanguage()
+          : user.getPreferredLanguage();
+      return executeMessageTurn(user, session, request.initialMessage().trim(), language);
     }
 
     return responseMapper.mapToSessionResponse(session);
@@ -170,7 +173,11 @@ public class AIAdvisorService {
           "ADVISOR_002");
     }
 
-    return executeMessageTurn(user, session, request.message().trim());
+    String language = request.preferredLanguage() != null && !request.preferredLanguage().isBlank()
+        ? request.preferredLanguage()
+        : user.getPreferredLanguage();
+
+    return executeMessageTurn(user, session, request.message().trim(), language);
   }
 
   /**
@@ -216,7 +223,7 @@ public class AIAdvisorService {
   }
 
   private AIAdvisorSessionResponse executeMessageTurn(
-      User user, AIAdvisorSession session, String userMessageText) {
+      User user, AIAdvisorSession session, String userMessageText, String preferredLanguage) {
     int nextTurn = session.getTurnCount() + 1;
 
     // 1. Persist user message
@@ -239,6 +246,7 @@ public class AIAdvisorService {
     String medicalHistory = contextBuilder.buildMedicalHistoryContext(animal);
     String previousScans = contextBuilder.buildPreviousScansContext(animal);
     String conversationHistory = contextBuilder.buildConversationHistoryContext(session.getMessages());
+    String languageInstruction = contextBuilder.buildLanguageInstruction(preferredLanguage);
 
     Map<String, Object> inputVariables =
         Map.of(
@@ -246,6 +254,7 @@ public class AIAdvisorService {
             "medicalHistory", medicalHistory,
             "previousScans", previousScans,
             "conversationHistory", conversationHistory,
+            "languageInstruction", languageInstruction,
             "latestUserMessage", userMessageText);
 
     AgentRequest agentRequest =

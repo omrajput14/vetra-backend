@@ -7,5 +7,10 @@ import jakarta.validation.constraints.Size;
 public record AdvisorMessageRequest(
     @NotBlank(message = "Message content must not be blank")
     @Size(max = 2000, message = "Message must not exceed 2000 characters")
-    String message
-) {}
+    String message,
+    String preferredLanguage
+) {
+  public AdvisorMessageRequest(String message) {
+    this(message, null);
+  }
+}
