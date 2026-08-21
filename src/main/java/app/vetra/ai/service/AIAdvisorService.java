@@ -246,7 +246,10 @@ public class AIAdvisorService {
     String medicalHistory = contextBuilder.buildMedicalHistoryContext(animal);
     String previousScans = contextBuilder.buildPreviousScansContext(animal);
     String conversationHistory = contextBuilder.buildConversationHistoryContext(session.getMessages());
-    String languageInstruction = contextBuilder.buildLanguageInstruction(preferredLanguage);
+    String effectiveLanguage = (preferredLanguage != null && !preferredLanguage.isBlank())
+        ? preferredLanguage
+        : (user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en");
+    String languageInstruction = contextBuilder.buildLanguageInstruction(effectiveLanguage);
 
     Map<String, Object> inputVariables =
         Map.of(
@@ -255,6 +258,7 @@ public class AIAdvisorService {
             "previousScans", previousScans,
             "conversationHistory", conversationHistory,
             "languageInstruction", languageInstruction,
+            "preferredLanguage", effectiveLanguage,
             "latestUserMessage", userMessageText);
 
     AgentRequest agentRequest =
