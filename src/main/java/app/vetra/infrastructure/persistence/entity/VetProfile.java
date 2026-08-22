@@ -52,6 +52,10 @@ public class VetProfile extends BaseEntity {
   @Column(name = "is_available", nullable = false)
   private boolean isAvailable = true;
 
+  @Builder.Default
+  @Column(name = "emergency_available", nullable = false)
+  private boolean emergencyAvailable = true;
+
   @Column(name = "latitude")
   private Double latitude;
 
@@ -122,6 +126,14 @@ public class VetProfile extends BaseEntity {
     isAvailable = available;
   }
 
+  public boolean isEmergencyAvailable() {
+    return emergencyAvailable;
+  }
+
+  public void setEmergencyAvailable(boolean emergencyAvailable) {
+    this.emergencyAvailable = emergencyAvailable;
+  }
+
   public Double getLatitude() {
     return latitude;
   }
@@ -151,6 +163,7 @@ public class VetProfile extends BaseEntity {
     private String clinicName;
     private Integer yearsExperience;
     private boolean isAvailable = true;
+    private boolean emergencyAvailable = true;
     private Double latitude;
     private Double longitude;
 
@@ -194,6 +207,11 @@ public class VetProfile extends BaseEntity {
       return this;
     }
 
+    public VetProfileBuilder emergencyAvailable(boolean emergencyAvailable) {
+      this.emergencyAvailable = emergencyAvailable;
+      return this;
+    }
+
     public VetProfileBuilder latitude(Double latitude) {
       this.latitude = latitude;
       return this;
@@ -214,6 +232,7 @@ public class VetProfile extends BaseEntity {
       profile.setClinicName(this.clinicName);
       profile.setYearsExperience(this.yearsExperience);
       profile.setAvailable(this.isAvailable);
+      profile.setEmergencyAvailable(this.emergencyAvailable);
       profile.setLatitude(this.latitude);
       profile.setLongitude(this.longitude);
       return profile;
