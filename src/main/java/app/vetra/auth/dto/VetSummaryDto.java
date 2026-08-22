@@ -1,6 +1,7 @@
 package app.vetra.auth.dto;
 
 import app.vetra.infrastructure.persistence.entity.VetProfile;
+import app.vetra.infrastructure.persistence.enums.VerificationStatus;
 import java.util.UUID;
 
 /** Summary DTO for veterinarian directory and nearby vet selection. */
@@ -21,13 +22,19 @@ public record VetSummaryDto(
     Double longitude,
     String phoneNumber,
     String phone,
-    String email) {
+    String email,
+    VerificationStatus verificationStatus,
+    Boolean verified) {
 
   /** Converts a VetProfile entity to VetSummaryDto. */
   public static VetSummaryDto fromEntity(VetProfile vet) {
     String phone = vet.getUser() != null ? vet.getUser().getPhone() : null;
     String name = vet.getFullName();
     String clinic = vet.getClinicName();
+    VerificationStatus status =
+        vet.getVerificationStatus() != null ? vet.getVerificationStatus() : VerificationStatus.PENDING;
+    boolean isVerified = status == VerificationStatus.VERIFIED;
+
     return new VetSummaryDto(
         vet.getId(),
         name,
@@ -45,7 +52,8 @@ public record VetSummaryDto(
         vet.getLongitude(),
         phone,
         phone,
-        vet.getUser() != null ? vet.getUser().getEmail() : null);
+        vet.getUser() != null ? vet.getUser().getEmail() : null,
+        status,
+        isVerified);
   }
 }
-

@@ -1,7 +1,10 @@
 package app.vetra.infrastructure.persistence.entity;
 
+import app.vetra.infrastructure.persistence.enums.VerificationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -55,6 +58,11 @@ public class VetProfile extends BaseEntity {
   @Builder.Default
   @Column(name = "emergency_available", nullable = false)
   private boolean emergencyAvailable = true;
+
+  @Builder.Default
+  @Enumerated(EnumType.STRING)
+  @Column(name = "verification_status", nullable = false)
+  private VerificationStatus verificationStatus = VerificationStatus.PENDING;
 
   @Column(name = "latitude")
   private Double latitude;
@@ -134,6 +142,18 @@ public class VetProfile extends BaseEntity {
     this.emergencyAvailable = emergencyAvailable;
   }
 
+  public VerificationStatus getVerificationStatus() {
+    return verificationStatus;
+  }
+
+  public void setVerificationStatus(VerificationStatus verificationStatus) {
+    this.verificationStatus = verificationStatus;
+  }
+
+  public boolean isVerified() {
+    return verificationStatus == VerificationStatus.VERIFIED;
+  }
+
   public Double getLatitude() {
     return latitude;
   }
@@ -164,6 +184,7 @@ public class VetProfile extends BaseEntity {
     private Integer yearsExperience;
     private boolean isAvailable = true;
     private boolean emergencyAvailable = true;
+    private VerificationStatus verificationStatus = VerificationStatus.PENDING;
     private Double latitude;
     private Double longitude;
 
@@ -212,6 +233,11 @@ public class VetProfile extends BaseEntity {
       return this;
     }
 
+    public VetProfileBuilder verificationStatus(VerificationStatus verificationStatus) {
+      this.verificationStatus = verificationStatus;
+      return this;
+    }
+
     public VetProfileBuilder latitude(Double latitude) {
       this.latitude = latitude;
       return this;
@@ -233,6 +259,8 @@ public class VetProfile extends BaseEntity {
       profile.setYearsExperience(this.yearsExperience);
       profile.setAvailable(this.isAvailable);
       profile.setEmergencyAvailable(this.emergencyAvailable);
+      profile.setVerificationStatus(
+          this.verificationStatus != null ? this.verificationStatus : VerificationStatus.PENDING);
       profile.setLatitude(this.latitude);
       profile.setLongitude(this.longitude);
       return profile;

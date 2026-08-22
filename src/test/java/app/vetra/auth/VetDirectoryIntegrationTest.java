@@ -10,9 +10,11 @@ import app.vetra.auth.dto.VetSummaryDto;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
 import app.vetra.auth.service.AuthService;
+import app.vetra.auth.service.VetVerificationService;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.infrastructure.persistence.enums.VerificationStatus;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 class VetDirectoryIntegrationTest {
 
   @Autowired private AuthService authService;
+  @Autowired private VetVerificationService vetVerificationService;
   @Autowired private UserRepository userRepository;
   @Autowired private VetProfileRepository vetProfileRepository;
 
@@ -75,6 +78,10 @@ class VetDirectoryIntegrationTest {
     AuthResponse authResp = authService.registerVet(regReq);
     assertNotNull(authResp);
 
+    User user = userRepository.findByEmail("dr.ananya@vetra.app").orElseThrow();
+    VetProfile profile = vetProfileRepository.findByUser(user).orElseThrow();
+    vetVerificationService.verifyVeterinarian(profile.getId());
+
     List<VetSummaryDto> vets = authService.listVeterinarians();
     assertNotNull(vets);
     assertTrue(vets.stream().anyMatch(v -> "Dr. Ananya Roy".equals(v.name())));
@@ -93,6 +100,8 @@ class VetDirectoryIntegrationTest {
     assertEquals(5.0, vet.rating());
     assertTrue(vet.isAvailable());
     assertTrue(vet.emergencyAvailable());
+    assertEquals(VerificationStatus.VERIFIED, vet.verificationStatus());
+    assertTrue(vet.verified());
   }
 
   @Test
@@ -118,6 +127,7 @@ class VetDirectoryIntegrationTest {
             .yearsExperience(5)
             .isAvailable(true)
             .emergencyAvailable(true)
+            .verificationStatus(VerificationStatus.VERIFIED)
             .build();
     vetProfileRepository.save(profile);
 
@@ -129,5 +139,6 @@ class VetDirectoryIntegrationTest {
         vets.stream().filter(v -> "Dr. No Phone".equals(v.name())).findFirst().orElseThrow();
     assertEquals(null, vet.phoneNumber());
     assertEquals("Rural Clinic", vet.clinic());
+    assertTrue(vet.verified());
   }
 }

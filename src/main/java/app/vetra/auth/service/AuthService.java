@@ -149,6 +149,8 @@ public class AuthService {
             .latitude(request.latitude())
             .longitude(request.longitude())
             .isAvailable(true)
+            .emergencyAvailable(true)
+            .verificationStatus(app.vetra.infrastructure.persistence.enums.VerificationStatus.PENDING)
             .build();
 
     vetProfileRepository.save(profile);
@@ -410,10 +412,13 @@ public class AuthService {
         null);
   }
 
-  /** Retrieves list of all registered veterinarians for directory and booking pickers. */
+  /** Retrieves list of verified registered veterinarians for directory and booking pickers. */
   @Transactional(readOnly = true)
   public java.util.List<app.vetra.auth.dto.VetSummaryDto> listVeterinarians() {
-    return vetProfileRepository.findAll().stream()
+    return vetProfileRepository
+        .findByVerificationStatus(
+            app.vetra.infrastructure.persistence.enums.VerificationStatus.VERIFIED)
+        .stream()
         .map(app.vetra.auth.dto.VetSummaryDto::fromEntity)
         .toList();
   }
