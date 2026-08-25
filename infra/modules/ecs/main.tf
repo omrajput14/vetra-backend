@@ -51,6 +51,15 @@ resource "aws_secretsmanager_secret_version" "jwt_secret" {
   secret_string = random_password.jwt_secret.result
 }
 
+# ── Gemini API Key Secret in Secrets Manager (Stage 14.12) ───────────────────
+
+resource "aws_secretsmanager_secret" "gemini_api_key" {
+  name        = "/${var.project}/${var.environment}/gemini/api-key"
+  description = "Vetra ${var.environment} Google Gemini Vision REST API Key"
+
+  tags = local.common_tags
+}
+
 # ── ECS IAM Roles ─────────────────────────────────────────────────────────────
 
 resource "aws_iam_role" "ecs_execution" {
@@ -93,7 +102,8 @@ resource "aws_iam_role_policy" "ecs_execution_secrets" {
         Resource = [
           var.db_password_secret_arn,
           var.redis_password_secret_arn,
-          aws_secretsmanager_secret.jwt_secret.arn
+          aws_secretsmanager_secret.jwt_secret.arn,
+          var.gemini_api_key_secret_arn != "" ? var.gemini_api_key_secret_arn : aws_secretsmanager_secret.gemini_api_key.arn
         ]
       }
     ]
@@ -253,7 +263,11 @@ resource "aws_ecs_task_definition" "this" {
         { name = "REDIS_HOST", value = var.redis_host },
         { name = "REDIS_PORT", value = tostring(var.redis_port) },
         { name = "REDIS_SSL", value = "true" },
-        { name = "MANAGEMENT_TRACING_SAMPLING_PROBABILITY", value = "0.1" }
+        { name = "MANAGEMENT_TRACING_SAMPLING_PROBABILITY", value = "0.1" },
+        { name = "GEMINI_ENABLED", value = "true" },
+        { name = "GEMINI_MODEL", value = "gemini-2.5-flash" },
+        { name = "AI_GATEWAY_DEFAULT_PROVIDER", value = "gemini" },
+        { name = "AI_GATEWAY_DEFAULT_MODEL", value = "diagnostics-fast" }
       ]
 
       secrets = [
@@ -272,6 +286,10 @@ resource "aws_ecs_task_definition" "this" {
         {
           name      = "JWT_SECRET"
           valueFrom = aws_secretsmanager_secret.jwt_secret.arn
+        },
+        {
+          name      = "GEMINI_API_KEY"
+          valueFrom = var.gemini_api_key_secret_arn != "" ? var.gemini_api_key_secret_arn : aws_secretsmanager_secret.gemini_api_key.arn
         }
       ]
 

@@ -123,6 +123,12 @@ variable "redis_password_secret_arn" {
   description = "Secrets Manager ARN for Redis AUTH token"
 }
 
+variable "gemini_api_key_secret_arn" {
+  type        = string
+  description = "Secrets Manager ARN for Google Gemini API key (optional override)"
+  default     = ""
+}
+
 variable "tags" {
   type        = map(string)
   description = "Additional resource tags"

@@ -14,6 +14,7 @@ import app.vetra.ai.entity.AIAdvisorSession;
 import app.vetra.ai.entity.AIAdvisorSessionStatus;
 import app.vetra.ai.repository.AIAdvisorMessageRepository;
 import app.vetra.ai.repository.AIAdvisorSessionRepository;
+import app.vetra.animal.repository.AnimalHealthRecordRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.infrastructure.exception.BusinessRuleException;
@@ -62,11 +63,12 @@ public class AIAdvisorService {
   private final AIAdvisorSessionRepository sessionRepository;
   private final AIAdvisorMessageRepository messageRepository;
   private final AnimalRepository animalRepository;
+  private final AnimalHealthRecordRepository healthRecordRepository;
   private final UserRepository userRepository;
   private final AIAdvisorContextBuilder contextBuilder;
   private final AIAdvisorResponseMapper responseMapper;
   private final AgentGateway agentGateway;
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Constructs AIAdvisorService with required collaborators.
@@ -74,29 +76,29 @@ public class AIAdvisorService {
    * @param sessionRepository session repository
    * @param messageRepository message repository
    * @param animalRepository animal repository
+   * @param healthRecordRepository animal health timeline record repository
    * @param userRepository user repository
    * @param contextBuilder context builder service
    * @param responseMapper response mapping service
    * @param agentGateway agent gateway
-   * @param objectMapper JSON object mapper
    */
   public AIAdvisorService(
       AIAdvisorSessionRepository sessionRepository,
       AIAdvisorMessageRepository messageRepository,
       AnimalRepository animalRepository,
+      AnimalHealthRecordRepository healthRecordRepository,
       UserRepository userRepository,
       AIAdvisorContextBuilder contextBuilder,
       AIAdvisorResponseMapper responseMapper,
-      AgentGateway agentGateway,
-      ObjectMapper objectMapper) {
+      AgentGateway agentGateway) {
     this.sessionRepository = sessionRepository;
     this.messageRepository = messageRepository;
     this.animalRepository = animalRepository;
+    this.healthRecordRepository = healthRecordRepository;
     this.userRepository = userRepository;
     this.contextBuilder = contextBuilder;
     this.responseMapper = responseMapper;
     this.agentGateway = agentGateway;
-    this.objectMapper = objectMapper;
   }
 
   /**
@@ -304,7 +306,59 @@ public class AIAdvisorService {
     messageRepository.save(advisorMsg);
 
     session = sessionRepository.save(session);
+
+    // 8. Append to Animal Lifetime Health Timeline
+    if (session.getAnimal() != null) {
+      appendHealthTimelineRecord(session.getAnimal(), userMessageText, output);
+    }
+
     return responseMapper.mapToSessionResponse(session);
+  }
+
+  private void appendHealthTimelineRecord(
+      Animal animal, String userMessageText, AIAdvisorResponseMapper.ParsedAdvisorOutput output) {
+    try {
+      String title = "AI Health Screening";
+      String description = userMessageText;
+      String diagnosis = null;
+      String symptoms = userMessageText;
+
+      if (output.assessment() != null) {
+        if (output.assessment().possibleConditions() != null
+            && !output.assessment().possibleConditions().isEmpty()) {
+          diagnosis =
+              output.assessment().possibleConditions().stream()
+                  .map(app.vetra.ai.dto.advisor.PossibleConditionDTO::condition)
+                  .reduce((a, b) -> a + ", " + b)
+                  .orElse(null);
+          title = "AI Screening: " + output.assessment().possibleConditions().get(0).condition();
+        }
+        if (output.assessment().keyObservations() != null
+            && !output.assessment().keyObservations().isEmpty()) {
+          description = String.join("; ", output.assessment().keyObservations());
+        } else if (output.assessment().recommendedNextStep() != null) {
+          description = output.assessment().recommendedNextStep();
+        }
+      } else if (output.replyMessage() != null && !output.replyMessage().isBlank()) {
+        description = output.replyMessage();
+      }
+
+      app.vetra.infrastructure.persistence.entity.AnimalHealthRecord record =
+          app.vetra.infrastructure.persistence.entity.AnimalHealthRecord.builder()
+              .animal(animal)
+              .recordType(app.vetra.infrastructure.persistence.enums.HealthRecordType.AI_SCREENING)
+              .source(app.vetra.infrastructure.persistence.enums.HealthRecordSource.AI_ADVISOR)
+              .title(title)
+              .description(description)
+              .symptoms(symptoms)
+              .diagnosis(diagnosis)
+              .recordedAt(java.time.LocalDateTime.now())
+              .build();
+
+      healthRecordRepository.save(record);
+    } catch (Exception e) {
+      log.warn("Failed to append AI screening health timeline record: {}", e.getMessage());
+    }
   }
 
   private boolean hasEmergencyKeywords(String text) {

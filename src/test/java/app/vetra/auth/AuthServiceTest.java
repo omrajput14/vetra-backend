@@ -158,4 +158,208 @@ class AuthServiceTest {
         authService.loginFarmer(new LoginRequest("security@vetra.app", "newpass456"));
     assertNotNull(newLogin.accessToken());
   }
+
+  @Test
+  void testFarmerRegistrationWithTalukaAndCoordinates() {
+    FarmerRegisterRequest request =
+        new FarmerRegisterRequest(
+            "taluka.farmer@vetra.app",
+            "+919876543210",
+            "securePass123",
+            "Ramesh Patel",
+            "Patel Dairy Farm",
+            "Vadodara Village",
+            "Karjan",
+            "Vadodara",
+            "Gujarat",
+            22.01234,
+            73.12345,
+            15,
+            "hi");
+
+    AuthResponse response = authService.registerFarmer(request);
+    assertNotNull(response.accessToken());
+    assertNotNull(response.user());
+    assertEquals("Ramesh Patel", response.user().fullName());
+    assertEquals("Vadodara Village", response.user().village());
+    assertEquals("Karjan", response.user().taluka());
+    assertEquals("Vadodara", response.user().district());
+    assertEquals("Gujarat", response.user().state());
+    assertEquals(22.01234, response.user().latitude());
+    assertEquals(73.12345, response.user().longitude());
+    assertEquals("hi", response.user().preferredLanguage());
+  }
+
+  @Test
+  void testFarmerRegistrationWithoutTalukaAndNullCoordinates() {
+    // Tests backward compatibility and GPS permission denied / unavailable scenario
+    FarmerRegisterRequest request =
+        new FarmerRegisterRequest(
+            "notaluka.farmer@vetra.app",
+            "+919876543211",
+            "securePass123",
+            "Suresh Kumar",
+            "Kumar Farm",
+            "Rampur",
+            "Karnal",
+            "Haryana",
+            null,
+            null,
+            8);
+
+    AuthResponse response = authService.registerFarmer(request);
+    assertNotNull(response.accessToken());
+    assertNotNull(response.user());
+    assertEquals("Suresh Kumar", response.user().fullName());
+    assertEquals("Rampur", response.user().village());
+    org.junit.jupiter.api.Assertions.assertNull(response.user().taluka());
+    assertEquals("Karnal", response.user().district());
+    assertEquals("Haryana", response.user().state());
+    org.junit.jupiter.api.Assertions.assertNull(response.user().latitude());
+    org.junit.jupiter.api.Assertions.assertNull(response.user().longitude());
+  }
+
+  @Test
+  void testFarmerProfileUpdateWithTalukaAndCoordinates() {
+    FarmerRegisterRequest request =
+        new FarmerRegisterRequest(
+            "update.farmer@vetra.app",
+            "+919876543212",
+            "securePass123",
+            "Initial Name",
+            "Initial Farm",
+            "Old Village",
+            "Old District",
+            "Old State",
+            null,
+            null,
+            10);
+
+    authService.registerFarmer(request);
+
+    // Update with Taluka and Device Coordinates
+    app.vetra.auth.dto.UpdateProfileRequest updateRequest =
+        new app.vetra.auth.dto.UpdateProfileRequest(
+            "Updated Name",
+            "+919876543212",
+            "Updated Farm",
+            "New Village",
+            "New Taluka",
+            "New District",
+            "New State",
+            19.0760,
+            72.8777,
+            null,
+            null,
+            null,
+            null);
+
+    app.vetra.auth.dto.UserProfileDto updatedProfile =
+        authService.updateUserProfile("update.farmer@vetra.app", updateRequest);
+
+    assertEquals("Updated Name", updatedProfile.fullName());
+    assertEquals("New Village", updatedProfile.village());
+    assertEquals("New Taluka", updatedProfile.taluka());
+    assertEquals("New District", updatedProfile.district());
+    assertEquals("New State", updatedProfile.state());
+    assertEquals(19.0760, updatedProfile.latitude());
+    assertEquals(72.8777, updatedProfile.longitude());
+  }
+
+  @Test
+  void testLocationCoordinateValidationConstraints() {
+    jakarta.validation.ValidatorFactory factory =
+        jakarta.validation.Validation.buildDefaultValidatorFactory();
+    jakarta.validation.Validator validator = factory.getValidator();
+
+    // Valid coordinates
+    FarmerRegisterRequest validReq =
+        new FarmerRegisterRequest(
+            "valid.geo@vetra.app",
+            "+1555123456",
+            "password123",
+            "Geo Farmer",
+            "Geo Farm",
+            "Village",
+            "Taluka",
+            "District",
+            "State",
+            45.0,
+            90.0,
+            5,
+            "en");
+    assertTrue(validator.validate(validReq).isEmpty());
+
+    // Invalid latitude (> 90.0)
+    FarmerRegisterRequest invalidLatReq =
+        new FarmerRegisterRequest(
+            "invalid.lat@vetra.app",
+            "+1555123456",
+            "password123",
+            "Geo Farmer",
+            "Geo Farm",
+            "Village",
+            "Taluka",
+            "District",
+            "State",
+            95.0,
+            90.0,
+            5,
+            "en");
+    assertEquals(1, validator.validate(invalidLatReq).size());
+
+    // Invalid latitude (< -90.0)
+    FarmerRegisterRequest invalidLatNegReq =
+        new FarmerRegisterRequest(
+            "invalid.latneg@vetra.app",
+            "+1555123456",
+            "password123",
+            "Geo Farmer",
+            "Geo Farm",
+            "Village",
+            "Taluka",
+            "District",
+            "State",
+            -95.0,
+            90.0,
+            5,
+            "en");
+    assertEquals(1, validator.validate(invalidLatNegReq).size());
+
+    // Invalid longitude (> 180.0)
+    FarmerRegisterRequest invalidLngReq =
+        new FarmerRegisterRequest(
+            "invalid.lng@vetra.app",
+            "+1555123456",
+            "password123",
+            "Geo Farmer",
+            "Geo Farm",
+            "Village",
+            "Taluka",
+            "District",
+            "State",
+            45.0,
+            185.0,
+            5,
+            "en");
+    assertEquals(1, validator.validate(invalidLngReq).size());
+
+    // Invalid longitude (< -180.0)
+    FarmerRegisterRequest invalidLngNegReq =
+        new FarmerRegisterRequest(
+            "invalid.lngneg@vetra.app",
+            "+1555123456",
+            "password123",
+            "Geo Farmer",
+            "Geo Farm",
+            "Village",
+            "Taluka",
+            "District",
+            "State",
+            45.0,
+            -185.0,
+            5,
+            "en");
+    assertEquals(1, validator.validate(invalidLngNegReq).size());
+  }
 }

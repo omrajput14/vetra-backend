@@ -177,9 +177,9 @@ vetra:
   # AI Platform Orchestration
   ai:
     gemini:
-      enabled: ${GEMINI_ENABLED:false}
+      enabled: ${GEMINI_ENABLED:true}
       api-key: ${GEMINI_API_KEY:}
-      model: ${GEMINI_MODEL:gemini-1.5-flash}
+      model: ${GEMINI_MODEL:gemini-3.5-flash}
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
       timeout: ${GEMINI_TIMEOUT:30s}
       max-retries: ${GEMINI_MAX_RETRIES:3}
@@ -189,8 +189,8 @@ vetra:
     # All provider-specific model IDs are confined to this section.
     gateway:
       enabled: ${AI_GATEWAY_ENABLED:true}
-      default-provider: ${AI_GATEWAY_DEFAULT_PROVIDER:noop}
-      default-model: ${AI_GATEWAY_DEFAULT_MODEL:noop-default}
+      default-provider: ${AI_GATEWAY_DEFAULT_PROVIDER:gemini}
+      default-model: ${AI_GATEWAY_DEFAULT_MODEL:diagnostics-fast}
       timeout: ${AI_GATEWAY_TIMEOUT:10s}
       cache:
         enabled: ${AI_GATEWAY_CACHE_ENABLED:true}
@@ -198,39 +198,39 @@ vetra:
         key-prefix: "vetra:ai:cache:"
         stampede-lock-timeout: 10s
       providers:
-        - name: noop
-          enabled: true
-          priority: 99
-          resilience:
-            max-retry-attempts: 1
-            wait-duration: 10ms
-            circuit-breaker-failure-rate-threshold: 100
         - name: gemini
-          enabled: ${GEMINI_ENABLED:false}
+          enabled: ${GEMINI_ENABLED:true}
           priority: 1
           resilience:
-            max-retry-attempts: ${AI_RETRY_MAX_ATTEMPTS:3}
-            wait-duration: 500ms
+            max-retry-attempts: ${AI_RETRY_MAX_ATTEMPTS:4}
+            wait-duration: ${AI_RETRY_WAIT_DURATION:1500ms}
             backoff-multiplier: 2.0
             circuit-breaker-failure-rate-threshold: 50
             circuit-breaker-wait-duration-in-open-state: 10s
             circuit-breaker-sliding-window-size: 10
             timeout: 10s
+        - name: noop
+          enabled: ${NOOP_ENABLED:true}
+          priority: 99
+          resilience:
+            max-retry-attempts: 1
+            wait-duration: 10ms
+            circuit-breaker-failure-rate-threshold: 100
       models:
+        diagnostics-fast:
+          provider: gemini
+          model-id: ${GEMINI_MODEL:gemini-3.5-flash}
+          capabilities: [VISION, JSON_MODE]
+          context-window: 1048576
+          max-output-tokens: 8192
+          enabled: ${GEMINI_ENABLED:true}
         noop-default:
           provider: noop
           model-id: noop-v1
           capabilities: [VISION, JSON_MODE]
           context-window: 1
           max-output-tokens: 1
-          enabled: true
-        # Example: diagnostics-fast:
-        #   provider: gemini
-        #   model-id: gemini-2.5-flash
-        #   capabilities: [VISION, JSON_MODE]
-        #   context-window: 1048576
-        #   max-output-tokens: 8192
-        #   enabled: ${GEMINI_ENABLED:false}
+          enabled: ${NOOP_ENABLED:true}
 
     # Enterprise Multi-Agent Framework
     agents:

@@ -2,6 +2,7 @@ package app.vetra.ai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -244,5 +245,36 @@ public class AIAdvisorServiceTest {
     assertNotNull(turn2);
     assertNotNull(turn2.assessment());
     assertEquals(AIAdvisorSessionStatus.ASSESSMENT_GENERATED, turn2.status());
+  }
+
+  @Test
+  void testMultiTurnDurationProgressionAdvancingConversation() {
+    String farmerEmail = registerFarmer("farmer_adv_turn@vetra.app", "+919876543208");
+    AnimalResponse animal = createAnimal(farmerEmail, "TAG-ADV-DUR");
+
+    // Turn 1: "my cow is sick"
+    CreateAdvisorSessionRequest req1 =
+        new CreateAdvisorSessionRequest("my cow is sick");
+    AIAdvisorSessionResponse turn1 =
+        advisorService.createSession(farmerEmail, animal.id(), req1);
+
+    assertNotNull(turn1);
+    assertEquals(AIAdvisorSessionStatus.QUESTIONING, turn1.status());
+    assertEquals(1, turn1.turnCount());
+    String replyTurn1 = turn1.messages().get(turn1.messages().size() - 1).content();
+    assertNotNull(replyTurn1);
+
+    // Turn 2: "for 1 day"
+    AdvisorMessageRequest req2 = new AdvisorMessageRequest("for 1 day");
+    AIAdvisorSessionResponse turn2 =
+        advisorService.sendMessage(farmerEmail, turn1.id(), req2);
+
+    assertNotNull(turn2);
+    assertEquals(2, turn2.turnCount());
+    String replyTurn2 = turn2.messages().get(turn2.messages().size() - 1).content();
+    assertNotNull(replyTurn2);
+    // Ensure turn 2 reply is NOT an exact repeat of turn 1 question
+    assertNotEquals(replyTurn1, replyTurn2, "Turn 2 should advance conversation rather than repeating exact question");
+    assertEquals(animal.id(), turn2.animalId());
   }
 }

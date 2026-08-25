@@ -93,6 +93,7 @@ public class AuthService {
             .fullName(request.fullName())
             .farmName(request.farmName())
             .village(request.village())
+            .taluka(request.taluka())
             .district(request.district())
             .state(request.state())
             .latitude(request.latitude())
@@ -284,11 +285,20 @@ public class AuthService {
     if (request.village() != null) {
       profile.setVillage(request.village());
     }
+    if (request.taluka() != null) {
+      profile.setTaluka(request.taluka());
+    }
     if (request.district() != null) {
       profile.setDistrict(request.district());
     }
     if (request.state() != null) {
       profile.setState(request.state());
+    }
+    if (request.latitude() != null) {
+      profile.setLatitude(request.latitude());
+    }
+    if (request.longitude() != null) {
+      profile.setLongitude(request.longitude());
     }
     farmerProfileRepository.save(profile);
   }
@@ -434,6 +444,7 @@ public class AuthService {
         p != null ? p.getFullName() : null,
         p != null ? p.getFarmName() : null,
         p != null ? p.getVillage() : null,
+        p != null ? p.getTaluka() : null,
         p != null ? p.getDistrict() : null,
         p != null ? p.getState() : null,
         p != null ? p.getLatitude() : null,
@@ -456,6 +467,7 @@ public class AuthService {
         user.isActive(),
         user.getPreferredLanguage(),
         v != null ? v.getFullName() : null,
+        null,
         null,
         null,
         null,

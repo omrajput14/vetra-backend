@@ -38,6 +38,9 @@ public class FarmerProfile extends BaseEntity {
   @Column(name = "village")
   private String village;
 
+  @Column(name = "taluka")
+  private String taluka;
+
   @Column(name = "district")
   private String district;
 
@@ -83,6 +86,14 @@ public class FarmerProfile extends BaseEntity {
 
   public void setVillage(String village) {
     this.village = village;
+  }
+
+  public String getTaluka() {
+    return taluka;
+  }
+
+  public void setTaluka(String taluka) {
+    this.taluka = taluka;
   }
 
   public String getDistrict() {
@@ -134,6 +145,7 @@ public class FarmerProfile extends BaseEntity {
     private String fullName;
     private String farmName;
     private String village;
+    private String taluka;
     private String district;
     private String state;
     private Double latitude;
@@ -157,6 +169,11 @@ public class FarmerProfile extends BaseEntity {
 
     public FarmerProfileBuilder village(String village) {
       this.village = village;
+      return this;
+    }
+
+    public FarmerProfileBuilder taluka(String taluka) {
+      this.taluka = taluka;
       return this;
     }
 
@@ -191,6 +208,7 @@ public class FarmerProfile extends BaseEntity {
       profile.setFullName(this.fullName);
       profile.setFarmName(this.farmName);
       profile.setVillage(this.village);
+      profile.setTaluka(this.taluka);
       profile.setDistrict(this.district);
       profile.setState(this.state);
       profile.setLatitude(this.latitude);

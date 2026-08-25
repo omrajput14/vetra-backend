@@ -6,12 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import app.vetra.ai.exception.AIProviderUnavailableException;
+import app.vetra.ai.model.AICapability;
 import app.vetra.ai.model.AIRequest;
 import app.vetra.ai.provider.gemini.GeminiAIProvider;
 import app.vetra.ai.provider.gemini.GeminiProperties;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -25,12 +27,13 @@ class GeminiAIProviderTest {
     properties = new GeminiProperties();
     properties.setEnabled(false);
     properties.setApiKey("test-dummy-api-key");
-    properties.setModel("gemini-1.5-flash");
+    properties.setModel("gemini-2.5-flash");
 
     provider = new GeminiAIProvider(properties, WebClient.builder());
   }
 
   @Test
+  @DisplayName("GeminiAIProvider is available only when enabled and api-key is non-blank")
   void testProviderAvailabilityWhenDisabled() {
     properties.setEnabled(false);
     assertFalse(provider.isAvailable());
@@ -44,6 +47,7 @@ class GeminiAIProviderTest {
   }
 
   @Test
+  @DisplayName("execute throws AIProviderUnavailableException when Gemini is disabled")
   void testExecuteThrowsAIProviderUnavailableWhenDisabled() {
     properties.setEnabled(false);
     AIRequest request = new AIRequest("promptId", Map.of(), "https://example.com/image.jpg", false, Set.of(), null);
@@ -53,7 +57,15 @@ class GeminiAIProviderTest {
   }
 
   @Test
+  @DisplayName("providerName returns canonical lowercase 'gemini'")
   void testProviderMetadata() {
-    assertEquals("GEMINI", provider.providerName());
+    assertEquals("gemini", provider.providerName());
+  }
+
+  @Test
+  @DisplayName("supportedCapabilities includes VISION and JSON_MODE")
+  void testSupportedCapabilities() {
+    assertTrue(provider.supportedCapabilities().contains(AICapability.VISION));
+    assertTrue(provider.supportedCapabilities().contains(AICapability.JSON_MODE));
   }
 }

@@ -19,8 +19,8 @@ public class GeminiProperties {
   /** Gemini REST API key loaded securely via environment variable. */
   private String apiKey = "";
 
-  /** Gemini Vision model identifier (e.g. gemini-1.5-flash, gemini-2.0-flash). */
-  private String model = "gemini-1.5-flash";
+  /** Gemini Vision model identifier (e.g. gemini-3.5-flash, gemini-2.5-flash). */
+  private String model = "gemini-3.5-flash";
 
   /** Google Generative Language Base API URL. */
   private String baseUrl = "https://generativelanguage.googleapis.com";

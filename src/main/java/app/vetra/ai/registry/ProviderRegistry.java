@@ -50,13 +50,16 @@ public class ProviderRegistry {
   }
 
   /**
-   * Looks up a provider by its name.
+   * Looks up a provider by its name (case-insensitive).
    *
    * @param name the provider name (e.g., "gemini", "noop")
    * @return an {@link Optional} containing the provider if found
    */
   public Optional<AIProvider> findByName(String name) {
-    return Optional.ofNullable(providers.get(name));
+    if (name == null) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(providers.get(name.trim().toLowerCase(java.util.Locale.ROOT)));
   }
 
   /**
@@ -108,13 +111,16 @@ public class ProviderRegistry {
   }
 
   /**
-   * Returns true if a provider with the given name is registered.
+   * Returns true if a provider with the given name is registered (case-insensitive).
    *
    * @param name the provider name to check
    * @return true if registered
    */
   public boolean isRegistered(String name) {
-    return providers.containsKey(name);
+    if (name == null) {
+      return false;
+    }
+    return providers.containsKey(name.trim().toLowerCase(java.util.Locale.ROOT));
   }
 
   private Map<String, AIProvider> buildRegistry(
@@ -123,7 +129,7 @@ public class ProviderRegistry {
     Map<String, AIProvider> registry = new LinkedHashMap<>();
 
     for (AIProvider provider : discovered) {
-      String name = provider.providerName();
+      String name = provider.providerName().trim().toLowerCase(java.util.Locale.ROOT);
       if (registry.containsKey(name)) {
         throw new AIConfigurationException(
             "Duplicate provider name '"
@@ -141,7 +147,8 @@ public class ProviderRegistry {
 
     // Validate that all explicitly configured providers have a matching discovered bean
     for (ProviderConfig cfg : configuredProviders) {
-      if (!registry.containsKey(cfg.getName())) {
+      String cfgName = cfg.getName() != null ? cfg.getName().trim().toLowerCase(java.util.Locale.ROOT) : "";
+      if (!registry.containsKey(cfgName)) {
         log.warn(
             "Configured provider '{}' has no matching AIProvider bean registered. "
                 + "It will be unavailable for routing.",

@@ -7,6 +7,7 @@ import app.vetra.ai.exception.AIProviderUnavailableException;
 import app.vetra.ai.exception.AIRateLimitException;
 import app.vetra.ai.exception.AITimeoutException;
 import app.vetra.ai.exception.AITokenLimitExceededException;
+import app.vetra.ai.model.AICapability;
 import app.vetra.ai.model.AIRequest;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.provider.AIProvider;
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +111,7 @@ public class GeminiAIProvider implements AIProvider {
         int semiIdx = img.indexOf(";base64,");
         String mimeType = img.substring(colonIdx + 1, semiIdx);
         String base64Data = img.substring(semiIdx + 8);
-        parts.add(Map.of("inline_data", Map.of("mime_type", mimeType, "data", base64Data)));
+        parts.add(Map.of("inlineData", Map.of("mimeType", mimeType, "data", base64Data)));
       } else {
         finalPrompt = promptText + "\nAnalyze image at URL: " + img;
       }
@@ -155,7 +157,12 @@ public class GeminiAIProvider implements AIProvider {
 
   @Override
   public String providerName() {
-    return "GEMINI";
+    return "gemini";
+  }
+
+  @Override
+  public Set<AICapability> supportedCapabilities() {
+    return Set.of(AICapability.VISION, AICapability.JSON_MODE);
   }
 
   @Override

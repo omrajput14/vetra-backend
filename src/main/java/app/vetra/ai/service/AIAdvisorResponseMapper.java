@@ -46,7 +46,8 @@ public class AIAdvisorResponseMapper {
     }
 
     try {
-      JsonNode root = objectMapper.readTree(rawJson);
+      String cleanJson = cleanMarkdown(rawJson);
+      JsonNode root = objectMapper.readTree(cleanJson);
       String rawState = root.path("conversationState").asText("QUESTIONING");
       String reply = root.path("replyMessage")
           .asText("I have noted your observations. Please consider scheduling a veterinary review.");
@@ -62,6 +63,38 @@ public class AIAdvisorResponseMapper {
       log.warn("Error parsing AI advisor JSON response: {}. Falling back.", e.getMessage());
       return fallbackOutput(forceEmergency);
     }
+  }
+
+  /**
+   * Cleans markdown formatting, code fences (e.g. ```json ... ```), and extracts the
+   * outermost valid JSON block from the raw LLM output.
+   *
+   * @param text raw LLM response text
+   * @return sanitized JSON string
+   */
+  public String cleanMarkdown(String text) {
+    if (text == null || text.isBlank()) {
+      return "{}";
+    }
+    String cleaned = text.trim();
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.substring(7);
+    } else if (cleaned.startsWith("```JSON")) {
+      cleaned = cleaned.substring(7);
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.substring(3);
+    }
+    if (cleaned.endsWith("```")) {
+      cleaned = cleaned.substring(0, cleaned.length() - 3);
+    }
+    cleaned = cleaned.trim();
+
+    int firstBrace = cleaned.indexOf('{');
+    int lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+    return cleaned.trim();
   }
 
   private List<String> extractQuestions(JsonNode root) {
@@ -187,7 +220,8 @@ public class AIAdvisorResponseMapper {
       return null;
     }
     try {
-      return objectMapper.readValue(json, AIAdvisorAssessmentDTO.class);
+      String clean = cleanMarkdown(json);
+      return objectMapper.readValue(clean, AIAdvisorAssessmentDTO.class);
     } catch (Exception e) {
       log.warn("Failed to deserialize session assessmentJson: {}", e.getMessage());
       return null;
@@ -211,7 +245,8 @@ public class AIAdvisorResponseMapper {
 
     if (msg.getStructuredPayload() != null && !msg.getStructuredPayload().isBlank()) {
       try {
-        JsonNode node = objectMapper.readTree(msg.getStructuredPayload());
+        String clean = cleanMarkdown(msg.getStructuredPayload());
+        JsonNode node = objectMapper.readTree(clean);
         if (node.has("followUpQuestions") && node.get("followUpQuestions").isArray()) {
           for (JsonNode q : node.get("followUpQuestions")) {
             questions.add(q.asText());
