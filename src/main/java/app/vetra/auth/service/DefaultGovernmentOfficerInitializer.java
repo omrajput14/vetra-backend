@@ -6,6 +6,7 @@ import app.vetra.infrastructure.persistence.enums.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * on application startup with valid encoded credentials.
  */
 @Component
+@Profile("!test")
 @Order(10)
 public class DefaultGovernmentOfficerInitializer implements CommandLineRunner {
 

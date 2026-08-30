@@ -127,7 +127,7 @@ class AnimalHealthRecordServiceTest {
                 .email("dr.ananya@vetra.app")
                 .passwordHash("hashed")
                 .role(UserRole.VETERINARIAN)
-                .phone("+919876543210")
+                .phone("+919876548001")
                 .isActive(true)
                 .build());
 

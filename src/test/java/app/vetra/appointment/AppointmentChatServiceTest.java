@@ -74,7 +74,7 @@ class AppointmentChatServiceTest {
     authService.registerFarmer(
         new FarmerRegisterRequest(
             farmerEmail,
-            "+919876543210",
+            "+919876549001",
             "Password123!",
             "Ramesh Patil",
             "Patil Farm",
@@ -88,7 +88,7 @@ class AppointmentChatServiceTest {
     authService.registerVet(
         new VetRegisterRequest(
             vetEmail,
-            "+919876543211",
+            "+919876549002",
             "Password123!",
             "Dr. Ananya Roy",
             "REG-" + System.currentTimeMillis(),
@@ -102,7 +102,7 @@ class AppointmentChatServiceTest {
     authService.registerFarmer(
         new FarmerRegisterRequest(
             thirdPartyEmail,
-            "+919876543299",
+            "+919876549003",
             "Password123!",
             "Third Party",
             "Other Farm",

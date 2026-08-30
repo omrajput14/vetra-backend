@@ -64,7 +64,7 @@ class VetDirectoryIntegrationTest {
     VetRegisterRequest regReq =
         new VetRegisterRequest(
             "dr.ananya@vetra.app",
-            "+919876543210",
+            "+919876546001",
             "password123",
             "Dr. Ananya Roy",
             "VET-WB-2024-88",
@@ -93,8 +93,8 @@ class VetDirectoryIntegrationTest {
     assertEquals("Dr. Ananya Roy", vet.fullName());
     assertEquals("Roy Animal Hospital", vet.clinic());
     assertEquals("Roy Animal Hospital", vet.clinicName());
-    assertEquals("+919876543210", vet.phoneNumber());
-    assertEquals("+919876543210", vet.phone());
+    assertEquals("+919876546001", vet.phoneNumber());
+    assertEquals("+919876546001", vet.phone());
     assertEquals("Bovine Medicine & Surgery", vet.specialization());
     assertEquals("BVSc & AH", vet.qualification());
     assertEquals(5.0, vet.rating());

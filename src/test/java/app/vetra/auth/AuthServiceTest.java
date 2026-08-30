@@ -165,7 +165,7 @@ class AuthServiceTest {
     FarmerRegisterRequest request =
         new FarmerRegisterRequest(
             "taluka.farmer@vetra.app",
-            "+919876543210",
+            "+919876547001",
             "securePass123",
             "Ramesh Patel",
             "Patel Dairy Farm",
@@ -197,7 +197,7 @@ class AuthServiceTest {
     FarmerRegisterRequest request =
         new FarmerRegisterRequest(
             "notaluka.farmer@vetra.app",
-            "+919876543211",
+            "+919876547002",
             "securePass123",
             "Suresh Kumar",
             "Kumar Farm",
@@ -225,7 +225,7 @@ class AuthServiceTest {
     FarmerRegisterRequest request =
         new FarmerRegisterRequest(
             "update.farmer@vetra.app",
-            "+919876543212",
+            "+919876547003",
             "securePass123",
             "Initial Name",
             "Initial Farm",
@@ -242,7 +242,7 @@ class AuthServiceTest {
     app.vetra.auth.dto.UpdateProfileRequest updateRequest =
         new app.vetra.auth.dto.UpdateProfileRequest(
             "Updated Name",
-            "+919876543212",
+            "+919876547003",
             "Updated Farm",
             "New Village",
             "New Taluka",
