@@ -22,4 +22,10 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
   /** Finds pending or queued notifications due for delivery retry. */
   List<Notification> findByStatusAndScheduledAtBefore(NotificationStatus status, Instant before);
+
+  /** Counts notifications by status. */
+  long countByStatus(NotificationStatus status);
+
+  /** Finds recent notifications ordered by creation date descending. */
+  List<Notification> findTop30ByOrderByCreatedAtDesc();
 }

@@ -56,6 +56,9 @@ public class FarmerProfile extends BaseEntity {
   @Column(name = "animal_count")
   private Integer animalCount;
 
+  @Column(name = "profile_photo_url", columnDefinition = "TEXT")
+  private String profilePhotoUrl;
+
   public User getUser() {
     return user;
   }
@@ -136,6 +139,14 @@ public class FarmerProfile extends BaseEntity {
     this.animalCount = animalCount;
   }
 
+  public String getProfilePhotoUrl() {
+    return profilePhotoUrl;
+  }
+
+  public void setProfilePhotoUrl(String profilePhotoUrl) {
+    this.profilePhotoUrl = profilePhotoUrl;
+  }
+
   public static FarmerProfileBuilder builder() {
     return new FarmerProfileBuilder();
   }
@@ -151,6 +162,7 @@ public class FarmerProfile extends BaseEntity {
     private Double latitude;
     private Double longitude;
     private Integer animalCount;
+    private String profilePhotoUrl;
 
     public FarmerProfileBuilder user(User user) {
       this.user = user;
@@ -202,6 +214,11 @@ public class FarmerProfile extends BaseEntity {
       return this;
     }
 
+    public FarmerProfileBuilder profilePhotoUrl(String profilePhotoUrl) {
+      this.profilePhotoUrl = profilePhotoUrl;
+      return this;
+    }
+
     public FarmerProfile build() {
       FarmerProfile profile = new FarmerProfile();
       profile.setUser(this.user);
@@ -214,6 +231,7 @@ public class FarmerProfile extends BaseEntity {
       profile.setLatitude(this.latitude);
       profile.setLongitude(this.longitude);
       profile.setAnimalCount(this.animalCount);
+      profile.setProfilePhotoUrl(this.profilePhotoUrl);
       return profile;
     }
   }

@@ -6,7 +6,7 @@ import app.vetra.disease.entity.OutbreakStatus;
 import java.time.Instant;
 import java.util.UUID;
 
-/** Public DTO representing an outbreak cluster entity. */
+/** Public DTO representing an outbreak cluster entity with multi-signal risk intelligence. */
 public record OutbreakResponse(
     UUID id,
     String diseaseName,
@@ -20,7 +20,9 @@ public record OutbreakResponse(
     Integer evaluationWindowHours,
     Instant lastCaseReportedAt,
     Instant createdAt,
-    Instant updatedAt) {
+    Instant updatedAt,
+    Integer compositeRiskScore,
+    RiskBreakdownResponse riskBreakdown) {
 
   /**
    * Factory method mapping Outbreak entity to OutbreakResponse DTO.
@@ -42,6 +44,8 @@ public record OutbreakResponse(
         outbreak.getEvaluationWindowHours(),
         outbreak.getLastCaseReportedAt(),
         outbreak.getCreatedAt(),
-        outbreak.getUpdatedAt());
+        outbreak.getUpdatedAt(),
+        outbreak.getCompositeRiskScore(),
+        RiskBreakdownResponse.fromEntity(outbreak));
   }
 }

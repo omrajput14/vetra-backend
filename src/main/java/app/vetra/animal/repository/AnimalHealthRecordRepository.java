@@ -2,6 +2,7 @@ package app.vetra.animal.repository;
 
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.AnimalHealthRecord;
+import app.vetra.infrastructure.persistence.enums.HealthRecordType;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,4 +19,10 @@ public interface AnimalHealthRecordRepository extends JpaRepository<AnimalHealth
 
   /** Finds the most recent health record for an animal. */
   Optional<AnimalHealthRecord> findFirstByAnimalIdOrderByRecordedAtDesc(UUID animalId);
+
+  /** Counts animal health records by record type. */
+  long countByRecordType(HealthRecordType recordType);
+
+  /** Finds recent animal health records ordered by recordedAt descending. */
+  List<AnimalHealthRecord> findTop30ByOrderByRecordedAtDesc();
 }

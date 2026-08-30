@@ -1,0 +1,13 @@
+-- V26: Add Multi-Signal Risk Intelligence columns to Outbreaks table
+ALTER TABLE outbreaks
+ADD COLUMN IF NOT EXISTS composite_risk_score INTEGER DEFAULT 50,
+ADD COLUMN IF NOT EXISTS cluster_score DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS weather_score DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS history_score DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS vaccination_gap_score DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS weather_temperature DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS weather_humidity DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS weather_precipitation DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS vaccination_coverage_pct DOUBLE PRECISION,
+ADD COLUMN IF NOT EXISTS risk_explanation TEXT,
+ADD COLUMN IF NOT EXISTS recommended_action TEXT;

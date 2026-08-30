@@ -2,8 +2,10 @@ package app.vetra.disease.controller;
 
 import app.vetra.disease.dto.DiseaseAnalyticsResponse;
 import app.vetra.disease.dto.DiseaseReportResponse;
+import app.vetra.disease.dto.OperationalAlertResponse;
 import app.vetra.disease.dto.OutbreakResponse;
 import app.vetra.disease.dto.OutbreakStatisticsResponse;
+import app.vetra.disease.dto.VaccinationAnalyticsResponse;
 import app.vetra.disease.entity.OutbreakStatus;
 import app.vetra.disease.geo.GeoJsonFeatureCollection;
 import app.vetra.disease.geo.GeoJsonService;
@@ -12,6 +14,8 @@ import app.vetra.disease.registry.DiseaseMetadata;
 import app.vetra.disease.registry.DiseaseRegistryService;
 import app.vetra.disease.service.DiseaseAnalyticsService;
 import app.vetra.disease.service.DiseaseService;
+import app.vetra.disease.service.OperationalAlertService;
+import app.vetra.disease.service.VaccinationAnalyticsService;
 import app.vetra.infrastructure.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -25,15 +29,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST controller providing endpoints for intelligent outbreak cluster intelligence, GeoJSON map
- * exports, spatial heatmaps, and disease registry.
+ * REST controller providing endpoints for outbreak cluster intelligence, GeoJSON map
+ * exports, spatial heatmaps, vaccination intelligence, and operational alert management.
  */
 @RestController
 @RequestMapping("/api/v1/disease")
 @Tag(
-    name = "Autonomous Disease Intelligence",
+    name = "Disease Intelligence & Operations",
     description =
-        "Endpoints for outbreak cluster intelligence, GeoJSON exports, spatial heatmaps, and registry")
+        "Endpoints for outbreak cluster intelligence, GeoJSON exports, alerts, and vaccination analytics")
 @SecurityRequirement(name = "bearerAuth")
 public class OutbreakController {
 
@@ -41,17 +45,23 @@ public class OutbreakController {
   private final GeoJsonService geoJsonService;
   private final DiseaseAnalyticsService analyticsService;
   private final DiseaseRegistryService registryService;
+  private final VaccinationAnalyticsService vaccinationAnalyticsService;
+  private final OperationalAlertService operationalAlertService;
 
   /** Constructor injection. */
   public OutbreakController(
       DiseaseService diseaseService,
       GeoJsonService geoJsonService,
       DiseaseAnalyticsService analyticsService,
-      DiseaseRegistryService registryService) {
+      DiseaseRegistryService registryService,
+      VaccinationAnalyticsService vaccinationAnalyticsService,
+      OperationalAlertService operationalAlertService) {
     this.diseaseService = diseaseService;
     this.geoJsonService = geoJsonService;
     this.analyticsService = analyticsService;
     this.registryService = registryService;
+    this.vaccinationAnalyticsService = vaccinationAnalyticsService;
+    this.operationalAlertService = operationalAlertService;
   }
 
   /** Lists active or historical disease outbreaks. */
@@ -158,5 +168,35 @@ public class OutbreakController {
       @PathVariable("id") UUID id) {
     List<DiseaseReportResponse> response = diseaseService.getReportsForOutbreak(id);
     return ApiResponse.ok("Outbreak cluster reports retrieved successfully", response);
+  }
+
+  /** Generates regional livestock vaccination intelligence and pathogen coverage metrics. */
+  @GetMapping("/vaccination/analytics")
+  @Operation(
+      summary = "Get Vaccination Intelligence Analytics",
+      description = "Retrieves aggregated livestock vaccination coverage and regional immunity gap data.")
+  public ApiResponse<VaccinationAnalyticsResponse> getVaccinationAnalytics() {
+    VaccinationAnalyticsResponse response = vaccinationAnalyticsService.getVaccinationAnalytics();
+    return ApiResponse.ok("Vaccination analytics retrieved successfully", response);
+  }
+
+  /** Lists active operational surveillance alerts and critical priority events. */
+  @GetMapping("/alerts")
+  @Operation(
+      summary = "List Operational Surveillance Alerts",
+      description = "Retrieves deterministic operational surveillance alerts synthesized from active clusters.")
+  public ApiResponse<List<OperationalAlertResponse>> listOperationalAlerts() {
+    List<OperationalAlertResponse> response = operationalAlertService.listOperationalAlerts();
+    return ApiResponse.ok("Operational alerts retrieved successfully", response);
+  }
+
+  /** Retrieves details of a specific operational surveillance alert by UUID. */
+  @GetMapping("/alerts/{id}")
+  @Operation(
+      summary = "Get Operational Alert by ID",
+      description = "Retrieves details of a specific operational surveillance alert by UUID.")
+  public ApiResponse<OperationalAlertResponse> getAlertById(@PathVariable("id") UUID id) {
+    OperationalAlertResponse response = operationalAlertService.getAlertById(id);
+    return ApiResponse.ok("Operational alert details retrieved successfully", response);
   }
 }

@@ -70,6 +70,34 @@ public class VetProfile extends BaseEntity {
   @Column(name = "longitude")
   private Double longitude;
 
+  @Column(name = "shift_schedule", columnDefinition = "TEXT")
+  private String shiftSchedule;
+
+  @Column(name = "profile_photo_url", columnDefinition = "TEXT")
+  private String profilePhotoUrl;
+
+  @Column(name = "certificate_url", columnDefinition = "TEXT")
+  private String certificateUrl;
+
+  @Column(name = "clinic_address")
+  private String clinicAddress;
+
+  @Column(name = "village")
+  private String village;
+
+  @Column(name = "taluka")
+  private String taluka;
+
+  @Column(name = "district")
+  private String district;
+
+  @Column(name = "state")
+  private String state;
+
+  @Builder.Default
+  @Column(name = "certificate_status", nullable = false, length = 30)
+  private String certificateStatus = "PENDING_VERIFICATION";
+
   public User getUser() {
     return user;
   }
@@ -170,6 +198,78 @@ public class VetProfile extends BaseEntity {
     this.longitude = longitude;
   }
 
+  public String getShiftSchedule() {
+    return shiftSchedule;
+  }
+
+  public void setShiftSchedule(String shiftSchedule) {
+    this.shiftSchedule = shiftSchedule;
+  }
+
+  public String getProfilePhotoUrl() {
+    return profilePhotoUrl;
+  }
+
+  public void setProfilePhotoUrl(String profilePhotoUrl) {
+    this.profilePhotoUrl = profilePhotoUrl;
+  }
+
+  public String getCertificateUrl() {
+    return certificateUrl;
+  }
+
+  public void setCertificateUrl(String certificateUrl) {
+    this.certificateUrl = certificateUrl;
+  }
+
+  public String getClinicAddress() {
+    return clinicAddress;
+  }
+
+  public void setClinicAddress(String clinicAddress) {
+    this.clinicAddress = clinicAddress;
+  }
+
+  public String getCertificateStatus() {
+    return certificateStatus;
+  }
+
+  public void setCertificateStatus(String certificateStatus) {
+    this.certificateStatus = certificateStatus;
+  }
+
+  public String getVillage() {
+    return village;
+  }
+
+  public void setVillage(String village) {
+    this.village = village;
+  }
+
+  public String getTaluka() {
+    return taluka;
+  }
+
+  public void setTaluka(String taluka) {
+    this.taluka = taluka;
+  }
+
+  public String getDistrict() {
+    return district;
+  }
+
+  public void setDistrict(String district) {
+    this.district = district;
+  }
+
+  public String getState() {
+    return state;
+  }
+
+  public void setState(String state) {
+    this.state = state;
+  }
+
   public static VetProfileBuilder builder() {
     return new VetProfileBuilder();
   }
@@ -187,6 +287,15 @@ public class VetProfile extends BaseEntity {
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
     private Double latitude;
     private Double longitude;
+    private String shiftSchedule;
+    private String profilePhotoUrl;
+    private String certificateUrl;
+    private String clinicAddress;
+    private String village;
+    private String taluka;
+    private String district;
+    private String state;
+    private String certificateStatus = "PENDING_VERIFICATION";
 
     public VetProfileBuilder user(User user) {
       this.user = user;
@@ -248,6 +357,51 @@ public class VetProfile extends BaseEntity {
       return this;
     }
 
+    public VetProfileBuilder shiftSchedule(String shiftSchedule) {
+      this.shiftSchedule = shiftSchedule;
+      return this;
+    }
+
+    public VetProfileBuilder profilePhotoUrl(String profilePhotoUrl) {
+      this.profilePhotoUrl = profilePhotoUrl;
+      return this;
+    }
+
+    public VetProfileBuilder certificateUrl(String certificateUrl) {
+      this.certificateUrl = certificateUrl;
+      return this;
+    }
+
+    public VetProfileBuilder clinicAddress(String clinicAddress) {
+      this.clinicAddress = clinicAddress;
+      return this;
+    }
+
+    public VetProfileBuilder village(String village) {
+      this.village = village;
+      return this;
+    }
+
+    public VetProfileBuilder taluka(String taluka) {
+      this.taluka = taluka;
+      return this;
+    }
+
+    public VetProfileBuilder district(String district) {
+      this.district = district;
+      return this;
+    }
+
+    public VetProfileBuilder state(String state) {
+      this.state = state;
+      return this;
+    }
+
+    public VetProfileBuilder certificateStatus(String certificateStatus) {
+      this.certificateStatus = certificateStatus;
+      return this;
+    }
+
     public VetProfile build() {
       VetProfile profile = new VetProfile();
       profile.setUser(this.user);
@@ -263,6 +417,16 @@ public class VetProfile extends BaseEntity {
           this.verificationStatus != null ? this.verificationStatus : VerificationStatus.PENDING);
       profile.setLatitude(this.latitude);
       profile.setLongitude(this.longitude);
+      profile.setShiftSchedule(this.shiftSchedule);
+      profile.setProfilePhotoUrl(this.profilePhotoUrl);
+      profile.setCertificateUrl(this.certificateUrl);
+      profile.setClinicAddress(this.clinicAddress);
+      profile.setVillage(this.village);
+      profile.setTaluka(this.taluka);
+      profile.setDistrict(this.district);
+      profile.setState(this.state);
+      profile.setCertificateStatus(
+          this.certificateStatus != null ? this.certificateStatus : "PENDING_VERIFICATION");
       return profile;
     }
   }

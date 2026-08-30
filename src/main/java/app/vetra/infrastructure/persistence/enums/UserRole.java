@@ -4,5 +4,6 @@ package app.vetra.infrastructure.persistence.enums;
 public enum UserRole {
   FARMER,
   VETERINARIAN,
-  ADMINISTRATOR
+  ADMINISTRATOR,
+  GOVERNMENT_OFFICER
 }

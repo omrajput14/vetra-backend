@@ -20,6 +20,9 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.notification.entity.NotificationChannel;
+import app.vetra.notification.entity.NotificationPriority;
+import app.vetra.notification.service.NotificationService;
 import io.micrometer.tracing.Tracer;
 import java.time.LocalDate;
 import java.util.List;
@@ -43,6 +46,7 @@ public class AppointmentService {
   private final AnimalRepository animalRepository;
   private final VetraMetrics vetraMetrics;
   private final Tracer tracer;
+  private final NotificationService notificationService;
 
   /** Constructor injection. */
   public AppointmentService(
@@ -52,7 +56,8 @@ public class AppointmentService {
       VetProfileRepository vetProfileRepository,
       AnimalRepository animalRepository,
       VetraMetrics vetraMetrics,
-      Tracer tracer) {
+      Tracer tracer,
+      NotificationService notificationService) {
     this.appointmentRepository = appointmentRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
@@ -60,6 +65,7 @@ public class AppointmentService {
     this.animalRepository = animalRepository;
     this.vetraMetrics = vetraMetrics;
     this.tracer = tracer;
+    this.notificationService = notificationService;
   }
 
   /** Creates a new appointment for the authenticated farmer. */
@@ -104,6 +110,12 @@ public class AppointmentService {
             .orElseThrow(
                 () -> new ResourceNotFoundException("Veterinarian profile not found", "USER_004"));
 
+    if (!vet.isAvailable()
+        && request.visitType() != app.vetra.infrastructure.persistence.enums.VisitType.EMERGENCY) {
+      throw new BusinessRuleException(
+          "Veterinarian is currently marked unavailable for routine consultations", "APPT_008");
+    }
+
     Appointment appointment =
         Appointment.builder()
             .farmer(farmer)
@@ -118,6 +130,29 @@ public class AppointmentService {
 
     Appointment saved = appointmentRepository.save(appointment);
     vetraMetrics.recordAppointmentCreated();
+
+    if (notificationService != null) {
+      try {
+        String animalLabel = animal.getAnimalName() != null ? animal.getAnimalName() : animal.getTagNumber();
+        notificationService.sendNotification(
+            farmer.getUser().getId(),
+            "Appointment Requested",
+            "Appointment requested with Dr. " + vet.getFullName() + " on " + request.appointmentDate() + " for " + animalLabel + ".",
+            "{\"appointmentId\":\"" + saved.getId() + "\",\"route\":\"/appointment-details?id=" + saved.getId() + "\"}",
+            NotificationChannel.PUSH,
+            NotificationPriority.NORMAL);
+
+        notificationService.sendNotification(
+            vet.getUser().getId(),
+            "New Consultation Request",
+            farmer.getFullName() + " requested a consultation for " + animalLabel + " on " + request.appointmentDate() + ".",
+            "{\"appointmentId\":\"" + saved.getId() + "\",\"route\":\"/appointment-details?id=" + saved.getId() + "\"}",
+            NotificationChannel.PUSH,
+            NotificationPriority.NORMAL);
+      } catch (Exception e) {
+        // Non-blocking notification
+      }
+    }
 
     // Tag span with appointment visit type — enum value, bounded cardinality, no PII.
     if (tracer.currentSpan() != null && request.visitType() != null) {
@@ -232,6 +267,30 @@ public class AppointmentService {
         user, appointment, request.status(), request.notes(), request.cancellationReason());
 
     Appointment updated = appointmentRepository.save(appointment);
+
+    if (notificationService != null && (request.status() == AppointmentStatus.CONFIRMED
+        || request.status() == AppointmentStatus.CANCELLED
+        || request.status() == AppointmentStatus.REJECTED)) {
+      try {
+        String title = request.status() == AppointmentStatus.CONFIRMED
+            ? "Appointment Confirmed"
+            : "Appointment Cancelled";
+        String body = request.status() == AppointmentStatus.CONFIRMED
+            ? "Dr. " + appointment.getVeterinarian().getFullName() + " confirmed your appointment on " + appointment.getAppointmentDate() + "."
+            : "Appointment on " + appointment.getAppointmentDate() + " with Dr. " + appointment.getVeterinarian().getFullName() + " was cancelled. Please book another appointment if veterinary care is still required.";
+
+        notificationService.sendNotification(
+            appointment.getFarmer().getUser().getId(),
+            title,
+            body,
+            "{\"appointmentId\":\"" + appointment.getId() + "\",\"route\":\"/appointment-details?id=" + appointment.getId() + "\"}",
+            NotificationChannel.PUSH,
+            NotificationPriority.HIGH);
+      } catch (Exception e) {
+        // Non-blocking notification
+      }
+    }
+
     return AppointmentResponse.fromEntity(updated);
   }
 

@@ -3,6 +3,7 @@ package app.vetra.animal.dto;
 import app.vetra.infrastructure.persistence.entity.AnimalHealthRecord;
 import app.vetra.infrastructure.persistence.enums.HealthRecordSource;
 import app.vetra.infrastructure.persistence.enums.HealthRecordType;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -20,6 +21,10 @@ public record AnimalHealthRecordDto(
     String treatment,
     UUID veterinarianId,
     String veterinarianName,
+    String documentUrl,
+    String vaccineName,
+    LocalDate nextDueDate,
+    String batchNumber,
     LocalDateTime recordedAt,
     LocalDateTime createdAt) {
 
@@ -37,6 +42,10 @@ public record AnimalHealthRecordDto(
         record.getTreatment(),
         record.getVeterinarianId(),
         record.getVeterinarianName(),
+        record.getDocumentUrl(),
+        record.getVaccineName(),
+        record.getNextDueDate(),
+        record.getBatchNumber(),
         record.getRecordedAt(),
         record.getCreatedAt() != null
             ? LocalDateTime.ofInstant(record.getCreatedAt(), ZoneOffset.UTC)

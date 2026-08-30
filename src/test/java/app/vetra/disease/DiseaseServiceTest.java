@@ -420,4 +420,118 @@ class DiseaseServiceTest {
     assertEquals("Foot and Mouth Disease", activeCluster.diseaseName());
     assertEquals(OutbreakStatus.ACTIVE, activeCluster.status());
   }
+
+  @Test
+  void testFarmerCreatesSuspectedDiseaseReportForOwnAnimalSuccess() {
+    authService.registerFarmer(
+        new FarmerRegisterRequest(
+            "farmer_surv1@vetra.app",
+            "+1555888991",
+            "pass123",
+            "Farmer Ramesh",
+            "Ramesh Dairy",
+            "Baramati",
+            "Pune",
+            "Maharashtra",
+            18.1512,
+            74.5772,
+            12));
+
+    AnimalResponse animal =
+        animalService.createAnimal(
+            "farmer_surv1@vetra.app",
+            new CreateAnimalRequest(
+                "Sundari",
+                "TAG-SURV-01",
+                "QR-SURV-01",
+                Species.BUFFALO,
+                "Murrah",
+                AnimalGender.FEMALE,
+                LocalDate.now().minusYears(3),
+                null));
+
+    CreateDiseaseReportRequest request =
+        new CreateDiseaseReportRequest(
+            animal.id(),
+            null,
+            null,
+            DiseaseReportSource.MANUAL,
+            null,
+            "Foot and Mouth Disease (Suspected)",
+            DiagnosisStatus.SUSPECTED,
+            18.1512,
+            74.5772,
+            "High fever, excess salivation, and foot lesions observed");
+
+    DiseaseReportResponse response =
+        diseaseService.createReport("farmer_surv1@vetra.app", request);
+
+    assertNotNull(response.id());
+    assertEquals("Foot and Mouth Disease (Suspected)", response.diseaseName());
+    assertEquals(DiagnosisStatus.SUSPECTED, response.diagnosisStatus());
+    assertEquals(18.1512, response.latitude());
+    assertEquals(74.5772, response.longitude());
+    assertEquals(animal.id(), response.animalId());
+  }
+
+  @Test
+  void testFarmerCannotCreateDiseaseReportForOtherFarmerAnimal() {
+    authService.registerFarmer(
+        new FarmerRegisterRequest(
+            "farmer_ownerA@vetra.app",
+            "+1555888992",
+            "pass123",
+            "Farmer A",
+            "Farm A",
+            "Haveli",
+            "Pune",
+            "Maharashtra",
+            18.5204,
+            73.8567,
+            5));
+
+    authService.registerFarmer(
+        new FarmerRegisterRequest(
+            "farmer_intruderB@vetra.app",
+            "+1555888993",
+            "pass123",
+            "Farmer B",
+            "Farm B",
+            "Khed",
+            "Pune",
+            "Maharashtra",
+            18.6000,
+            73.9000,
+            8));
+
+    AnimalResponse animalA =
+        animalService.createAnimal(
+            "farmer_ownerA@vetra.app",
+            new CreateAnimalRequest(
+                "Gauri",
+                "TAG-OWN-01",
+                "QR-OWN-01",
+                Species.CATTLE,
+                "Gir",
+                AnimalGender.FEMALE,
+                LocalDate.now().minusYears(2),
+                null));
+
+    CreateDiseaseReportRequest illegalRequest =
+        new CreateDiseaseReportRequest(
+            animalA.id(),
+            null,
+            null,
+            DiseaseReportSource.MANUAL,
+            null,
+            "Lumpy Skin Disease (Suspected)",
+            DiagnosisStatus.SUSPECTED,
+            18.6000,
+            73.9000,
+            "Attempting to report for someone else's cow");
+
+    assertThrows(
+        app.vetra.infrastructure.exception.UnauthorizedResourceAccessException.class,
+        () -> diseaseService.createReport("farmer_intruderB@vetra.app", illegalRequest));
+  }
 }

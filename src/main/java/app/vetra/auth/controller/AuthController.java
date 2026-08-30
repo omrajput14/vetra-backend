@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -83,6 +84,16 @@ public class AuthController {
     return ApiResponse.ok("Veterinarian login successful", response);
   }
 
+  /** Authenticates user credentials for any system role (Government, Admin, Vet, Farmer). */
+  @PostMapping("/login")
+  @Operation(
+      summary = "System User Login",
+      description = "Authenticates user credentials across roles and returns JWT tokens")
+  public ApiResponse<AuthResponse> loginUser(@Valid @RequestBody LoginRequest request) {
+    AuthResponse response = authService.loginUser(request);
+    return ApiResponse.ok("Login successful", response);
+  }
+
   /** Refreshes JWT access token using valid refresh token. */
   @PostMapping("/refresh")
   @Operation(
@@ -129,13 +140,35 @@ public class AuthController {
     return ApiResponse.ok("Profile updated successfully", response);
   }
 
-  /** Lists all registered veterinarians. */
+  /** Lists or discovers registered veterinarians by proximity and administrative location. */
   @GetMapping("/vets")
   @Operation(
-      summary = "List Veterinarians",
-      description = "Returns directory of all registered veterinarians")
-  public ApiResponse<java.util.List<app.vetra.auth.dto.VetSummaryDto>> listVets() {
-    java.util.List<app.vetra.auth.dto.VetSummaryDto> response = authService.listVeterinarians();
+      summary = "List or Search Nearby Veterinarians",
+      description =
+          "Returns directory of registered veterinarians with hierarchical proximity matching"
+              + " (GPS radius, village, taluka, district)")
+  public ApiResponse<java.util.List<app.vetra.auth.dto.VetSummaryDto>> listVets(
+      @RequestParam(required = false) Double latitude,
+      @RequestParam(required = false) Double longitude,
+      @RequestParam(required = false, defaultValue = "50.0") Double radiusKm,
+      @RequestParam(required = false) String village,
+      @RequestParam(required = false) String taluka,
+      @RequestParam(required = false) String district) {
+    if (latitude != null && (latitude < -90.0 || latitude > 90.0)) {
+      throw new app.vetra.infrastructure.exception.BusinessRuleException(
+          "Latitude must be between -90.0 and 90.0", "LOC_001");
+    }
+    if (longitude != null && (longitude < -180.0 || longitude > 180.0)) {
+      throw new app.vetra.infrastructure.exception.BusinessRuleException(
+          "Longitude must be between -180.0 and 180.0", "LOC_002");
+    }
+    if (radiusKm != null && radiusKm <= 0) {
+      throw new app.vetra.infrastructure.exception.BusinessRuleException(
+          "Radius must be greater than 0", "LOC_003");
+    }
+    java.util.List<app.vetra.auth.dto.VetSummaryDto> response =
+        authService.searchNearbyVeterinarians(
+            latitude, longitude, radiusKm, village, taluka, district);
     return ApiResponse.ok("Veterinarians retrieved successfully", response);
   }
 }

@@ -111,44 +111,10 @@ public class DiseaseService {
                     new ResourceNotFoundException(
                         "Animal not found with ID: " + request.animalId(), "ANIMAL_001"));
 
-    // Business Rule: Unverified AI scans cannot generate disease reports directly
-    AIScan aiScan = null;
-    if (request.aiScanId() != null) {
-      aiScan =
-          aiScanRepository
-              .findById(request.aiScanId())
-              .orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "AI scan not found: " + request.aiScanId(), "AI_001"));
-
-      if (aiScan.getStatus() != AIScanStatus.VERIFIED) {
-        throw new BusinessRuleException(
-            "Unverified AI diagnostic predictions cannot generate disease reports directly",
-            "DISEASE_001");
-      }
-    }
-
-    if (request.reportSource() == DiseaseReportSource.AI_VERIFIED && aiScan == null) {
-      throw new BusinessRuleException(
-          "AI_VERIFIED report source requires a verified AI scan reference", "DISEASE_002");
-    }
-
-    MedicalRecord medicalRecord = null;
-    if (request.medicalRecordId() != null) {
-      medicalRecord =
-          medicalRecordRepository
-              .findById(request.medicalRecordId())
-              .orElseThrow(
-                  () -> new ResourceNotFoundException("Medical record not found", "MEDICAL_001"));
-    }
-
-    DiagnosisConfidenceSource confidenceSource =
-        request.diagnosisConfidenceSource() != null
-            ? request.diagnosisConfidenceSource()
-            : (request.reportSource() == DiseaseReportSource.AI_VERIFIED
-                ? DiagnosisConfidenceSource.AI_VERIFIED
-                : DiagnosisConfidenceSource.VETERINARIAN);
+    validateFarmerOwnership(user, animal);
+    AIScan aiScan = resolveAiScan(request);
+    MedicalRecord medicalRecord = resolveMedicalRecord(request);
+    DiagnosisConfidenceSource confidenceSource = resolveConfidenceSource(request);
 
     DiseaseReport report =
         DiseaseReport.builder()
@@ -366,6 +332,63 @@ public class DiseaseService {
                     new ResourceNotFoundException(
                         "Outbreak cluster not found with ID: " + id, "DISEASE_005"));
     return OutbreakResponse.fromEntity(outbreak);
+  }
+
+  private void validateFarmerOwnership(User user, Animal animal) {
+    if (user.getRole() == UserRole.FARMER) {
+      if (animal.getFarmer() == null
+          || animal.getFarmer().getUser() == null
+          || !animal.getFarmer().getUser().getId().equals(user.getId())) {
+        throw new UnauthorizedResourceAccessException(
+            "Farmers can only submit disease reports for their own registered animals",
+            "ANIMAL_AUTH_001");
+      }
+    }
+  }
+
+  private AIScan resolveAiScan(CreateDiseaseReportRequest request) {
+    if (request.aiScanId() == null) {
+      if (request.reportSource() == DiseaseReportSource.AI_VERIFIED) {
+        throw new BusinessRuleException(
+            "AI_VERIFIED report source requires a verified AI scan reference", "DISEASE_002");
+      }
+      return null;
+    }
+
+    AIScan aiScan =
+        aiScanRepository
+            .findById(request.aiScanId())
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "AI scan not found: " + request.aiScanId(), "AI_001"));
+
+    if (aiScan.getStatus() != AIScanStatus.VERIFIED) {
+      throw new BusinessRuleException(
+          "Unverified AI diagnostic predictions cannot generate disease reports directly",
+          "DISEASE_001");
+    }
+    return aiScan;
+  }
+
+  private MedicalRecord resolveMedicalRecord(CreateDiseaseReportRequest request) {
+    if (request.medicalRecordId() == null) {
+      return null;
+    }
+    return medicalRecordRepository
+        .findById(request.medicalRecordId())
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Medical record not found", "MEDICAL_001"));
+  }
+
+  private DiagnosisConfidenceSource resolveConfidenceSource(CreateDiseaseReportRequest request) {
+    if (request.diagnosisConfidenceSource() != null) {
+      return request.diagnosisConfidenceSource();
+    }
+    if (request.reportSource() == DiseaseReportSource.AI_VERIFIED) {
+      return DiagnosisConfidenceSource.AI_VERIFIED;
+    }
+    return DiagnosisConfidenceSource.VETERINARIAN;
   }
 
   private User getUserByEmailOrPhone(String identifier) {

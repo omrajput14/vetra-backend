@@ -27,6 +27,7 @@ public class SecurityConfig {
   /** Public endpoints that do not require authentication. */
   private static final String[] PUBLIC_ENDPOINTS = {
     // Auth public endpoints
+    "/api/v1/auth/login",
     "/api/v1/auth/farmer/register",
     "/api/v1/auth/farmer/login",
     "/api/v1/auth/vet/register",

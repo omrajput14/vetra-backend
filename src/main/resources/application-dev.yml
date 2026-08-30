@@ -17,7 +17,7 @@ vetra:
     refresh-expiration-ms: 604800000
 
   cors:
-    allowed-origins: "http://localhost:3000,http://localhost:8080"
+    allowed-origins: "http://localhost:3000,http://localhost:3001,http://localhost:8080"
 
   aws:
     credentials:

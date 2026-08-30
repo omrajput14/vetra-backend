@@ -41,8 +41,10 @@ public class AuthService {
   private final RefreshTokenService refreshTokenService;
   private final VetraMetrics vetraMetrics;
   private final Tracer tracer;
+  private final VetDiscoveryService vetDiscoveryService;
 
   /** Constructor injection. */
+  @SuppressWarnings("checkstyle:ParameterNumber")
   public AuthService(
       UserRepository userRepository,
       FarmerProfileRepository farmerProfileRepository,
@@ -51,7 +53,8 @@ public class AuthService {
       JwtUtil jwtUtil,
       RefreshTokenService refreshTokenService,
       VetraMetrics vetraMetrics,
-      Tracer tracer) {
+      Tracer tracer,
+      VetDiscoveryService vetDiscoveryService) {
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
@@ -60,6 +63,7 @@ public class AuthService {
     this.refreshTokenService = refreshTokenService;
     this.vetraMetrics = vetraMetrics;
     this.tracer = tracer;
+    this.vetDiscoveryService = vetDiscoveryService;
   }
 
   /** Registers a farmer user and profile. */
@@ -146,12 +150,18 @@ public class AuthService {
             .qualification(request.qualification())
             .specialization(request.specialization())
             .clinicName(request.clinicName())
+            .clinicAddress(request.clinicAddress())
+            .village(request.village())
+            .taluka(request.taluka())
+            .district(request.district())
+            .state(request.state())
             .yearsExperience(request.yearsExperience())
             .latitude(request.latitude())
             .longitude(request.longitude())
             .isAvailable(true)
             .emergencyAvailable(true)
-            .verificationStatus(app.vetra.infrastructure.persistence.enums.VerificationStatus.PENDING)
+            .verificationStatus(
+                app.vetra.infrastructure.persistence.enums.VerificationStatus.PENDING)
             .build();
 
     vetProfileRepository.save(profile);
@@ -200,6 +210,25 @@ public class AuthService {
       vetraMetrics.recordVetLoginFailure();
       throw ex;
     }
+  }
+
+  /** Authenticates any valid system user credentials (Government, Admin, Vet, Farmer). */
+  @Transactional
+  public AuthResponse loginUser(LoginRequest request) {
+    User user =
+        userRepository
+            .findByIdentifier(request.identifier())
+            .orElseThrow(
+                () -> new UnauthorizedResourceAccessException("Invalid credentials", "AUTH_001"));
+    if (!user.isActive()) {
+      throw new UnauthorizedResourceAccessException("User account is inactive", "AUTH_002");
+    }
+    if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+      throw new UnauthorizedResourceAccessException("Invalid credentials", "AUTH_001");
+    }
+    tagSpanWithRole(user.getRole());
+    UserProfileDto profileDto = getCurrentUserProfileDto(user);
+    return createAuthResponse(user, profileDto);
   }
 
   /** Refreshes access token and rotates refresh token using raw token string. */
@@ -271,64 +300,56 @@ public class AuthService {
     return getCurrentUserProfileDto(user);
   }
 
-  private void updateFarmerProfile(User user, UpdateProfileRequest request) {
-    FarmerProfile profile =
-        farmerProfileRepository
-            .findByUser(user)
-            .orElseGet(() -> FarmerProfile.builder().user(user).build());
-    if (request.fullName() != null && !request.fullName().isBlank()) {
-      profile.setFullName(request.fullName());
+  private <T> void setIfNotNull(T value, java.util.function.Consumer<T> setter) {
+    if (value != null) {
+      setter.accept(value);
     }
-    if (request.farmName() != null) {
-      profile.setFarmName(request.farmName());
-    }
-    if (request.village() != null) {
-      profile.setVillage(request.village());
-    }
-    if (request.taluka() != null) {
-      profile.setTaluka(request.taluka());
-    }
-    if (request.district() != null) {
-      profile.setDistrict(request.district());
-    }
-    if (request.state() != null) {
-      profile.setState(request.state());
-    }
-    if (request.latitude() != null) {
-      profile.setLatitude(request.latitude());
-    }
-    if (request.longitude() != null) {
-      profile.setLongitude(request.longitude());
-    }
-    farmerProfileRepository.save(profile);
   }
 
-  private void updateVetProfile(User user, UpdateProfileRequest request) {
-    VetProfile profile =
-        vetProfileRepository
-            .findByUser(user)
-            .orElseGet(
-                () ->
-                    VetProfile.builder()
-                        .user(user)
-                        .registrationNumber("VET-" + System.currentTimeMillis())
-                        .build());
-    if (request.fullName() != null && !request.fullName().isBlank()) {
-      profile.setFullName(request.fullName());
+  private void updateFarmerProfile(User user, UpdateProfileRequest req) {
+    FarmerProfile p = farmerProfileRepository.findByUser(user)
+        .orElseGet(() -> FarmerProfile.builder().user(user).build());
+    if (req.fullName() != null && !req.fullName().isBlank()) {
+      p.setFullName(req.fullName());
     }
-    if (request.clinicName() != null) {
-      profile.setClinicName(request.clinicName());
+    setIfNotNull(req.farmName(), p::setFarmName);
+    setIfNotNull(req.village(), p::setVillage);
+    setIfNotNull(req.taluka(), p::setTaluka);
+    setIfNotNull(req.district(), p::setDistrict);
+    setIfNotNull(req.state(), p::setState);
+    setIfNotNull(req.latitude(), p::setLatitude);
+    setIfNotNull(req.longitude(), p::setLongitude);
+    setIfNotNull(req.profilePhotoUrl(), p::setProfilePhotoUrl);
+    farmerProfileRepository.save(p);
+  }
+
+  private void updateVetProfile(User user, UpdateProfileRequest req) {
+    VetProfile p = vetProfileRepository.findByUser(user)
+        .orElseGet(() -> VetProfile.builder().user(user)
+            .registrationNumber("VET-" + System.currentTimeMillis()).build());
+    if (req.fullName() != null && !req.fullName().isBlank()) {
+      p.setFullName(req.fullName());
     }
-    if (request.specialization() != null) {
-      profile.setSpecialization(request.specialization());
+    setIfNotNull(req.clinicName(), p::setClinicName);
+    setIfNotNull(req.clinicAddress(), p::setClinicAddress);
+    setIfNotNull(req.village(), p::setVillage);
+    setIfNotNull(req.taluka(), p::setTaluka);
+    setIfNotNull(req.district(), p::setDistrict);
+    setIfNotNull(req.state(), p::setState);
+    setIfNotNull(req.specialization(), p::setSpecialization);
+    setIfNotNull(req.qualification(), p::setQualification);
+    setIfNotNull(req.yearsExperience(), p::setYearsExperience);
+    setIfNotNull(req.isAvailable(), p::setAvailable);
+    setIfNotNull(req.emergencyAvailable(), p::setEmergencyAvailable);
+    setIfNotNull(req.shiftSchedule(), p::setShiftSchedule);
+    setIfNotNull(req.latitude(), p::setLatitude);
+    setIfNotNull(req.longitude(), p::setLongitude);
+    setIfNotNull(req.profilePhotoUrl(), p::setProfilePhotoUrl);
+    if (req.certificateUrl() != null) {
+      p.setCertificateUrl(req.certificateUrl());
+      p.setCertificateStatus("UPLOADED");
     }
-    if (request.qualification() != null) {
-      profile.setQualification(request.qualification());
-    }
-    if (request.yearsExperience() != null) {
-      profile.setYearsExperience(request.yearsExperience());
-    }
-    vetProfileRepository.save(profile);
+    vetProfileRepository.save(p);
   }
 
   /** Retrieves user profile DTO for authenticated user. */
@@ -400,87 +421,60 @@ public class AuthService {
       return mapVetProfileToDto(user, profile);
     }
     return new UserProfileDto(
-        user.getId(),
-        user.getEmail(),
-        user.getPhone(),
-        user.getRole(),
-        user.isActive(),
-        user.getPreferredLanguage(),
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
+        user.getId(), user.getEmail(), user.getPhone(), user.getRole(),
+        user.isActive(), user.getPreferredLanguage(),
+        null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null);
   }
 
-  /** Retrieves list of verified registered veterinarians for directory and booking pickers. */
+  /**
+   * Discovers and ranks nearby veterinarians using hierarchical matching.
+   *
+   * @param lat farmer latitude (optional)
+   * @param lng farmer longitude (optional)
+   * @param radiusKm search radius in kilometers (optional, defaults to 50.0)
+   * @param village farmer village (optional)
+   * @param taluka farmer taluka (optional)
+   * @param district farmer district (optional)
+   * @return prioritized list of veterinarian summary DTOs
+   */
+  @Transactional(readOnly = true)
+  public java.util.List<app.vetra.auth.dto.VetSummaryDto> searchNearbyVeterinarians(
+      Double lat, Double lng, Double radiusKm, String village, String taluka, String district) {
+    return vetDiscoveryService.searchNearbyVeterinarians(
+        lat, lng, radiusKm, village, taluka, district);
+  }
+
+  /** Retrieves list of registered veterinarians for directory and booking pickers. */
   @Transactional(readOnly = true)
   public java.util.List<app.vetra.auth.dto.VetSummaryDto> listVeterinarians() {
-    return vetProfileRepository
-        .findByVerificationStatus(
-            app.vetra.infrastructure.persistence.enums.VerificationStatus.VERIFIED)
-        .stream()
-        .map(app.vetra.auth.dto.VetSummaryDto::fromEntity)
-        .toList();
+    return vetDiscoveryService.searchNearbyVeterinarians(null, null, null, null, null, null);
   }
 
   private UserProfileDto mapFarmerProfileToDto(User user, FarmerProfile p) {
-    return new UserProfileDto(
-        user.getId(),
-        user.getEmail(),
-        user.getPhone(),
-        user.getRole(),
-        user.isActive(),
-        user.getPreferredLanguage(),
-        p != null ? p.getFullName() : null,
-        p != null ? p.getFarmName() : null,
-        p != null ? p.getVillage() : null,
-        p != null ? p.getTaluka() : null,
-        p != null ? p.getDistrict() : null,
-        p != null ? p.getState() : null,
-        p != null ? p.getLatitude() : null,
-        p != null ? p.getLongitude() : null,
-        p != null ? p.getAnimalCount() : null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
+    if (p == null) {
+      return new UserProfileDto(user.getId(), user.getEmail(), user.getPhone(), user.getRole(),
+          user.isActive(), user.getPreferredLanguage(), null, null, null, null, null, null,
+          null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+    return new UserProfileDto(user.getId(), user.getEmail(), user.getPhone(), user.getRole(),
+        user.isActive(), user.getPreferredLanguage(), p.getFullName(), p.getFarmName(), p.getVillage(),
+        p.getTaluka(), p.getDistrict(), p.getState(), p.getLatitude(), p.getLongitude(), p.getAnimalCount(),
+        null, null, null, null, null, null, null, null, p.getProfilePhotoUrl(), null, null, null);
   }
 
   private UserProfileDto mapVetProfileToDto(User user, VetProfile v) {
-    return new UserProfileDto(
-        user.getId(),
-        user.getEmail(),
-        user.getPhone(),
-        user.getRole(),
-        user.isActive(),
-        user.getPreferredLanguage(),
-        v != null ? v.getFullName() : null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        v != null ? v.getLatitude() : null,
-        v != null ? v.getLongitude() : null,
-        null,
-        v != null ? v.getRegistrationNumber() : null,
-        v != null ? v.getQualification() : null,
-        v != null ? v.getSpecialization() : null,
-        v != null ? v.getClinicName() : null,
-        v != null ? v.getYearsExperience() : null,
-        v != null ? v.isAvailable() : null);
+    if (v == null) {
+      return new UserProfileDto(user.getId(), user.getEmail(), user.getPhone(), user.getRole(),
+          user.isActive(), user.getPreferredLanguage(), null, null, null, null, null, null,
+          null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    }
+    return new UserProfileDto(user.getId(), user.getEmail(), user.getPhone(), user.getRole(),
+        user.isActive(), user.getPreferredLanguage(), v.getFullName(), null, v.getVillage(),
+        v.getTaluka(), v.getDistrict(), v.getState(), v.getLatitude(), v.getLongitude(), null,
+        v.getRegistrationNumber(), v.getQualification(), v.getSpecialization(), v.getClinicName(),
+        v.getYearsExperience(), v.isAvailable(), v.isEmergencyAvailable(), v.getShiftSchedule(),
+        v.getProfilePhotoUrl(), v.getCertificateUrl(), v.getClinicAddress(), v.getCertificateStatus());
   }
 
   /**

@@ -1,6 +1,7 @@
 package app.vetra.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -361,5 +362,61 @@ class AuthServiceTest {
             5,
             "en");
     assertEquals(1, validator.validate(invalidLngNegReq).size());
+  }
+
+  @Test
+  void testUpdateVetProfileDutyAndEmergencyAvailabilityDisabled() {
+    app.vetra.auth.dto.VetRegisterRequest regReq =
+        new app.vetra.auth.dto.VetRegisterRequest(
+            "duty.vet@vetra.app",
+            "+919876500001",
+            "password123",
+            "Dr. Duty Test",
+            "REG-DUTY-01",
+            "BVSc",
+            "Surgery",
+            "City Clinic",
+            "Main Street",
+            "Baramati",
+            "Baramati",
+            "Pune",
+            "Maharashtra",
+            5,
+            18.5204,
+            73.8567,
+            "en");
+
+    authService.registerVet(regReq);
+
+    // Disable both General Consultation and Emergency Response
+    app.vetra.auth.dto.UpdateProfileRequest updateReq =
+        new app.vetra.auth.dto.UpdateProfileRequest(
+            "Dr. Duty Test",
+            "+919876500001",
+            null,
+            "Baramati",
+            "Baramati",
+            "Pune",
+            "Maharashtra",
+            18.5204,
+            73.8567,
+            "City Clinic",
+            "Main Street",
+            "Surgery",
+            "BVSc",
+            5,
+            false,
+            false,
+            "{\"monday\":{\"isWorking\":false}}",
+            null,
+            null);
+
+    app.vetra.auth.dto.UserProfileDto updatedProfile =
+        authService.updateUserProfile("duty.vet@vetra.app", updateReq);
+
+    assertFalse(updatedProfile.isAvailable());
+    assertFalse(updatedProfile.available());
+    assertFalse(updatedProfile.emergencyAvailable());
+    assertFalse(updatedProfile.isEmergencyAvailable());
   }
 }

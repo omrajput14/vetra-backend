@@ -27,7 +27,25 @@ public record UserProfileDto(
     String specialization,
     String clinicName,
     Integer yearsExperience,
-    Boolean isAvailable) {
+    @com.fasterxml.jackson.annotation.JsonProperty("isAvailable")
+        Boolean isAvailable,
+    @com.fasterxml.jackson.annotation.JsonProperty("emergencyAvailable")
+        Boolean emergencyAvailable,
+    String shiftSchedule,
+    String profilePhotoUrl,
+    String certificateUrl,
+    String clinicAddress,
+    String certificateStatus) {
+
+  @com.fasterxml.jackson.annotation.JsonProperty("available")
+  public Boolean available() {
+    return isAvailable;
+  }
+
+  @com.fasterxml.jackson.annotation.JsonProperty("isEmergencyAvailable")
+  public Boolean isEmergencyAvailable() {
+    return emergencyAvailable;
+  }
 
   @SuppressWarnings("checkstyle:ParameterNumber")
   public UserProfileDto(
@@ -40,6 +58,7 @@ public record UserProfileDto(
       String fullName,
       String farmName,
       String village,
+      String taluka,
       String district,
       String state,
       Double latitude,
@@ -50,7 +69,9 @@ public record UserProfileDto(
       String specialization,
       String clinicName,
       Integer yearsExperience,
-      Boolean isAvailable) {
+      Boolean isAvailable,
+      Boolean emergencyAvailable,
+      String shiftSchedule) {
     this(
         id,
         email,
@@ -61,7 +82,7 @@ public record UserProfileDto(
         fullName,
         farmName,
         village,
-        null,
+        taluka,
         district,
         state,
         latitude,
@@ -72,51 +93,12 @@ public record UserProfileDto(
         specialization,
         clinicName,
         yearsExperience,
-        isAvailable);
-  }
-
-  @SuppressWarnings("checkstyle:ParameterNumber")
-  public UserProfileDto(
-      UUID id,
-      String email,
-      String phone,
-      UserRole role,
-      boolean isActive,
-      String fullName,
-      String farmName,
-      String village,
-      String district,
-      String state,
-      Double latitude,
-      Double longitude,
-      Integer animalCount,
-      String registrationNumber,
-      String qualification,
-      String specialization,
-      String clinicName,
-      Integer yearsExperience,
-      Boolean isAvailable) {
-    this(
-        id,
-        email,
-        phone,
-        role,
-        isActive,
-        "en",
-        fullName,
-        farmName,
-        village,
+        isAvailable,
+        emergencyAvailable,
+        shiftSchedule,
         null,
-        district,
-        state,
-        latitude,
-        longitude,
-        animalCount,
-        registrationNumber,
-        qualification,
-        specialization,
-        clinicName,
-        yearsExperience,
-        isAvailable);
+        null,
+        null,
+        null);
   }
 }

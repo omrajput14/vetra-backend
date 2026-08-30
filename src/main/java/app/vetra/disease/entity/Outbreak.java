@@ -9,15 +9,11 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /** Entity representing a disease outbreak cluster under active surveillance. */
 @Entity
 @Table(name = "outbreaks")
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -76,6 +72,41 @@ public class Outbreak extends BaseEntity {
 
   @Column(name = "resolution_reason", length = 128)
   private String resolutionReason;
+
+  // Multi-Signal Risk Intelligence Fields
+  @Column(name = "composite_risk_score")
+  @Builder.Default
+  private Integer compositeRiskScore = 50;
+
+  @Column(name = "cluster_score")
+  private Double clusterScore;
+
+  @Column(name = "weather_score")
+  private Double weatherScore;
+
+  @Column(name = "history_score")
+  private Double historyScore;
+
+  @Column(name = "vaccination_gap_score")
+  private Double vaccinationGapScore;
+
+  @Column(name = "weather_temperature")
+  private Double weatherTemperature;
+
+  @Column(name = "weather_humidity")
+  private Double weatherHumidity;
+
+  @Column(name = "weather_precipitation")
+  private Double weatherPrecipitation;
+
+  @Column(name = "vaccination_coverage_pct")
+  private Double vaccinationCoveragePct;
+
+  @Column(name = "risk_explanation", columnDefinition = "TEXT")
+  private String riskExplanation;
+
+  @Column(name = "recommended_action", columnDefinition = "TEXT")
+  private String recommendedAction;
 
   public String getDiseaseName() {
     return diseaseName;
@@ -189,113 +220,91 @@ public class Outbreak extends BaseEntity {
     this.resolutionReason = resolutionReason;
   }
 
-  public static OutbreakBuilder builder() {
-    return new OutbreakBuilder();
+  public Integer getCompositeRiskScore() {
+    return compositeRiskScore != null ? compositeRiskScore : 50;
   }
 
-  public static class OutbreakBuilder {
-    private String diseaseName;
-    private String severity = "MEDIUM";
-    private OutbreakStatus status = OutbreakStatus.ACTIVE;
-    private OutbreakRiskScore riskScore = OutbreakRiskScore.MEDIUM;
-    private OutbreakTrend trend = OutbreakTrend.STABLE;
-    private Double centerLatitude;
-    private Double centerLongitude;
-    private Double radiusKm = 10.0;
-    private Integer affectedReportsCount = 0;
-    private Integer evaluationWindowHours = 72;
-    private Instant lastCaseReportedAt = Instant.now();
-    private Instant lastEvaluatedAt = Instant.now();
-    private Instant resolvedAt;
-    private String resolutionReason;
+  public void setCompositeRiskScore(Integer compositeRiskScore) {
+    this.compositeRiskScore = compositeRiskScore;
+  }
 
-    public OutbreakBuilder diseaseName(String diseaseName) {
-      this.diseaseName = diseaseName;
-      return this;
-    }
+  public Double getClusterScore() {
+    return clusterScore;
+  }
 
-    public OutbreakBuilder severity(String severity) {
-      this.severity = severity;
-      return this;
-    }
+  public void setClusterScore(Double clusterScore) {
+    this.clusterScore = clusterScore;
+  }
 
-    public OutbreakBuilder status(OutbreakStatus status) {
-      this.status = status;
-      return this;
-    }
+  public Double getWeatherScore() {
+    return weatherScore;
+  }
 
-    public OutbreakBuilder riskScore(OutbreakRiskScore riskScore) {
-      this.riskScore = riskScore;
-      return this;
-    }
+  public void setWeatherScore(Double weatherScore) {
+    this.weatherScore = weatherScore;
+  }
 
-    public OutbreakBuilder trend(OutbreakTrend trend) {
-      this.trend = trend;
-      return this;
-    }
+  public Double getHistoryScore() {
+    return historyScore;
+  }
 
-    public OutbreakBuilder centerLatitude(Double centerLatitude) {
-      this.centerLatitude = centerLatitude;
-      return this;
-    }
+  public void setHistoryScore(Double historyScore) {
+    this.historyScore = historyScore;
+  }
 
-    public OutbreakBuilder centerLongitude(Double centerLongitude) {
-      this.centerLongitude = centerLongitude;
-      return this;
-    }
+  public Double getVaccinationGapScore() {
+    return vaccinationGapScore;
+  }
 
-    public OutbreakBuilder radiusKm(Double radiusKm) {
-      this.radiusKm = radiusKm;
-      return this;
-    }
+  public void setVaccinationGapScore(Double vaccinationGapScore) {
+    this.vaccinationGapScore = vaccinationGapScore;
+  }
 
-    public OutbreakBuilder affectedReportsCount(Integer affectedReportsCount) {
-      this.affectedReportsCount = affectedReportsCount;
-      return this;
-    }
+  public Double getWeatherTemperature() {
+    return weatherTemperature;
+  }
 
-    public OutbreakBuilder evaluationWindowHours(Integer evaluationWindowHours) {
-      this.evaluationWindowHours = evaluationWindowHours;
-      return this;
-    }
+  public void setWeatherTemperature(Double weatherTemperature) {
+    this.weatherTemperature = weatherTemperature;
+  }
 
-    public OutbreakBuilder lastCaseReportedAt(Instant lastCaseReportedAt) {
-      this.lastCaseReportedAt = lastCaseReportedAt;
-      return this;
-    }
+  public Double getWeatherHumidity() {
+    return weatherHumidity;
+  }
 
-    public OutbreakBuilder lastEvaluatedAt(Instant lastEvaluatedAt) {
-      this.lastEvaluatedAt = lastEvaluatedAt;
-      return this;
-    }
+  public void setWeatherHumidity(Double weatherHumidity) {
+    this.weatherHumidity = weatherHumidity;
+  }
 
-    public OutbreakBuilder resolvedAt(Instant resolvedAt) {
-      this.resolvedAt = resolvedAt;
-      return this;
-    }
+  public Double getWeatherPrecipitation() {
+    return weatherPrecipitation;
+  }
 
-    public OutbreakBuilder resolutionReason(String resolutionReason) {
-      this.resolutionReason = resolutionReason;
-      return this;
-    }
+  public void setWeatherPrecipitation(Double weatherPrecipitation) {
+    this.weatherPrecipitation = weatherPrecipitation;
+  }
 
-    public Outbreak build() {
-      Outbreak outbreak = new Outbreak();
-      outbreak.setDiseaseName(this.diseaseName);
-      outbreak.setSeverity(this.severity);
-      outbreak.setStatus(this.status);
-      outbreak.setRiskScore(this.riskScore);
-      outbreak.setTrend(this.trend);
-      outbreak.setCenterLatitude(this.centerLatitude);
-      outbreak.setCenterLongitude(this.centerLongitude);
-      outbreak.setRadiusKm(this.radiusKm);
-      outbreak.setAffectedReportsCount(this.affectedReportsCount);
-      outbreak.setEvaluationWindowHours(this.evaluationWindowHours);
-      outbreak.setLastCaseReportedAt(this.lastCaseReportedAt);
-      outbreak.setLastEvaluatedAt(this.lastEvaluatedAt);
-      outbreak.setResolvedAt(this.resolvedAt);
-      outbreak.setResolutionReason(this.resolutionReason);
-      return outbreak;
-    }
+  public Double getVaccinationCoveragePct() {
+    return vaccinationCoveragePct;
+  }
+
+  public void setVaccinationCoveragePct(Double vaccinationCoveragePct) {
+    this.vaccinationCoveragePct = vaccinationCoveragePct;
+  }
+
+  public String getRiskExplanation() {
+    return riskExplanation;
+  }
+
+  public void setRiskExplanation(String riskExplanation) {
+    this.riskExplanation = riskExplanation;
+  }
+
+  public String getRecommendedAction() {
+    return recommendedAction;
+  }
+
+  public void setRecommendedAction(String recommendedAction) {
+    this.recommendedAction = recommendedAction;
   }
 }

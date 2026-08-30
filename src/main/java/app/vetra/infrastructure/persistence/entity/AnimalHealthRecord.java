@@ -61,6 +61,18 @@ public class AnimalHealthRecord extends BaseEntity {
   @Column(name = "veterinarian_name", length = 150)
   private String veterinarianName;
 
+  @Column(name = "document_url", columnDefinition = "TEXT")
+  private String documentUrl;
+
+  @Column(name = "vaccine_name", length = 150)
+  private String vaccineName;
+
+  @Column(name = "next_due_date")
+  private java.time.LocalDate nextDueDate;
+
+  @Column(name = "batch_number", length = 100)
+  private String batchNumber;
+
   @Column(name = "recorded_at", nullable = false)
   private LocalDateTime recordedAt;
 
@@ -152,6 +164,38 @@ public class AnimalHealthRecord extends BaseEntity {
     this.recordedAt = recordedAt;
   }
 
+  public String getDocumentUrl() {
+    return documentUrl;
+  }
+
+  public void setDocumentUrl(String documentUrl) {
+    this.documentUrl = documentUrl;
+  }
+
+  public String getVaccineName() {
+    return vaccineName;
+  }
+
+  public void setVaccineName(String vaccineName) {
+    this.vaccineName = vaccineName;
+  }
+
+  public java.time.LocalDate getNextDueDate() {
+    return nextDueDate;
+  }
+
+  public void setNextDueDate(java.time.LocalDate nextDueDate) {
+    this.nextDueDate = nextDueDate;
+  }
+
+  public String getBatchNumber() {
+    return batchNumber;
+  }
+
+  public void setBatchNumber(String batchNumber) {
+    this.batchNumber = batchNumber;
+  }
+
   public static AnimalHealthRecordBuilder builder() {
     return new AnimalHealthRecordBuilder();
   }
@@ -167,6 +211,10 @@ public class AnimalHealthRecord extends BaseEntity {
     private String treatment;
     private UUID veterinarianId;
     private String veterinarianName;
+    private String documentUrl;
+    private String vaccineName;
+    private java.time.LocalDate nextDueDate;
+    private String batchNumber;
     private LocalDateTime recordedAt;
 
     public AnimalHealthRecordBuilder animal(Animal animal) {
@@ -219,6 +267,26 @@ public class AnimalHealthRecord extends BaseEntity {
       return this;
     }
 
+    public AnimalHealthRecordBuilder documentUrl(String documentUrl) {
+      this.documentUrl = documentUrl;
+      return this;
+    }
+
+    public AnimalHealthRecordBuilder vaccineName(String vaccineName) {
+      this.vaccineName = vaccineName;
+      return this;
+    }
+
+    public AnimalHealthRecordBuilder nextDueDate(java.time.LocalDate nextDueDate) {
+      this.nextDueDate = nextDueDate;
+      return this;
+    }
+
+    public AnimalHealthRecordBuilder batchNumber(String batchNumber) {
+      this.batchNumber = batchNumber;
+      return this;
+    }
+
     public AnimalHealthRecordBuilder recordedAt(LocalDateTime recordedAt) {
       this.recordedAt = recordedAt;
       return this;
@@ -236,6 +304,10 @@ public class AnimalHealthRecord extends BaseEntity {
       record.setTreatment(this.treatment);
       record.setVeterinarianId(this.veterinarianId);
       record.setVeterinarianName(this.veterinarianName);
+      record.setDocumentUrl(this.documentUrl);
+      record.setVaccineName(this.vaccineName);
+      record.setNextDueDate(this.nextDueDate);
+      record.setBatchNumber(this.batchNumber);
       record.setRecordedAt(this.recordedAt != null ? this.recordedAt : LocalDateTime.now());
       return record;
     }

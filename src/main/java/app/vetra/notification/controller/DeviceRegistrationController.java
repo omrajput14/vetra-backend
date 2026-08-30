@@ -56,4 +56,15 @@ public class DeviceRegistrationController {
     deviceService.deactivateDevice(principal.getName(), id);
     return ApiResponse.ok("Device token deactivated successfully", null);
   }
+
+  /** Unregisters a push device by token string. */
+  @PostMapping("/unregister")
+  @Operation(
+      summary = "Unregister Push Device Token",
+      description = "Deactivates a device token on logout.")
+  public ApiResponse<Void> unregisterToken(
+      Principal principal, @Valid @RequestBody RegisterDeviceRequest request) {
+    deviceService.deactivateToken(request.deviceToken());
+    return ApiResponse.ok("Device token unregistered successfully", null);
+  }
 }

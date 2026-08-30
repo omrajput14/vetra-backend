@@ -2,6 +2,7 @@ package app.vetra.animal.repository;
 
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
+import app.vetra.infrastructure.persistence.enums.Species;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,4 +38,7 @@ public interface AnimalRepository
 
   /** Checks if QR code ID exists. */
   boolean existsByQrCodeId(String qrCodeId);
+
+  /** Counts animals by species. */
+  long countBySpecies(Species species);
 }

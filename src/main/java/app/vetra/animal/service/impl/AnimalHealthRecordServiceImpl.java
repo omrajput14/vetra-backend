@@ -91,6 +91,10 @@ public class AnimalHealthRecordServiceImpl implements AnimalHealthRecordService 
             .treatment(request.treatment())
             .veterinarianId(vetId)
             .veterinarianName(vetName)
+            .documentUrl(request.documentUrl())
+            .vaccineName(request.vaccineName())
+            .nextDueDate(request.nextDueDate())
+            .batchNumber(request.batchNumber())
             .recordedAt(request.recordedAt() != null ? request.recordedAt() : LocalDateTime.now())
             .build();
 
@@ -116,6 +120,10 @@ public class AnimalHealthRecordServiceImpl implements AnimalHealthRecordService 
             .treatment(request.treatment())
             .veterinarianId(request.veterinarianId())
             .veterinarianName(request.veterinarianName())
+            .documentUrl(request.documentUrl())
+            .vaccineName(request.vaccineName())
+            .nextDueDate(request.nextDueDate())
+            .batchNumber(request.batchNumber())
             .recordedAt(request.recordedAt() != null ? request.recordedAt() : LocalDateTime.now())
             .build();
 

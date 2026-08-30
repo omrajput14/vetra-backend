@@ -14,19 +14,23 @@ import app.vetra.disease.event.PotentialOutbreakDetectedEvent;
 import app.vetra.disease.geo.GeoUtils;
 import app.vetra.disease.repository.DiseaseReportRepository;
 import app.vetra.disease.repository.OutbreakRepository;
+import app.vetra.disease.risk.MultiSignalRiskEngine;
+import app.vetra.disease.risk.RiskAssessment;
+import app.vetra.disease.risk.SignalBreakdown;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Intelligent Outbreak Detection Engine. Evaluates temporal windows, disease-specific threshold
- * profiles, spatial clusters, risk scoring, and lifecycle escalation without duplicate cluster
- * creation.
+ * profiles, spatial clusters, multi-signal risk scoring, and lifecycle escalation without duplicate
+ * cluster creation.
  */
 @Component
 public class OutbreakDetectionEngine {
@@ -38,6 +42,9 @@ public class OutbreakDetectionEngine {
   private final DiseaseOutbreakProperties outbreakProperties;
   private final ApplicationEventPublisher eventPublisher;
 
+  @Autowired(required = false)
+  private MultiSignalRiskEngine multiSignalRiskEngine;
+
   /** Constructor injection. */
   public OutbreakDetectionEngine(
       DiseaseReportRepository diseaseReportRepository,
@@ -48,6 +55,11 @@ public class OutbreakDetectionEngine {
     this.outbreakRepository = outbreakRepository;
     this.outbreakProperties = outbreakProperties;
     this.eventPublisher = eventPublisher;
+  }
+
+  /** Setter for MultiSignalRiskEngine injection in testing. */
+  public void setMultiSignalRiskEngine(MultiSignalRiskEngine multiSignalRiskEngine) {
+    this.multiSignalRiskEngine = multiSignalRiskEngine;
   }
 
   /**
@@ -65,7 +77,7 @@ public class OutbreakDetectionEngine {
     DiseaseProfile profile = outbreakProperties.getProfileForDisease(diseaseName);
     Instant cutoffTime = Instant.now().minus(profile.evaluationWindowHours(), ChronoUnit.HOURS);
 
-    List<DiseaseReport> timeWindowReports =
+    List<DiseaseReport> confirmedReports =
         diseaseReportRepository
             .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(
                 diseaseName, DiagnosisStatus.CONFIRMED)
@@ -81,22 +93,54 @@ public class OutbreakDetectionEngine {
                         <= profile.radiusKm())
             .toList();
 
-    int caseCount = timeWindowReports.size();
+    List<DiseaseReport> suspectedReports =
+        diseaseReportRepository
+            .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(
+                diseaseName, DiagnosisStatus.SUSPECTED)
+            .stream()
+            .filter(r -> r.getCreatedAt().isAfter(cutoffTime))
+            .filter(
+                r ->
+                    GeoUtils.calculateDistanceKm(
+                            report.getLatitude(),
+                            report.getLongitude(),
+                            r.getLatitude(),
+                            r.getLongitude())
+                        <= profile.radiusKm())
+            .toList();
+
+    int confirmedCount = confirmedReports.size();
+    int suspectedCount = suspectedReports.size();
+
     List<Outbreak> existingOutbreaks =
         findNearbyExistingOutbreaks(
             diseaseName, report.getLatitude(), report.getLongitude(), profile.radiusKm());
 
-    OutbreakRiskScore calculatedRisk =
-        calculateRiskScore(
-            caseCount,
-            profile.severityWeight(),
-            profile.radiusKm(),
-            profile.evaluationWindowHours());
+    RiskAssessment assessment;
+    if (multiSignalRiskEngine != null) {
+      assessment =
+          multiSignalRiskEngine.evaluateRisk(
+              diseaseName,
+              confirmedCount,
+              suspectedCount,
+              report.getLatitude(),
+              report.getLongitude(),
+              profile.radiusKm(),
+              profile.evaluationWindowHours());
+    } else {
+      OutbreakRiskScore fallbackScore =
+          calculateRiskScore(
+              confirmedCount,
+              profile.severityWeight(),
+              profile.radiusKm(),
+              profile.evaluationWindowHours());
+      assessment = RiskAssessment.of(50, fallbackScore, diseaseName, null);
+    }
 
     if (!existingOutbreaks.isEmpty()) {
-      updateExistingCluster(existingOutbreaks.get(0), calculatedRisk, caseCount);
-    } else if (caseCount >= profile.minimumConfirmedCases()) {
-      createNewCluster(report, profile, calculatedRisk, caseCount);
+      updateExistingCluster(existingOutbreaks.get(0), assessment, confirmedCount);
+    } else if (confirmedCount >= profile.minimumConfirmedCases()) {
+      createNewCluster(report, profile, assessment, confirmedCount);
     }
   }
 
@@ -133,49 +177,81 @@ public class OutbreakDetectionEngine {
                 GeoUtils.calculateDistanceKm(
                         lat, lng, o.getCenterLatitude(), o.getCenterLongitude())
                     <= radiusKm)
-        .toList();
+            .toList();
   }
 
   private void updateExistingCluster(
-      Outbreak existing, OutbreakRiskScore calculatedRisk, int caseCount) {
+      Outbreak existing, RiskAssessment assessment, int caseCount) {
     OutbreakRiskScore previousRisk = existing.getRiskScore();
     existing.setAffectedReportsCount(caseCount);
     existing.setLastCaseReportedAt(Instant.now());
-    existing.setRiskScore(calculatedRisk);
+    existing.setRiskScore(assessment.riskLevel());
+    existing.setCompositeRiskScore(assessment.compositeScore());
     existing.setStatus(OutbreakStatus.ACTIVE);
+
+    SignalBreakdown bd = assessment.breakdown();
+    if (bd != null) {
+      existing.setClusterScore(bd.clusterRawScore());
+      existing.setWeatherScore(bd.weatherRawScore());
+      existing.setHistoryScore(bd.historyRawScore());
+      existing.setVaccinationGapScore(bd.vaccinationGapRawScore());
+      existing.setWeatherTemperature(bd.weatherTemperature());
+      existing.setWeatherHumidity(bd.weatherHumidity());
+      existing.setWeatherPrecipitation(bd.weatherPrecipitation());
+      existing.setVaccinationCoveragePct(bd.vaccinationCoveragePct());
+      existing.setRiskExplanation(bd.explanation());
+      existing.setRecommendedAction(bd.recommendedAction());
+    }
+
     outbreakRepository.save(existing);
 
-    if (previousRisk != calculatedRisk) {
-      publishRiskEvents(existing, previousRisk, calculatedRisk, caseCount);
+    if (previousRisk != assessment.riskLevel()) {
+      publishRiskEvents(existing, previousRisk, assessment.riskLevel(), caseCount);
     }
   }
 
   private void createNewCluster(
       DiseaseReport report,
       DiseaseProfile profile,
-      OutbreakRiskScore calculatedRisk,
+      RiskAssessment assessment,
       int caseCount) {
-    Outbreak newOutbreak =
+    Outbreak.OutbreakBuilder builder =
         Outbreak.builder()
             .diseaseName(report.getDiseaseName())
             .severity(profile.reportPriority())
             .status(OutbreakStatus.ACTIVE)
-            .riskScore(calculatedRisk)
+            .riskScore(assessment.riskLevel())
+            .compositeRiskScore(assessment.compositeScore())
             .centerLatitude(report.getLatitude())
             .centerLongitude(report.getLongitude())
             .radiusKm(profile.radiusKm())
             .affectedReportsCount(caseCount)
             .evaluationWindowHours(profile.evaluationWindowHours())
-            .lastCaseReportedAt(Instant.now())
-            .build();
+            .lastCaseReportedAt(Instant.now());
 
-    newOutbreak = outbreakRepository.save(newOutbreak);
+    SignalBreakdown bd = assessment.breakdown();
+    if (bd != null) {
+      builder
+          .clusterScore(bd.clusterRawScore())
+          .weatherScore(bd.weatherRawScore())
+          .historyScore(bd.historyRawScore())
+          .vaccinationGapScore(bd.vaccinationGapRawScore())
+          .weatherTemperature(bd.weatherTemperature())
+          .weatherHumidity(bd.weatherHumidity())
+          .weatherPrecipitation(bd.weatherPrecipitation())
+          .vaccinationCoveragePct(bd.vaccinationCoveragePct())
+          .riskExplanation(bd.explanation())
+          .recommendedAction(bd.recommendedAction());
+    }
+
+    Outbreak newOutbreak = outbreakRepository.save(builder.build());
 
     log.warn(
-        "NEW OUTBREAK CLUSTER CREATED: id={} disease='{}' risk={} cases={}",
+        "NEW OUTBREAK CLUSTER CREATED: id={} disease='{}' risk={} compositeScore={} cases={}",
         newOutbreak.getId(),
         report.getDiseaseName(),
-        calculatedRisk,
+        assessment.riskLevel(),
+        assessment.compositeScore(),
         caseCount);
 
     eventPublisher.publishEvent(
@@ -184,7 +260,7 @@ public class OutbreakDetectionEngine {
 
     eventPublisher.publishEvent(
         new OutbreakEscalatedEvent(
-            newOutbreak.getId(), report.getDiseaseName(), calculatedRisk, caseCount));
+            newOutbreak.getId(), report.getDiseaseName(), assessment.riskLevel(), caseCount));
   }
 
   private void publishRiskEvents(

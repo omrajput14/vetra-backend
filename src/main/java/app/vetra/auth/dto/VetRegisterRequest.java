@@ -14,6 +14,11 @@ public record VetRegisterRequest(
     String qualification,
     String specialization,
     String clinicName,
+    String clinicAddress,
+    String village,
+    String taluka,
+    String district,
+    String state,
     Integer yearsExperience,
     Double latitude,
     Double longitude,
@@ -41,9 +46,48 @@ public record VetRegisterRequest(
         qualification,
         specialization,
         clinicName,
+        null,
+        null,
+        null,
+        null,
+        null,
         yearsExperience,
         latitude,
         longitude,
         "en");
+  }
+
+  @SuppressWarnings("checkstyle:ParameterNumber")
+  public VetRegisterRequest(
+      String email,
+      String phone,
+      String password,
+      String fullName,
+      String registrationNumber,
+      String qualification,
+      String specialization,
+      String clinicName,
+      Integer yearsExperience,
+      Double latitude,
+      Double longitude,
+      String preferredLanguage) {
+    this(
+        email,
+        phone,
+        password,
+        fullName,
+        registrationNumber,
+        qualification,
+        specialization,
+        clinicName,
+        null,
+        null,
+        null,
+        null,
+        null,
+        yearsExperience,
+        latitude,
+        longitude,
+        preferredLanguage);
   }
 }

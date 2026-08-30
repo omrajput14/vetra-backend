@@ -38,4 +38,7 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, UU
 
   /** Counts total medical records issued by a veterinarian. */
   long countByVeterinarianId(UUID veterinarianId);
+
+  /** Finds recent medical records ordered by creation date descending. */
+  List<MedicalRecord> findTop30ByOrderByCreatedAtDesc();
 }

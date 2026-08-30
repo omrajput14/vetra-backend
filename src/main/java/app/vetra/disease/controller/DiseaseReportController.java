@@ -47,7 +47,7 @@ public class DiseaseReportController {
   /** Submits a new disease report. */
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  @PreAuthorize("hasAnyRole('VETERINARIAN', 'ADMIN')")
+  @PreAuthorize("hasAnyRole('FARMER', 'VETERINARIAN', 'ADMIN')")
   @Operation(
       summary = "Create Disease Report",
       description = "Submits a new verified or suspected disease report for an animal.")

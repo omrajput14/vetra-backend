@@ -26,10 +26,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * End-to-end integration test verifying Verified Veterinarian discovery rules:
- * - VERIFIED veterinarians appear in public directory with verified = true
- * - PENDING registered veterinarians are hidden from public directory
- * - REJECTED veterinarians are hidden from public directory
+ * End-to-end integration test verifying Veterinarian discovery and trust rules:
+ * - Newly registered PENDING veterinarians appear in directory marked with verified = false
+ * - VERIFIED veterinarians appear in directory marked with verified = true
+ * - REJECTED veterinarians are hidden from directory
+ * - Suspended/inactive veterinarian accounts are hidden from directory
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -65,8 +66,8 @@ class VetDirectoryVerificationTest {
   @Autowired private VetProfileRepository vetProfileRepository;
 
   @Test
-  @DisplayName("Newly registered vet is PENDING and hidden from directory until VERIFIED")
-  void testNewVetIsPendingAndHiddenUntilVerified() {
+  @DisplayName("Newly registered vet is PENDING and visible with verified=false, becomes verified=true upon approval")
+  void testNewVetIsPendingAndVisibleUntilVerified() {
     VetRegisterRequest regReq =
         new VetRegisterRequest(
             "dr.rahul@vetra.app",
@@ -90,9 +91,14 @@ class VetDirectoryVerificationTest {
     assertEquals(VerificationStatus.PENDING, profile.getVerificationStatus());
     assertFalse(profile.isVerified());
 
-    // Should NOT appear in public directory while PENDING
+    // Should appear in directory as PENDING / unverified
     List<VetSummaryDto> directoryBefore = authService.listVeterinarians();
-    assertFalse(directoryBefore.stream().anyMatch(v -> "Dr. Rahul Sharma".equals(v.name())));
+    assertTrue(directoryBefore.stream().anyMatch(v -> "Dr. Rahul Sharma".equals(v.name())));
+
+    VetSummaryDto pendingDto =
+        directoryBefore.stream().filter(v -> "Dr. Rahul Sharma".equals(v.name())).findFirst().orElseThrow();
+    assertEquals(VerificationStatus.PENDING, pendingDto.verificationStatus());
+    assertFalse(pendingDto.verified());
 
     // Admin verifies the veterinarian
     vetVerificationService.verifyVeterinarian(profile.getId());
@@ -140,5 +146,36 @@ class VetDirectoryVerificationTest {
 
     List<VetSummaryDto> directory = authService.listVeterinarians();
     assertFalse(directory.stream().anyMatch(v -> "Fake Doctor".equals(v.name())));
+  }
+
+  @Test
+  @DisplayName("Inactive or suspended veterinarian account is hidden from public directory")
+  void testInactiveVetIsHiddenFromDirectory() {
+    User user =
+        userRepository.save(
+            User.builder()
+                .email("dr.inactive@vetra.app")
+                .passwordHash("hashed")
+                .role(UserRole.VETERINARIAN)
+                .phone("+919888888888")
+                .isActive(false) // Suspended account
+                .build());
+
+    VetProfile profile =
+        vetProfileRepository.save(
+            VetProfile.builder()
+                .user(user)
+                .fullName("Suspended Doctor")
+                .registrationNumber("VET-SUSP-000")
+                .clinicName("Suspended Clinic")
+                .qualification("BVSc")
+                .specialization("General")
+                .yearsExperience(5)
+                .isAvailable(true)
+                .verificationStatus(VerificationStatus.VERIFIED)
+                .build());
+
+    List<VetSummaryDto> directory = authService.listVeterinarians();
+    assertFalse(directory.stream().anyMatch(v -> "Suspended Doctor".equals(v.name())));
   }
 }

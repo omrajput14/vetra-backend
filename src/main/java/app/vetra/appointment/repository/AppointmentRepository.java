@@ -43,9 +43,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
   /** Counts appointments for a veterinarian by status. */
   long countByVeterinarianAndStatus(VetProfile veterinarian, AppointmentStatus status);
 
+  /** Counts total appointments by status. */
+  long countByStatus(AppointmentStatus status);
+
   /** Finds appointment by ID and farmer. */
   Optional<Appointment> findByIdAndFarmer(UUID id, FarmerProfile farmer);
 
   /** Finds appointment by ID and veterinarian. */
   Optional<Appointment> findByIdAndVeterinarian(UUID id, VetProfile veterinarian);
+
+  /** Finds recent appointments ordered by creation date descending. */
+  List<Appointment> findTop30ByOrderByCreatedAtDesc();
 }

@@ -32,4 +32,10 @@ public interface AIScanRepository extends JpaRepository<AIScan, UUID> {
 
   /** Finds scans uploaded by user ID with pagination. */
   Page<AIScan> findByUploadedById(UUID uploadedById, Pageable pageable);
+
+  /** Counts AI scans by status. */
+  long countByStatus(AIScanStatus status);
+
+  /** Finds recent AI scans ordered by creation date descending. */
+  List<AIScan> findTop30ByOrderByCreatedAtDesc();
 }

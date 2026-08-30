@@ -29,6 +29,12 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
   List<DiseaseReport> findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(
       String diseaseName, DiagnosisStatus diagnosisStatus);
 
+  /** Counts disease reports by diagnosis status. */
+  long countByDiagnosisStatus(DiagnosisStatus diagnosisStatus);
+
+  /** Finds recent disease reports ordered by created date descending. */
+  List<DiseaseReport> findTop30ByOrderByCreatedAtDesc();
+
   /** Spatial bounding box search for disease reports within latitude and longitude bounds. */
   @Query(
       """

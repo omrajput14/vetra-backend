@@ -82,6 +82,19 @@ public class DeviceManagementService {
     }
   }
 
+  /** Deactivates a device by token string. */
+  @Transactional
+  public void deactivateToken(String token) {
+    if (token == null || token.isBlank()) {
+      return;
+    }
+    deviceRepository.findByDeviceToken(token).ifPresent(d -> {
+      d.setActive(false);
+      deviceRepository.save(d);
+      log.info("Deactivated push device token id={}", d.getId());
+    });
+  }
+
   /** Lists active devices for a user. */
   @Transactional(readOnly = true)
   public List<NotificationDevice> getUserActiveDevices(UUID userId) {

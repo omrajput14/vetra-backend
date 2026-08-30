@@ -160,9 +160,12 @@ public class GlobalExceptionHandler {
   }
 
   /** Handles requests to unmapped routes. */
-  @ExceptionHandler(NoHandlerFoundException.class)
+  @ExceptionHandler({
+    NoHandlerFoundException.class,
+    org.springframework.web.servlet.resource.NoResourceFoundException.class
+  })
   public ResponseEntity<ApiResponse<Void>> handleNotFound(
-      NoHandlerFoundException ex, HttpServletRequest request) {
+      Exception ex, HttpServletRequest request) {
 
     log.info("Route not found: {} {}", request.getMethod(), request.getRequestURI());
 
