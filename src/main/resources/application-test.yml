@@ -1,0 +1,85 @@
+# ─── Spring Test Profile — application-test.yml ───────────────────────────────
+#
+# Activated automatically by @ActiveProfiles("test") in every @SpringBootTest
+# integration test class.
+#
+# Purpose: Replace PostgreSQL with H2 in-memory, disable Flyway, and bind Redis
+# to the CI service container password so that tests without their own
+# @TestPropertySource (e.g. AdministrativeBoundaryIntegrationTest,
+# SystemConfigurationIntegrationTest) can start a valid Spring context on CI.
+#
+# Note: Individual @TestPropertySource blocks in existing tests take HIGHER
+# precedence than this file, so all existing test classes are unaffected.
+# ──────────────────────────────────────────────────────────────────────────────
+
+spring:
+  # ─── In-memory H2 datasource (replaces PostgreSQL on CI / local test runs) ──
+  datasource:
+    url: jdbc:h2:mem:vetra_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;NON_KEYWORDS=VALUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      pool-name: VetraTestHikariPool
+      maximum-pool-size: 5
+      minimum-idle: 1
+
+  # ─── JPA / Hibernate ────────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # ─── Flyway — disabled in test profile; schema is managed via ddl-auto ──────
+  flyway:
+    enabled: false
+
+# ─── VETRA application properties for test context ─────────────────────────
+vetra:
+  # Minimal JWT config required by SecurityConfig
+  jwt:
+    secret: test-jwt-secret-value-minimum-32-characters-long-for-hmac-sha256
+    expiration-ms: 86400000
+    refresh-expiration-ms: 604800000
+
+  # CORS — minimal config (tests use MockMvc, no browser involved)
+  cors:
+    allowed-origins: http://localhost:3000
+    allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+    max-age: 3600
+
+  # AWS S3 — stubbed credentials; no real AWS calls in test profile
+  aws:
+    region: ap-south-1
+    credentials:
+      access-key: test-access-key
+      secret-key: test-secret-key
+    s3:
+      bucket-name: vetra-test-bucket
+      presigned-url-expiry-minutes: 15
+
+  # Redis — connects to the CI service container started with --requirepass test_password.
+  # REDIS_PASSWORD=test_password is set in the CI "Execute Checkstyle, Compile & Maven Test Suite"
+  # step environment.  Falls back to "test_password" when running locally without the env var.
+  redis:
+    host: localhost
+    port: 6379
+    password: ${REDIS_PASSWORD:test_password}
+    database: 0
+    timeout: 2000ms
+    ssl: false
+
+# ─── Logging — quieter during test runs ─────────────────────────────────────
+logging:
+  level:
+    root: WARN
+    app.vetra: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.flywaydb: WARN
