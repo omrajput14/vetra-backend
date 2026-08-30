@@ -32,13 +32,17 @@ public class DefaultGovernmentOfficerInitializer implements CommandLineRunner {
   @Override
   @Transactional
   public void run(String... args) {
-    seedOfficer("officer@vetra.gov.in", "+919876543210", "Password@123", UserRole.GOVERNMENT_OFFICER);
-    seedOfficer("admin@vetra.gov.in", "+919876543211", "Password@123", UserRole.ADMINISTRATOR);
+    seedOfficer("officer@vetra.gov.in", "+911800100001", "Password@123", UserRole.GOVERNMENT_OFFICER);
+    seedOfficer("admin@vetra.gov.in", "+911800100002", "Password@123", UserRole.ADMINISTRATOR);
   }
 
   private void seedOfficer(String email, String phone, String rawPassword, UserRole role) {
     User user = userRepository.findByEmail(email).orElse(null);
     if (user == null) {
+      if (userRepository.existsByPhone(phone)) {
+        log.warn("Phone {} already registered, cannot seed default {} account {}", phone, role, email);
+        return;
+      }
       user = User.builder()
           .email(email)
           .phone(phone)
