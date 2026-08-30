@@ -11,7 +11,6 @@ import app.vetra.ai.entity.AIScanResultEntity;
 import app.vetra.ai.entity.AIScanStatus;
 import app.vetra.ai.event.AIInferenceCompletedEvent;
 import app.vetra.ai.event.AIInferenceFailedEvent;
-import app.vetra.ai.exception.AIInferenceException;
 import app.vetra.ai.model.AIExecutionContext;
 import app.vetra.ai.model.AIResponse;
 import app.vetra.ai.repository.AIScanRepository;
@@ -138,10 +137,7 @@ public class AIOrchestrator {
           new AIInferenceFailedEvent(
               savedFailedScan.getId(), ex.getMessage(), fallbackProvider));
 
-      if (ex instanceof RuntimeException rte) {
-        throw rte;
-      }
-      throw new AIInferenceException("AI Orchestrator inference execution failed", "AI_004");
+      return savedFailedScan;
     }
   }
 

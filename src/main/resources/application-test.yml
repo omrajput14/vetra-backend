@@ -75,6 +75,15 @@ vetra:
     timeout: 2000ms
     ssl: false
 
+  # AI Gateway — use local deterministic NoOp provider in test profile
+  ai:
+    gemini:
+      enabled: false
+    gateway:
+      enabled: true
+      default-provider: noop
+      default-model: noop-default
+
 # ─── Logging — quieter during test runs ─────────────────────────────────────
 logging:
   level:
