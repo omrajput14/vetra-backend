@@ -1,5 +1,6 @@
 package app.vetra.disease.controller;
 
+import app.vetra.disease.dto.AIScreeningResponse;
 import app.vetra.disease.dto.DiseaseAnalyticsResponse;
 import app.vetra.disease.dto.DiseaseReportResponse;
 import app.vetra.disease.dto.OperationalAlertResponse;
@@ -22,6 +23,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -198,5 +203,44 @@ public class OutbreakController {
   public ApiResponse<OperationalAlertResponse> getAlertById(@PathVariable("id") UUID id) {
     OperationalAlertResponse response = operationalAlertService.getAlertById(id);
     return ApiResponse.ok("Operational alert details retrieved successfully", response);
+  }
+
+  /** Lists AI preliminary screening signals for government early-warning surveillance. */
+  @GetMapping("/ai-screenings")
+  @Operation(
+      summary = "List AI Preliminary Screenings",
+      description =
+          "Retrieves AI preliminary screening scan records for early-warning surveillance monitoring.")
+  public ApiResponse<List<AIScreeningResponse>> listAIScreenings(
+      @RequestParam(value = "veterinarianVerified", required = false)
+          Boolean veterinarianVerified) {
+    List<AIScreeningResponse> response = diseaseService.listAllAIScreenings(veterinarianVerified);
+    return ApiResponse.ok("AI preliminary screenings retrieved successfully", response);
+  }
+
+  /** Lists AI preliminary screening signals with pagination. */
+  @GetMapping("/ai-screenings/page")
+  @Operation(
+      summary = "Paginated List of AI Preliminary Screenings",
+      description =
+          "Retrieves paginated AI preliminary screening scan records for surveillance monitoring.")
+  public ApiResponse<Page<AIScreeningResponse>> listAIScreeningsPaginated(
+      @RequestParam(value = "veterinarianVerified", required = false)
+          Boolean veterinarianVerified,
+      @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+          Pageable pageable) {
+    Page<AIScreeningResponse> response =
+        diseaseService.listAIScreenings(veterinarianVerified, pageable);
+    return ApiResponse.ok("Paginated AI preliminary screenings retrieved successfully", response);
+  }
+
+  /** Retrieves a single AI preliminary screening scan by ID. */
+  @GetMapping("/ai-screenings/{id}")
+  @Operation(
+      summary = "Get AI Screening by ID",
+      description = "Retrieves single AI preliminary screening scan details by UUID.")
+  public ApiResponse<AIScreeningResponse> getAIScreeningById(@PathVariable("id") UUID id) {
+    AIScreeningResponse response = diseaseService.getAIScreeningById(id);
+    return ApiResponse.ok("AI preliminary screening details retrieved successfully", response);
   }
 }

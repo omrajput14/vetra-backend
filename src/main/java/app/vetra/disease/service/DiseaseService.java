@@ -5,6 +5,7 @@ import app.vetra.ai.entity.AIScanStatus;
 import app.vetra.ai.repository.AIScanRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.UserRepository;
+import app.vetra.disease.dto.AIScreeningResponse;
 import app.vetra.disease.dto.CreateDiseaseReportRequest;
 import app.vetra.disease.dto.DiseaseReportResponse;
 import app.vetra.disease.dto.NearbyReportResponse;
@@ -332,6 +333,61 @@ public class DiseaseService {
                     new ResourceNotFoundException(
                         "Outbreak cluster not found with ID: " + id, "DISEASE_005"));
     return OutbreakResponse.fromEntity(outbreak);
+  }
+
+  /**
+   * Lists AI preliminary screening scans with pagination for government early-warning surveillance.
+   *
+   * @param veterinarianVerified optional filter for veterinary verification status
+   * @param pageable pagination parameters
+   * @return paginated {@link Page} of {@link AIScreeningResponse}
+   */
+  @Transactional(readOnly = true)
+  public Page<AIScreeningResponse> listAIScreenings(
+      Boolean veterinarianVerified, Pageable pageable) {
+    Page<AIScan> scans;
+    if (veterinarianVerified != null) {
+      scans = aiScanRepository.findByVeterinarianVerified(veterinarianVerified, pageable);
+    } else {
+      scans = aiScanRepository.findAll(pageable);
+    }
+    return scans.map(AIScreeningResponse::fromEntity);
+  }
+
+  /**
+   * Lists all AI preliminary screening scans for government surveillance map overlays.
+   *
+   * @param veterinarianVerified optional filter for veterinary verification status
+   * @return list of {@link AIScreeningResponse}
+   */
+  @Transactional(readOnly = true)
+  public List<AIScreeningResponse> listAllAIScreenings(Boolean veterinarianVerified) {
+    List<AIScan> scans;
+    if (veterinarianVerified != null) {
+      scans =
+          aiScanRepository.findByVeterinarianVerifiedOrderByCreatedAtDesc(veterinarianVerified);
+    } else {
+      scans = aiScanRepository.findAllByOrderByCreatedAtDesc();
+    }
+    return scans.stream().map(AIScreeningResponse::fromEntity).toList();
+  }
+
+  /**
+   * Retrieves a single AI preliminary screening scan by ID.
+   *
+   * @param id scan UUID
+   * @return {@link AIScreeningResponse}
+   */
+  @Transactional(readOnly = true)
+  public AIScreeningResponse getAIScreeningById(UUID id) {
+    AIScan scan =
+        aiScanRepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "AI preliminary screening scan not found with ID: " + id, "AI_001"));
+    return AIScreeningResponse.fromEntity(scan);
   }
 
   private void validateFarmerOwnership(User user, Animal animal) {

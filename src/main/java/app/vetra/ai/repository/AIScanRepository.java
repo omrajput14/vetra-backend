@@ -38,4 +38,13 @@ public interface AIScanRepository extends JpaRepository<AIScan, UUID> {
 
   /** Finds recent AI scans ordered by creation date descending. */
   List<AIScan> findTop30ByOrderByCreatedAtDesc();
+
+  /** Finds all AI scans ordered by creation date descending. */
+  List<AIScan> findAllByOrderByCreatedAtDesc();
+
+  /** Finds AI scans by veterinarian verification status ordered by creation date descending. */
+  List<AIScan> findByVeterinarianVerifiedOrderByCreatedAtDesc(boolean veterinarianVerified);
+
+  /** Finds AI scans by veterinarian verification status with pagination. */
+  Page<AIScan> findByVeterinarianVerified(boolean veterinarianVerified, Pageable pageable);
 }
