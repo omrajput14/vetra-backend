@@ -1,6 +1,6 @@
 <div align="center">
 
-#  Vetra Backend
+#  Vetra Backend 
 ### Enterprise Veterinary Operating System (VetOS) & Clinical Core Engine
 
 [![CI Pipeline](https://github.com/omrajput14/vetra-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/omrajput14/vetra-backend/actions/workflows/ci.yml)
