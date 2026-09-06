@@ -1,6 +1,6 @@
 spring:
   application:
-    name: vetra-backend
+    name: pashu-sathi-backend
   profiles:
     active: ${SPRING_PROFILE:dev}
 

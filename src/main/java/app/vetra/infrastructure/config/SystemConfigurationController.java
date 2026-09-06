@@ -26,8 +26,8 @@ public class SystemConfigurationController {
 
   private final RiskScoreProperties riskScoreProperties;
 
-  @Value("${spring.application.name:vetra-backend}")
-  private String applicationName = "vetra-backend";
+  @Value("${spring.application.name:pashu-sathi-backend}")
+  private String applicationName = "pashu-sathi-backend";
 
   @Value("${spring.profiles.active:dev}")
   private String environment = "dev";
@@ -82,7 +82,7 @@ public class SystemConfigurationController {
 
     SystemConfigurationResponse.SystemMetadataDto system =
         new SystemConfigurationResponse.SystemMetadataDto(
-            applicationName != null ? applicationName : "vetra-backend",
+            applicationName != null ? applicationName : "pashu-sathi-backend",
             environment != null ? environment : "dev",
             version != null ? version : "0.12.5.0",
             "PostgreSQL 16 + PostGIS 3.4 (Hibernate Spatial)",
