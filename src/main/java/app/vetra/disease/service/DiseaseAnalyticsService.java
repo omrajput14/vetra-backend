@@ -8,10 +8,13 @@ import app.vetra.disease.entity.OutbreakRiskScore;
 import app.vetra.disease.entity.OutbreakStatus;
 import app.vetra.disease.repository.DiseaseReportRepository;
 import app.vetra.disease.repository.OutbreakRepository;
+import app.vetra.mortality.enums.MortalitySource;
+import app.vetra.mortality.repository.AnimalMortalityEventRepository;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +24,23 @@ public class DiseaseAnalyticsService {
 
   private final OutbreakRepository outbreakRepository;
   private final DiseaseReportRepository diseaseReportRepository;
+  private final AnimalMortalityEventRepository animalMortalityEventRepository;
 
   /** Constructor injection. */
+  @Autowired
   public DiseaseAnalyticsService(
-      OutbreakRepository outbreakRepository, DiseaseReportRepository diseaseReportRepository) {
+      OutbreakRepository outbreakRepository,
+      DiseaseReportRepository diseaseReportRepository,
+      @Autowired(required = false) AnimalMortalityEventRepository animalMortalityEventRepository) {
     this.outbreakRepository = outbreakRepository;
     this.diseaseReportRepository = diseaseReportRepository;
+    this.animalMortalityEventRepository = animalMortalityEventRepository;
+  }
+
+  /** Backward-compatible 2-argument constructor for testing. */
+  public DiseaseAnalyticsService(
+      OutbreakRepository outbreakRepository, DiseaseReportRepository diseaseReportRepository) {
+    this(outbreakRepository, diseaseReportRepository, null);
   }
 
   /**
@@ -88,6 +102,17 @@ public class DiseaseAnalyticsService {
                 Collectors.groupingBy(
                     DiseaseReport::getDiagnosisConfidenceSource, Collectors.counting()));
 
+    long totalMortalities =
+        animalMortalityEventRepository != null ? animalMortalityEventRepository.count() : 0L;
+    long farmerMortalities =
+        animalMortalityEventRepository != null
+            ? animalMortalityEventRepository.countBySource(MortalitySource.FARMER_REPORTED)
+            : 0L;
+    long vetMortalities =
+        animalMortalityEventRepository != null
+            ? animalMortalityEventRepository.countBySource(MortalitySource.VET_CONFIRMED)
+            : 0L;
+
     return new DiseaseAnalyticsResponse(
         totalOutbreaks,
         activeOutbreaks,
@@ -96,6 +121,9 @@ public class DiseaseAnalyticsService {
         Math.round(avgResolutionTime * 10.0) / 10.0,
         diseaseDistribution,
         mostCommonDiseases,
-        reportsByConfidenceSource);
+        reportsByConfidenceSource,
+        totalMortalities,
+        farmerMortalities,
+        vetMortalities);
   }
 }

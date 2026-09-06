@@ -1,9 +1,12 @@
 package app.vetra.appointment.controller;
 
+import app.vetra.appointment.dto.AppointmentLiveLocationResponse;
 import app.vetra.appointment.dto.AppointmentResponse;
 import app.vetra.appointment.dto.CreateAppointmentRequest;
+import app.vetra.appointment.dto.UpdateAppointmentLocationRequest;
 import app.vetra.appointment.dto.UpdateAppointmentStatusRequest;
 import app.vetra.appointment.service.AppointmentService;
+import app.vetra.appointment.service.AppointmentTrackingService;
 import app.vetra.infrastructure.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,14 +35,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/appointments")
 @Tag(
     name = "Appointment Management Module",
-    description = "Endpoints for booking, viewing, and managing veterinary appointments")
+    description = "Endpoints for booking, viewing, en-route tracking, and managing veterinary appointments")
 public class AppointmentController {
 
   private final AppointmentService appointmentService;
+  private final AppointmentTrackingService appointmentTrackingService;
 
   /** Constructor injection. */
-  public AppointmentController(AppointmentService appointmentService) {
+  public AppointmentController(
+      AppointmentService appointmentService,
+      AppointmentTrackingService appointmentTrackingService) {
     this.appointmentService = appointmentService;
+    this.appointmentTrackingService = appointmentTrackingService;
   }
 
   /** Creates a new appointment request. */
@@ -112,6 +120,57 @@ public class AppointmentController {
       Principal principal, @PathVariable("id") UUID id) {
     AppointmentResponse response = appointmentService.confirmAppointment(principal.getName(), id);
     return ApiResponse.ok("Appointment confirmed successfully", response);
+  }
+
+  /** Veterinarian departs for farm visit (EN_ROUTE). */
+  @PatchMapping("/{id}/en-route")
+  @PreAuthorize("hasRole('VETERINARIAN')")
+  @Operation(
+      summary = "Start En-Route Travel",
+      description = "Veterinarian signals departure to the farmer's location")
+  public ApiResponse<AppointmentResponse> startEnRoute(
+      Principal principal, @PathVariable("id") UUID id) {
+    AppointmentResponse response = appointmentService.startEnRoute(principal.getName(), id);
+    return ApiResponse.ok("Veterinarian is en route", response);
+  }
+
+  /** Veterinarian arrives at farmer's location (ARRIVED). */
+  @PatchMapping("/{id}/arrive")
+  @PreAuthorize("hasRole('VETERINARIAN')")
+  @Operation(
+      summary = "Mark Arrival",
+      description = "Veterinarian signals arrival at the farmer's location")
+  public ApiResponse<AppointmentResponse> markArrived(
+      Principal principal, @PathVariable("id") UUID id) {
+    AppointmentResponse response = appointmentService.markArrived(principal.getName(), id);
+    return ApiResponse.ok("Veterinarian has arrived", response);
+  }
+
+  /** Veterinarian streams current GPS coordinates during active EN_ROUTE state. */
+  @PostMapping("/{id}/location")
+  @PreAuthorize("hasRole('VETERINARIAN')")
+  @Operation(
+      summary = "Update En-Route Location",
+      description = "Veterinarian streams foreground GPS coordinates while en route")
+  public ApiResponse<AppointmentLiveLocationResponse> updateLiveLocation(
+      Principal principal,
+      @PathVariable("id") UUID id,
+      @Valid @RequestBody UpdateAppointmentLocationRequest request) {
+    AppointmentLiveLocationResponse response =
+        appointmentTrackingService.updateLiveLocation(principal.getName(), id, request);
+    return ApiResponse.ok("Location updated successfully", response);
+  }
+
+  /** Farmer monitors veterinarian en-route progress and GPS distance. */
+  @GetMapping("/{id}/location")
+  @Operation(
+      summary = "Get Live Location",
+      description = "Farmer tracks en-route veterinarian location and distance")
+  public ApiResponse<AppointmentLiveLocationResponse> getLiveLocation(
+      Principal principal, @PathVariable("id") UUID id) {
+    AppointmentLiveLocationResponse response =
+        appointmentTrackingService.getLiveLocation(principal.getName(), id);
+    return ApiResponse.ok("Live location retrieved", response);
   }
 
   /** Rejects an appointment (Vet). */

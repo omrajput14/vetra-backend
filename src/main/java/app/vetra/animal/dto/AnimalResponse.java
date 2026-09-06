@@ -1,6 +1,7 @@
 package app.vetra.animal.dto;
 
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
+import app.vetra.infrastructure.persistence.enums.AnimalStatus;
 import app.vetra.infrastructure.persistence.enums.Species;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ public record AnimalResponse(
     Species species,
     String breed,
     AnimalGender gender,
+    AnimalStatus status,
     LocalDate birthDate,
     String photoUrl,
     Instant createdAt,

@@ -29,6 +29,8 @@ public class RiskScoreProperties {
 
   private double confirmedCaseWeight = 1.0;
   private double suspectedCaseWeight = 0.4;
+  private double vetConfirmedMortalityWeight = 1.5;
+  private double farmerReportedMortalityWeight = 0.5;
 
   public double getWeightCluster() {
     return weightCluster;
@@ -141,4 +143,21 @@ public class RiskScoreProperties {
   public void setSuspectedCaseWeight(double suspectedCaseWeight) {
     this.suspectedCaseWeight = suspectedCaseWeight;
   }
+
+  public double getVetConfirmedMortalityWeight() {
+    return vetConfirmedMortalityWeight;
+  }
+
+  public void setVetConfirmedMortalityWeight(double vetConfirmedMortalityWeight) {
+    this.vetConfirmedMortalityWeight = vetConfirmedMortalityWeight;
+  }
+
+  public double getFarmerReportedMortalityWeight() {
+    return farmerReportedMortalityWeight;
+  }
+
+  public void setFarmerReportedMortalityWeight(double farmerReportedMortalityWeight) {
+    this.farmerReportedMortalityWeight = farmerReportedMortalityWeight;
+  }
 }
+

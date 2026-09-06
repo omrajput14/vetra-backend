@@ -22,6 +22,9 @@ public record OutbreakResponse(
     Instant createdAt,
     Instant updatedAt,
     Integer compositeRiskScore,
+    Integer mortalityCount,
+    Integer vetConfirmedMortalityCount,
+    Integer farmerReportedMortalityCount,
     RiskBreakdownResponse riskBreakdown) {
 
   /**
@@ -46,6 +49,9 @@ public record OutbreakResponse(
         outbreak.getCreatedAt(),
         outbreak.getUpdatedAt(),
         outbreak.getCompositeRiskScore(),
+        outbreak.getMortalityCount(),
+        outbreak.getVetConfirmedMortalityCount(),
+        outbreak.getFarmerReportedMortalityCount(),
         RiskBreakdownResponse.fromEntity(outbreak));
   }
 }

@@ -51,6 +51,9 @@ public class GeoJsonService {
                   props.put("trend", o.getTrend().name());
                   props.put("radiusKm", o.getRadiusKm());
                   props.put("affectedReportsCount", o.getAffectedReportsCount());
+                  props.put("mortalityCount", o.getMortalityCount());
+                  props.put("vetConfirmedMortalityCount", o.getVetConfirmedMortalityCount());
+                  props.put("farmerReportedMortalityCount", o.getFarmerReportedMortalityCount());
 
                   return GeoJsonFeatureCollection.GeoJsonFeature.point(
                       o.getCenterLongitude(), o.getCenterLatitude(), props);

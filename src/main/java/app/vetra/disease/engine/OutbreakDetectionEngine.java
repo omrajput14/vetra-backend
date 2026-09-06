@@ -16,7 +16,12 @@ import app.vetra.disease.repository.DiseaseReportRepository;
 import app.vetra.disease.repository.OutbreakRepository;
 import app.vetra.disease.risk.MultiSignalRiskEngine;
 import app.vetra.disease.risk.RiskAssessment;
+import app.vetra.disease.risk.RiskEvaluationContext;
 import app.vetra.disease.risk.SignalBreakdown;
+import app.vetra.mortality.entity.AnimalMortalityEvent;
+import app.vetra.mortality.enums.MortalityReportStatus;
+import app.vetra.mortality.enums.MortalitySource;
+import app.vetra.mortality.repository.AnimalMortalityEventRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -29,8 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Intelligent Outbreak Detection Engine. Evaluates temporal windows, disease-specific threshold
- * profiles, spatial clusters, multi-signal risk scoring, and lifecycle escalation without duplicate
- * cluster creation.
+ * profiles, spatial clusters, multi-signal risk scoring, mortality evidence, and lifecycle
+ * escalation without duplicate cluster creation.
  */
 @Component
 public class OutbreakDetectionEngine {
@@ -43,9 +48,12 @@ public class OutbreakDetectionEngine {
   private final ApplicationEventPublisher eventPublisher;
 
   @Autowired(required = false)
+  private AnimalMortalityEventRepository mortalityEventRepository;
+
+  @Autowired(required = false)
   private MultiSignalRiskEngine multiSignalRiskEngine;
 
-  /** Constructor injection. */
+  /** Constructor injection with 4 parameters. */
   public OutbreakDetectionEngine(
       DiseaseReportRepository diseaseReportRepository,
       OutbreakRepository outbreakRepository,
@@ -62,6 +70,12 @@ public class OutbreakDetectionEngine {
     this.multiSignalRiskEngine = multiSignalRiskEngine;
   }
 
+  /** Setter for AnimalMortalityEventRepository injection in testing. */
+  public void setMortalityEventRepository(
+      AnimalMortalityEventRepository mortalityEventRepository) {
+    this.mortalityEventRepository = mortalityEventRepository;
+  }
+
   /**
    * Evaluates a disease report for spatial and temporal outbreak cluster detection.
    *
@@ -72,76 +86,112 @@ public class OutbreakDetectionEngine {
     if (report.getDiagnosisStatus() != DiagnosisStatus.CONFIRMED) {
       return;
     }
-
     String diseaseName = report.getDiseaseName();
     DiseaseProfile profile = outbreakProperties.getProfileForDisease(diseaseName);
+    processClusterEvaluation(
+        diseaseName, report.getLatitude(), report.getLongitude(), profile, false);
+  }
+
+  /**
+   * Evaluates an animal mortality event for spatial-temporal disease cluster correlation.
+   *
+   * @param event newly reported or verified mortality event
+   */
+  @Transactional
+  public void evaluateMortalityEvent(AnimalMortalityEvent event) {
+    if (event == null || event.getLatitude() == null || event.getLongitude() == null) {
+      return;
+    }
+    String diseaseName = resolveMortalityDiseaseName(event);
+    if (diseaseName == null || diseaseName.isBlank()) {
+      return;
+    }
+    DiseaseProfile profile = outbreakProperties.getProfileForDisease(diseaseName);
+    processClusterEvaluation(
+        diseaseName, event.getLatitude(), event.getLongitude(), profile, true);
+  }
+
+  private void processClusterEvaluation(
+      String diseaseName,
+      double lat,
+      double lng,
+      DiseaseProfile profile,
+      boolean triggerFromMortality) {
     Instant cutoffTime = Instant.now().minus(profile.evaluationWindowHours(), ChronoUnit.HOURS);
-
-    List<DiseaseReport> confirmedReports =
-        diseaseReportRepository
-            .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(
-                diseaseName, DiagnosisStatus.CONFIRMED)
-            .stream()
-            .filter(r -> r.getCreatedAt().isAfter(cutoffTime))
-            .filter(
-                r ->
-                    GeoUtils.calculateDistanceKm(
-                            report.getLatitude(),
-                            report.getLongitude(),
-                            r.getLatitude(),
-                            r.getLongitude())
-                        <= profile.radiusKm())
-            .toList();
-
-    List<DiseaseReport> suspectedReports =
-        diseaseReportRepository
-            .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(
-                diseaseName, DiagnosisStatus.SUSPECTED)
-            .stream()
-            .filter(r -> r.getCreatedAt().isAfter(cutoffTime))
-            .filter(
-                r ->
-                    GeoUtils.calculateDistanceKm(
-                            report.getLatitude(),
-                            report.getLongitude(),
-                            r.getLatitude(),
-                            r.getLongitude())
-                        <= profile.radiusKm())
-            .toList();
+    List<DiseaseReport> confirmedReports = findNearbyReports(
+        diseaseName, DiagnosisStatus.CONFIRMED, lat, lng, profile.radiusKm(), cutoffTime);
+    List<DiseaseReport> suspectedReports = findNearbyReports(
+        diseaseName, DiagnosisStatus.SUSPECTED, lat, lng, profile.radiusKm(), cutoffTime);
+    List<AnimalMortalityEvent> mortalities =
+        findNearbyMortalities(diseaseName, lat, lng, profile.radiusKm(), cutoffTime);
 
     int confirmedCount = confirmedReports.size();
     int suspectedCount = suspectedReports.size();
+    int vetConfirmedMortality = (int) mortalities.stream()
+        .filter(m -> m.getSource() == MortalitySource.VET_CONFIRMED
+            && m.getStatus() == MortalityReportStatus.CONFIRMED).count();
+    int farmerReportedMortality = (int) mortalities.stream()
+        .filter(m -> m.getSource() == MortalitySource.FARMER_REPORTED
+            && m.getStatus() != MortalityReportStatus.REJECTED).count();
+    int totalMortalities = vetConfirmedMortality + farmerReportedMortality;
 
+    ClusterEvidence evidence = new ClusterEvidence(
+        confirmedCount, totalMortalities, vetConfirmedMortality, farmerReportedMortality);
     List<Outbreak> existingOutbreaks =
-        findNearbyExistingOutbreaks(
-            diseaseName, report.getLatitude(), report.getLongitude(), profile.radiusKm());
+        findNearbyExistingOutbreaks(diseaseName, lat, lng, profile.radiusKm());
 
-    RiskAssessment assessment;
-    if (multiSignalRiskEngine != null) {
-      assessment =
-          multiSignalRiskEngine.evaluateRisk(
-              diseaseName,
-              confirmedCount,
-              suspectedCount,
-              report.getLatitude(),
-              report.getLongitude(),
-              profile.radiusKm(),
-              profile.evaluationWindowHours());
-    } else {
-      OutbreakRiskScore fallbackScore =
-          calculateRiskScore(
-              confirmedCount,
-              profile.severityWeight(),
-              profile.radiusKm(),
-              profile.evaluationWindowHours());
-      assessment = RiskAssessment.of(50, fallbackScore, diseaseName, null);
-    }
+    RiskAssessment assessment = evaluateRiskAssessment(
+        diseaseName, confirmedCount, suspectedCount, vetConfirmedMortality,
+        farmerReportedMortality, lat, lng, profile);
 
     if (!existingOutbreaks.isEmpty()) {
-      updateExistingCluster(existingOutbreaks.get(0), assessment, confirmedCount);
-    } else if (confirmedCount >= profile.minimumConfirmedCases()) {
-      createNewCluster(report, profile, assessment, confirmedCount);
+      updateExistingCluster(existingOutbreaks.get(0), assessment, evidence);
+    } else {
+      int qualifyingCases = triggerFromMortality
+          ? confirmedCount + vetConfirmedMortality
+          : confirmedCount;
+      if (qualifyingCases >= profile.minimumConfirmedCases() && qualifyingCases > 0) {
+        createNewCluster(diseaseName, lat, lng, profile, assessment, evidence);
+      }
     }
+  }
+
+  private List<DiseaseReport> findNearbyReports(
+      String diseaseName,
+      DiagnosisStatus status,
+      double lat,
+      double lng,
+      double radiusKm,
+      Instant cutoffTime) {
+    return diseaseReportRepository
+        .findByDiseaseNameIgnoreCaseAndDiagnosisStatusOrderByCreatedAtDesc(diseaseName, status)
+        .stream()
+        .filter(r -> r.getCreatedAt().isAfter(cutoffTime))
+        .filter(r -> GeoUtils.calculateDistanceKm(lat, lng, r.getLatitude(), r.getLongitude())
+            <= radiusKm)
+        .toList();
+  }
+
+  private RiskAssessment evaluateRiskAssessment(
+      String diseaseName,
+      int confirmedCount,
+      int suspectedCount,
+      int vetConfirmedMortality,
+      int farmerReportedMortality,
+      double lat,
+      double lng,
+      DiseaseProfile profile) {
+    if (multiSignalRiskEngine != null) {
+      return multiSignalRiskEngine.evaluateRisk(
+          new RiskEvaluationContext(
+              diseaseName, confirmedCount, suspectedCount, vetConfirmedMortality,
+              farmerReportedMortality, lat, lng, profile.radiusKm(),
+              profile.evaluationWindowHours()));
+    }
+    OutbreakRiskScore fallbackScore = calculateRiskScore(
+        confirmedCount, profile.severityWeight(), profile.radiusKm(),
+        profile.evaluationWindowHours());
+    return RiskAssessment.of(50, fallbackScore, diseaseName, null);
   }
 
   /**
@@ -168,6 +218,32 @@ public class OutbreakDetectionEngine {
     }
   }
 
+  private List<AnimalMortalityEvent> findNearbyMortalities(
+      String diseaseName, double lat, double lng, double radiusKm, Instant cutoffTime) {
+    if (mortalityEventRepository == null || diseaseName == null) {
+      return List.of();
+    }
+    return mortalityEventRepository
+        .findByDiseaseNameAndReportedAtAfter(diseaseName, cutoffTime)
+        .stream()
+        .filter(m -> m.getLatitude() != null && m.getLongitude() != null)
+        .filter(
+            m ->
+                GeoUtils.calculateDistanceKm(lat, lng, m.getLatitude(), m.getLongitude())
+                    <= radiusKm)
+        .toList();
+  }
+
+  private String resolveMortalityDiseaseName(AnimalMortalityEvent event) {
+    if (event.getVetDiseaseName() != null && !event.getVetDiseaseName().isBlank()) {
+      return event.getVetDiseaseName().trim();
+    }
+    if (event.getDiseaseName() != null && !event.getDiseaseName().isBlank()) {
+      return event.getDiseaseName().trim();
+    }
+    return null;
+  }
+
   private List<Outbreak> findNearbyExistingOutbreaks(
       String diseaseName, double lat, double lng, double radiusKm) {
     return outbreakRepository.findByDiseaseNameIgnoreCase(diseaseName, null).getContent().stream()
@@ -177,13 +253,16 @@ public class OutbreakDetectionEngine {
                 GeoUtils.calculateDistanceKm(
                         lat, lng, o.getCenterLatitude(), o.getCenterLongitude())
                     <= radiusKm)
-            .toList();
+        .toList();
   }
 
   private void updateExistingCluster(
-      Outbreak existing, RiskAssessment assessment, int caseCount) {
+      Outbreak existing, RiskAssessment assessment, ClusterEvidence evidence) {
     OutbreakRiskScore previousRisk = existing.getRiskScore();
-    existing.setAffectedReportsCount(caseCount);
+    existing.setAffectedReportsCount(evidence.confirmedCases());
+    existing.setMortalityCount(evidence.totalMortalities());
+    existing.setVetConfirmedMortalityCount(evidence.vetConfirmedMortalities());
+    existing.setFarmerReportedMortalityCount(evidence.farmerReportedMortalities());
     existing.setLastCaseReportedAt(Instant.now());
     existing.setRiskScore(assessment.riskLevel());
     existing.setCompositeRiskScore(assessment.compositeScore());
@@ -206,26 +285,31 @@ public class OutbreakDetectionEngine {
     outbreakRepository.save(existing);
 
     if (previousRisk != assessment.riskLevel()) {
-      publishRiskEvents(existing, previousRisk, assessment.riskLevel(), caseCount);
+      publishRiskEvents(existing, previousRisk, assessment.riskLevel(), evidence.confirmedCases());
     }
   }
 
   private void createNewCluster(
-      DiseaseReport report,
+      String diseaseName,
+      double latitude,
+      double longitude,
       DiseaseProfile profile,
       RiskAssessment assessment,
-      int caseCount) {
+      ClusterEvidence evidence) {
     Outbreak.OutbreakBuilder builder =
         Outbreak.builder()
-            .diseaseName(report.getDiseaseName())
+            .diseaseName(diseaseName)
             .severity(profile.reportPriority())
             .status(OutbreakStatus.ACTIVE)
             .riskScore(assessment.riskLevel())
             .compositeRiskScore(assessment.compositeScore())
-            .centerLatitude(report.getLatitude())
-            .centerLongitude(report.getLongitude())
+            .centerLatitude(latitude)
+            .centerLongitude(longitude)
             .radiusKm(profile.radiusKm())
-            .affectedReportsCount(caseCount)
+            .affectedReportsCount(evidence.confirmedCases())
+            .mortalityCount(evidence.totalMortalities())
+            .vetConfirmedMortalityCount(evidence.vetConfirmedMortalities())
+            .farmerReportedMortalityCount(evidence.farmerReportedMortalities())
             .evaluationWindowHours(profile.evaluationWindowHours())
             .lastCaseReportedAt(Instant.now());
 
@@ -247,21 +331,29 @@ public class OutbreakDetectionEngine {
     Outbreak newOutbreak = outbreakRepository.save(builder.build());
 
     log.warn(
-        "NEW OUTBREAK CLUSTER CREATED: id={} disease='{}' risk={} compositeScore={} cases={}",
+        "NEW OUTBREAK CLUSTER CREATED: id={} disease='{}' risk={} compositeScore={} cases={} deaths={}",
         newOutbreak.getId(),
-        report.getDiseaseName(),
+        diseaseName,
         assessment.riskLevel(),
         assessment.compositeScore(),
-        caseCount);
+        evidence.confirmedCases(),
+        evidence.totalMortalities());
 
     eventPublisher.publishEvent(
         new PotentialOutbreakDetectedEvent(
-            report.getDiseaseName(), report.getLatitude(), report.getLongitude(), caseCount));
+            diseaseName, latitude, longitude, evidence.confirmedCases()));
 
     eventPublisher.publishEvent(
         new OutbreakEscalatedEvent(
-            newOutbreak.getId(), report.getDiseaseName(), assessment.riskLevel(), caseCount));
+            newOutbreak.getId(), diseaseName, assessment.riskLevel(), evidence.confirmedCases()));
   }
+
+  /** Structured evidence holder for outbreak cluster aggregation. */
+  public record ClusterEvidence(
+      int confirmedCases,
+      int totalMortalities,
+      int vetConfirmedMortalities,
+      int farmerReportedMortalities) {}
 
   private void publishRiskEvents(
       Outbreak outbreak, OutbreakRiskScore oldRisk, OutbreakRiskScore newRisk, int caseCount) {

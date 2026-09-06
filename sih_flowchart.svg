@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 920" width="100%" height="100%">
+  <defs>
+    <!-- Arrow marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
+    </marker>
+    <!-- Filter for subtle drop shadow -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <style>
+    .node-text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-anchor: middle; }
+    .title-text { font-size: 14px; font-weight: 600; fill: #1e293b; }
+    .sub-text { font-size: 11px; font-weight: 400; fill: #64748b; }
+    .decision-text { font-size: 13px; font-weight: 600; fill: #0f172a; }
+    .branch-label { font-size: 12px; font-weight: 600; fill: #475569; }
+    .pill-text { font-size: 12px; font-weight: 500; fill: #334155; }
+    .line { stroke: #94a3b8; stroke-width: 1.75; fill: none; }
+  </style>
+
+  <!-- 1. START -->
+  <rect x="180" y="20" width="120" height="38" rx="19" fill="#719B6F" filter="url(#shadow)" />
+  <text x="240" y="44" class="node-text" font-size="14" font-weight="700" fill="#ffffff" letter-spacing="1">START</text>
+
+  <!-- Connector 1 -->
+  <line x1="240" y1="58" x2="240" y2="88" class="line" marker-end="url(#arrow)" />
+
+  <!-- 2. Step 1: Farmer Submits Report -->
+  <rect x="130" y="90" width="220" height="52" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="113" class="node-text title-text">Farmer Submits Report</text>
+  <text x="240" y="130" class="node-text sub-text">Photo / Voice AI + Auto GPS</text>
+
+  <!-- Connector 2 -->
+  <line x1="240" y1="142" x2="240" y2="172" class="line" marker-end="url(#arrow)" />
+
+  <!-- 3. Step 2: AI Screening -->
+  <rect x="130" y="174" width="220" height="52" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="197" class="node-text title-text">AI Image Screening</text>
+  <text x="240" y="214" class="node-text sub-text">Preliminary Lesion Diagnosis</text>
+
+  <!-- Connector 3 -->
+  <line x1="240" y1="226" x2="240" y2="256" class="line" marker-end="url(#arrow)" />
+
+  <!-- 4. Step 3: Vet Review -->
+  <rect x="130" y="258" width="220" height="52" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="281" class="node-text title-text">Licensed Vet Reviews on App</text>
+  <text x="240" y="298" class="node-text sub-text">Human-in-the-Loop Verification</text>
+
+  <!-- Connector 4 -->
+  <line x1="240" y1="310" x2="240" y2="340" class="line" marker-end="url(#arrow)" />
+
+  <!-- 5. Decision 1: Vet Confirmed? -->
+  <polygon points="240,342 315,385 240,428 165,385" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="381" class="node-text decision-text">Vet</text>
+  <text x="240" y="398" class="node-text decision-text">Confirmed?</text>
+
+  <!-- Branch 1 [NO] -> Side Box -->
+  <line x1="315" y1="385" x2="368" y2="385" class="line" marker-end="url(#arrow)" />
+  <text x="338" y="377" class="node-text branch-label">No</text>
+  
+  <rect x="370" y="362" width="100" height="46" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="420" y="381" class="node-text pill-text" font-weight="600">Logged</text>
+  <text x="420" y="396" class="node-text sub-text">(No Alert)</text>
+
+  <!-- Branch 1 [YES] -> Downward -->
+  <line x1="240" y1="428" x2="240" y2="466" class="line" marker-end="url(#arrow)" />
+  <text x="256" y="449" class="node-text branch-label">Yes</text>
+
+  <!-- 6. Step 4: Spatial Clustering -->
+  <rect x="130" y="468" width="220" height="52" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="491" class="node-text title-text">PostGIS 25km Clustering</text>
+  <text x="240" y="508" class="node-text sub-text">Queries cases in 48-hr window</text>
+
+  <!-- Connector 5 -->
+  <line x1="240" y1="520" x2="240" y2="550" class="line" marker-end="url(#arrow)" />
+
+  <!-- 7. Decision 2: Threshold Reached? -->
+  <polygon points="240,552 315,595 240,638 165,595" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="591" class="node-text decision-text">Threshold</text>
+  <text x="240" y="608" class="node-text decision-text">Reached?</text>
+
+  <!-- Branch 2 [NO] -> Side Box -->
+  <line x1="315" y1="595" x2="368" y2="595" class="line" marker-end="url(#arrow)" />
+  <text x="338" y="587" class="node-text branch-label">No</text>
+  
+  <rect x="370" y="572" width="100" height="46" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="420" y="591" class="node-text pill-text" font-weight="600">Routine</text>
+  <text x="420" y="606" class="node-text sub-text">Monitoring</text>
+
+  <!-- Branch 2 [YES] -> Downward -->
+  <line x1="240" y1="638" x2="240" y2="676" class="line" marker-end="url(#arrow)" />
+  <text x="256" y="659" class="node-text branch-label">Yes</text>
+
+  <!-- 8. Step 5: 4-Signal Risk Engine -->
+  <rect x="120" y="678" width="240" height="54" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="700" class="node-text title-text">4-Signal Risk Engine (0-100)</text>
+  <text x="240" y="718" class="node-text sub-text">Cases + Weather + History + Vaccine Gap</text>
+
+  <!-- Connector 6 -->
+  <line x1="240" y1="732" x2="240" y2="762" class="line" marker-end="url(#arrow)" />
+
+  <!-- 9. Step 6: Gov Dashboard Alert -->
+  <rect x="120" y="764" width="240" height="52" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="787" class="node-text title-text">Government Dashboard Alert</text>
+  <text x="240" y="804" class="node-text sub-text">25km Buffer Rendered on Leaflet GIS</text>
+
+  <!-- Connector 7 -->
+  <line x1="240" y1="816" x2="240" y2="844" class="line" marker-end="url(#arrow)" />
+
+  <!-- 10. END: Officer Dispatches -->
+  <rect x="110" y="846" width="260" height="54" rx="14" fill="#719B6F" stroke="#5E835C" stroke-width="1.5" filter="url(#shadow)" />
+  <text x="240" y="869" class="node-text" font-size="13" font-weight="700" fill="#ffffff">Officer Dispatches Ring-Vaccines</text>
+  <text x="240" y="886" class="node-text" font-size="11" font-weight="500" fill="#E8F3E6">&amp; Rapid Response Veterinary Teams</text>
+</svg>

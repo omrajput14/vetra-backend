@@ -1,5 +1,8 @@
 package app.vetra.ai.controller;
 
+import app.vetra.infrastructure.idempotency.IdempotencyService;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import app.vetra.ai.dto.AIScanResponse;
 import app.vetra.ai.dto.ApproveAIScanRequest;
 import app.vetra.ai.dto.CreateAIScanRequest;
@@ -40,10 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AIScanController {
 
   private final AIScanService aiScanService;
+  private final IdempotencyService idempotencyService;
 
   /** Constructor injection. */
-  public AIScanController(AIScanService aiScanService) {
+  public AIScanController(AIScanService aiScanService, IdempotencyService idempotencyService) {
     this.aiScanService = aiScanService;
+    this.idempotencyService = idempotencyService;
   }
 
   /** Registers a new AI diagnostic scan request for an animal. */
@@ -53,9 +58,18 @@ public class AIScanController {
       summary = "Submit AI Diagnostic Scan",
       description = "Uploads a new diagnostic image scan for AI inference processing.")
   public ApiResponse<AIScanResponse> createScan(
-      Principal principal, @Valid @RequestBody CreateAIScanRequest request) {
-    AIScanResponse response = aiScanService.createScan(principal.getName(), request);
-    return ApiResponse.created("AI diagnostic scan submitted successfully", response);
+      Principal principal,
+      @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+      @Valid @RequestBody CreateAIScanRequest request) {
+    return idempotencyService.executeOrGet(
+        principal.getName(),
+        idempotencyKey,
+        "/api/v1/ai/scans",
+        AIScanResponse.class,
+        () -> {
+          AIScanResponse response = aiScanService.createScan(principal.getName(), request);
+          return ApiResponse.created("AI diagnostic scan submitted successfully", response);
+        });
   }
 
   /** Fetches an AI diagnostic scan by ID. */

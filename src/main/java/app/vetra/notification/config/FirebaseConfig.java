@@ -116,6 +116,17 @@ public class FirebaseConfig {
         : System.getenv("FIREBASE_CREDENTIALS_PATH");
 
     if (path == null || path.isBlank()) {
+      path = System.getenv("FCM_CREDENTIALS_PATH");
+    }
+
+    if (path == null || path.isBlank()) {
+      String localDefault =
+          System.getProperty("user.home")
+              + "/Documents/vetra-secrets/vetra-1ebfa-firebase-adminsdk-fbsvc-ead91546b9.json";
+      java.io.File defaultFile = new java.io.File(localDefault);
+      if (defaultFile.exists() && defaultFile.isFile()) {
+        return defaultFile.getAbsolutePath();
+      }
       return null;
     }
 

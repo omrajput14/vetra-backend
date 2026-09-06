@@ -274,6 +274,79 @@ public class AnimalService {
     animalRepository.delete(animal);
   }
 
+  /**
+   * Updates an animal's photo URL after successful authenticated media upload.
+   */
+  @Transactional
+  @Caching(
+      evict = {
+        @CacheEvict(
+            value = CacheNames.ANIMALS,
+            key = "T(app.vetra.infrastructure.cache.CacheKeys).animalKey(#animalId)"),
+        @CacheEvict(
+            value = {CacheNames.DASHBOARD_FARMER, CacheNames.ANALYTICS},
+            allEntries = true)
+      })
+  public AnimalResponse updateAnimalPhoto(
+      String currentUserIdentifier, UUID animalId, String photoUrl) {
+    User user = getUserByHeader(currentUserIdentifier);
+    Animal animal =
+        animalRepository
+            .findById(animalId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Animal not found with ID: " + animalId, "ANIMAL_001"));
+
+    if (user.getRole() == UserRole.FARMER) {
+      verifyFarmerOwnership(user, animal);
+    }
+
+    animal.setPhotoUrl(photoUrl);
+    animal = animalRepository.save(animal);
+    return mapToResponse(animal);
+  }
+
+  /**
+   * Verifies access and retrieves the animal for serving its photo.
+   * A farmer may only access photos of animals they own.
+   * Veterinarians and government officers may access animal photos under clinical/surveillance rules.
+   */
+  @Transactional(readOnly = true)
+  public Animal verifyAndGetAnimalForPhotoAccess(String currentUserIdentifier, UUID animalId) {
+    User user = getUserByHeader(currentUserIdentifier);
+    Animal animal =
+        animalRepository
+            .findById(animalId)
+            .orElseThrow(
+                () ->
+                    new ResourceNotFoundException(
+                        "Animal not found with ID: " + animalId, "ANIMAL_001"));
+
+    if (user.getRole() == UserRole.FARMER) {
+      verifyFarmerOwnership(user, animal);
+    }
+
+    return animal;
+  }
+
+  /**
+   * Removes an animal's photo URL.
+   */
+  @Transactional
+  @Caching(
+      evict = {
+        @CacheEvict(
+            value = CacheNames.ANIMALS,
+            key = "T(app.vetra.infrastructure.cache.CacheKeys).animalKey(#animalId)"),
+        @CacheEvict(
+            value = {CacheNames.DASHBOARD_FARMER, CacheNames.ANALYTICS},
+            allEntries = true)
+      })
+  public AnimalResponse removeAnimalPhoto(String currentUserIdentifier, UUID animalId) {
+    return updateAnimalPhoto(currentUserIdentifier, animalId, null);
+  }
+
   private User getUserByHeader(String identifier) {
     return userRepository
         .findByIdentifier(identifier)
@@ -304,6 +377,7 @@ public class AnimalService {
         a.getSpecies(),
         a.getBreed(),
         a.getGender(),
+        a.getStatus(),
         a.getBirthDate(),
         a.getPhotoUrl(),
         a.getCreatedAt(),

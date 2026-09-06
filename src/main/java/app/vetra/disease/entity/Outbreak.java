@@ -108,6 +108,19 @@ public class Outbreak extends BaseEntity {
   @Column(name = "recommended_action", columnDefinition = "TEXT")
   private String recommendedAction;
 
+  // Mortality Evidence Intelligence Fields
+  @Column(name = "mortality_count", nullable = false)
+  @Builder.Default
+  private Integer mortalityCount = 0;
+
+  @Column(name = "vet_confirmed_mortality_count", nullable = false)
+  @Builder.Default
+  private Integer vetConfirmedMortalityCount = 0;
+
+  @Column(name = "farmer_reported_mortality_count", nullable = false)
+  @Builder.Default
+  private Integer farmerReportedMortalityCount = 0;
+
   public String getDiseaseName() {
     return diseaseName;
   }
@@ -307,4 +320,29 @@ public class Outbreak extends BaseEntity {
   public void setRecommendedAction(String recommendedAction) {
     this.recommendedAction = recommendedAction;
   }
+
+  public Integer getMortalityCount() {
+    return mortalityCount != null ? mortalityCount : 0;
+  }
+
+  public void setMortalityCount(Integer mortalityCount) {
+    this.mortalityCount = mortalityCount;
+  }
+
+  public Integer getVetConfirmedMortalityCount() {
+    return vetConfirmedMortalityCount != null ? vetConfirmedMortalityCount : 0;
+  }
+
+  public void setVetConfirmedMortalityCount(Integer vetConfirmedMortalityCount) {
+    this.vetConfirmedMortalityCount = vetConfirmedMortalityCount;
+  }
+
+  public Integer getFarmerReportedMortalityCount() {
+    return farmerReportedMortalityCount != null ? farmerReportedMortalityCount : 0;
+  }
+
+  public void setFarmerReportedMortalityCount(Integer farmerReportedMortalityCount) {
+    this.farmerReportedMortalityCount = farmerReportedMortalityCount;
+  }
 }
+

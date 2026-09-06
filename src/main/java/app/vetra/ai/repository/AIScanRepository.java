@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /** Spring Data JPA repository for AIScan entities. */
@@ -47,4 +48,12 @@ public interface AIScanRepository extends JpaRepository<AIScan, UUID> {
 
   /** Finds AI scans by veterinarian verification status with pagination. */
   Page<AIScan> findByVeterinarianVerified(boolean veterinarianVerified, Pageable pageable);
+
+  /** Checks if any AI diagnostic scan exists for an animal. */
+  boolean existsByAnimalId(UUID animalId);
+
+  /** Finds distinct animal IDs with AI scans whose current status is not deceased. */
+  @Query("SELECT DISTINCT s.animal.id FROM AIScan s WHERE s.animal.status != app.vetra.infrastructure.persistence.enums.AnimalStatus.DECEASED")
+  List<UUID> findDistinctActiveAnimalIds();
 }
+

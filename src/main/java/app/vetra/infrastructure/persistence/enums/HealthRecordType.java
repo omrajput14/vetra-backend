@@ -7,5 +7,6 @@ public enum HealthRecordType {
   DIAGNOSIS,
   TREATMENT,
   VACCINATION,
-  OBSERVATION
+  OBSERVATION,
+  MORTALITY
 }

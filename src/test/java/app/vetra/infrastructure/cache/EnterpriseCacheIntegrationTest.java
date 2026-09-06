@@ -6,6 +6,7 @@ import app.vetra.animal.dto.AnimalResponse;
 import app.vetra.dashboard.dto.DashboardResponse;
 import app.vetra.infrastructure.cache.config.CacheConfiguration;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
+import app.vetra.infrastructure.persistence.enums.AnimalStatus;
 import app.vetra.infrastructure.persistence.enums.Species;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -61,6 +62,7 @@ class EnterpriseCacheIntegrationTest {
             Species.CATTLE,
             "Holstein",
             AnimalGender.FEMALE,
+            AnimalStatus.ACTIVE,
             LocalDate.of(2021, 5, 10),
             "https://storage.vetra.app/animals/bessie.jpg",
             Instant.now(),

@@ -4,6 +4,8 @@ target/
 *.jar
 *.war
 *.ear
+*.apk
+*.aab
 
 # ─── Maven Wrapper cache ───────────────────────────────────────────────
 .mvn/wrapper/maven-wrapper.jar
@@ -27,8 +29,10 @@ target/
 logs/
 *.log
 
-# ─── Docker volumes ───────────────────────────────────────────────────
+# ─── Docker volumes & Backups ─────────────────────────────────────────
 postgres-data/
+backups/
+*.dump
 
 # ─── Scratch and temp files ────────────────────────────────────────────
 scratch/
@@ -57,3 +61,32 @@ infra/.terraform/
 *.p12
 *.pfx
 *.jks
+
+# ─── Graphify Knowledge Graph ─────────────────────────────────────────
+graphify-out/
+.graphify/
+
+# ─── AI Agents & Assistant Workspaces ─────────────────────────────────
+.claude/
+.gemini/
+.agents/
+
+# ─── Python Bytecode & Environments ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+.venv/
+env/
+
+# ─── Test & Automation Reports ────────────────────────────────────────
+demo_data_report.json
+*_report.json
+
+# ─── OS Metadata ──────────────────────────────────────────────────────
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

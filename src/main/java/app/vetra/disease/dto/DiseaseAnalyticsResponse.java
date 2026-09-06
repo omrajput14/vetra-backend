@@ -15,6 +15,9 @@ import java.util.Map;
  * @param diseaseDistribution breakdown of outbreaks per disease
  * @param mostCommonDiseases top most common disease names
  * @param reportsByConfidenceSource breakdown of disease reports by diagnostic confidence source
+ * @param totalMortalityReports total animal mortality events recorded
+ * @param farmerReportedMortalityCount count of farmer-reported mortality events
+ * @param vetConfirmedMortalityCount count of veterinarian-confirmed mortality events
  */
 public record DiseaseAnalyticsResponse(
     long totalOutbreaks,
@@ -24,4 +27,8 @@ public record DiseaseAnalyticsResponse(
     double averageResolutionTimeHours,
     Map<String, Long> diseaseDistribution,
     List<String> mostCommonDiseases,
-    Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource) {}
+    Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource,
+    long totalMortalityReports,
+    long farmerReportedMortalityCount,
+    long vetConfirmedMortalityCount) {}
+

@@ -20,9 +20,6 @@ import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
 import app.vetra.infrastructure.persistence.enums.UserRole;
-import app.vetra.notification.entity.NotificationChannel;
-import app.vetra.notification.entity.NotificationPriority;
-import app.vetra.notification.service.NotificationService;
 import io.micrometer.tracing.Tracer;
 import java.time.LocalDate;
 import java.util.List;
@@ -46,7 +43,7 @@ public class AppointmentService {
   private final AnimalRepository animalRepository;
   private final VetraMetrics vetraMetrics;
   private final Tracer tracer;
-  private final NotificationService notificationService;
+  private final AppointmentNotificationHelper notificationHelper;
 
   /** Constructor injection. */
   public AppointmentService(
@@ -57,7 +54,7 @@ public class AppointmentService {
       AnimalRepository animalRepository,
       VetraMetrics vetraMetrics,
       Tracer tracer,
-      NotificationService notificationService) {
+      AppointmentNotificationHelper notificationHelper) {
     this.appointmentRepository = appointmentRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
@@ -65,7 +62,7 @@ public class AppointmentService {
     this.animalRepository = animalRepository;
     this.vetraMetrics = vetraMetrics;
     this.tracer = tracer;
-    this.notificationService = notificationService;
+    this.notificationHelper = notificationHelper;
   }
 
   /** Creates a new appointment for the authenticated farmer. */
@@ -130,31 +127,8 @@ public class AppointmentService {
 
     Appointment saved = appointmentRepository.save(appointment);
     vetraMetrics.recordAppointmentCreated();
+    notificationHelper.notifyBookingRequested(saved, farmer, vet, animal);
 
-    if (notificationService != null) {
-      try {
-        String animalLabel = animal.getAnimalName() != null ? animal.getAnimalName() : animal.getTagNumber();
-        notificationService.sendNotification(
-            farmer.getUser().getId(),
-            "Appointment Requested",
-            "Appointment requested with Dr. " + vet.getFullName() + " on " + request.appointmentDate() + " for " + animalLabel + ".",
-            "{\"appointmentId\":\"" + saved.getId() + "\",\"route\":\"/appointment-details?id=" + saved.getId() + "\"}",
-            NotificationChannel.PUSH,
-            NotificationPriority.NORMAL);
-
-        notificationService.sendNotification(
-            vet.getUser().getId(),
-            "New Consultation Request",
-            farmer.getFullName() + " requested a consultation for " + animalLabel + " on " + request.appointmentDate() + ".",
-            "{\"appointmentId\":\"" + saved.getId() + "\",\"route\":\"/appointment-details?id=" + saved.getId() + "\"}",
-            NotificationChannel.PUSH,
-            NotificationPriority.NORMAL);
-      } catch (Exception e) {
-        // Non-blocking notification
-      }
-    }
-
-    // Tag span with appointment visit type — enum value, bounded cardinality, no PII.
     if (tracer.currentSpan() != null && request.visitType() != null) {
       tracer.currentSpan().tag("appointment.visit_type", request.visitType().name());
     }
@@ -267,29 +241,7 @@ public class AppointmentService {
         user, appointment, request.status(), request.notes(), request.cancellationReason());
 
     Appointment updated = appointmentRepository.save(appointment);
-
-    if (notificationService != null && (request.status() == AppointmentStatus.CONFIRMED
-        || request.status() == AppointmentStatus.CANCELLED
-        || request.status() == AppointmentStatus.REJECTED)) {
-      try {
-        String title = request.status() == AppointmentStatus.CONFIRMED
-            ? "Appointment Confirmed"
-            : "Appointment Cancelled";
-        String body = request.status() == AppointmentStatus.CONFIRMED
-            ? "Dr. " + appointment.getVeterinarian().getFullName() + " confirmed your appointment on " + appointment.getAppointmentDate() + "."
-            : "Appointment on " + appointment.getAppointmentDate() + " with Dr. " + appointment.getVeterinarian().getFullName() + " was cancelled. Please book another appointment if veterinary care is still required.";
-
-        notificationService.sendNotification(
-            appointment.getFarmer().getUser().getId(),
-            title,
-            body,
-            "{\"appointmentId\":\"" + appointment.getId() + "\",\"route\":\"/appointment-details?id=" + appointment.getId() + "\"}",
-            NotificationChannel.PUSH,
-            NotificationPriority.HIGH);
-      } catch (Exception e) {
-        // Non-blocking notification
-      }
-    }
+    notificationHelper.dispatchStatusNotification(updated, request.status());
 
     return AppointmentResponse.fromEntity(updated);
   }
@@ -301,6 +253,24 @@ public class AppointmentService {
         currentUserIdentifier,
         id,
         new UpdateAppointmentStatusRequest(AppointmentStatus.CONFIRMED, null, null));
+  }
+
+  /** Delegate helper for transitioning to EN_ROUTE (Vet only). */
+  @Transactional
+  public AppointmentResponse startEnRoute(String currentUserIdentifier, UUID id) {
+    return updateStatus(
+        currentUserIdentifier,
+        id,
+        new UpdateAppointmentStatusRequest(AppointmentStatus.EN_ROUTE, null, null));
+  }
+
+  /** Delegate helper for marking arrival (Vet only). */
+  @Transactional
+  public AppointmentResponse markArrived(String currentUserIdentifier, UUID id) {
+    return updateStatus(
+        currentUserIdentifier,
+        id,
+        new UpdateAppointmentStatusRequest(AppointmentStatus.ARRIVED, null, null));
   }
 
   /** Delegate helper for rejecting an appointment (Vet only). */
@@ -368,24 +338,31 @@ public class AppointmentService {
       case CANCELLED -> vetraMetrics.recordAppointmentCancelled();
       case REJECTED -> vetraMetrics.recordAppointmentRejected();
       default -> {
-        /* PENDING not a transition target */
+        /* PENDING, EN_ROUTE, ARRIVED do not increment terminal metric counters */
       }
     }
   }
 
   private void validateAllowedTransition(AppointmentStatus current, AppointmentStatus target) {
-    if (current == AppointmentStatus.PENDING) {
-      if (target != AppointmentStatus.CONFIRMED
-          && target != AppointmentStatus.REJECTED
-          && target != AppointmentStatus.CANCELLED) {
-        throw new BusinessRuleException(
-            "Invalid state transition from PENDING to " + target, "APPT_004");
-      }
-    } else if (current == AppointmentStatus.CONFIRMED) {
-      if (target != AppointmentStatus.COMPLETED && target != AppointmentStatus.CANCELLED) {
-        throw new BusinessRuleException(
-            "Invalid state transition from CONFIRMED to " + target, "APPT_004");
-      }
+    boolean valid =
+        switch (current) {
+          case PENDING -> target == AppointmentStatus.CONFIRMED
+              || target == AppointmentStatus.REJECTED
+              || target == AppointmentStatus.CANCELLED;
+          case CONFIRMED -> target == AppointmentStatus.EN_ROUTE
+              || target == AppointmentStatus.COMPLETED
+              || target == AppointmentStatus.CANCELLED;
+          case EN_ROUTE -> target == AppointmentStatus.ARRIVED
+              || target == AppointmentStatus.COMPLETED
+              || target == AppointmentStatus.CANCELLED;
+          case ARRIVED -> target == AppointmentStatus.COMPLETED
+              || target == AppointmentStatus.CANCELLED;
+          default -> false;
+        };
+
+    if (!valid) {
+      throw new BusinessRuleException(
+          "Invalid state transition from " + current + " to " + target, "APPT_004");
     }
   }
 
@@ -393,12 +370,13 @@ public class AppointmentService {
     boolean isVetAction =
         targetStatus == AppointmentStatus.CONFIRMED
             || targetStatus == AppointmentStatus.REJECTED
+            || targetStatus == AppointmentStatus.EN_ROUTE
+            || targetStatus == AppointmentStatus.ARRIVED
             || targetStatus == AppointmentStatus.COMPLETED;
 
     if (isVetAction && user.getRole() != UserRole.VETERINARIAN) {
       throw new UnauthorizedResourceAccessException(
-          "Only veterinarians can " + targetStatus.name().toLowerCase() + " appointments",
-          "APPT_003");
+          "Only veterinarians can transition appointments to " + targetStatus.name(), "APPT_003");
     }
 
     if (targetStatus == AppointmentStatus.CANCELLED && user.getRole() != UserRole.FARMER) {

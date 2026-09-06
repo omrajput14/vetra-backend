@@ -28,6 +28,9 @@ public record AppointmentResponse(
     AppointmentStatus status,
     String veterinarianNotes,
     String cancellationReason,
+    Double vetLatitude,
+    Double vetLongitude,
+    Instant vetLocationUpdatedAt,
     Long version,
     Instant createdAt,
     Instant updatedAt) {
@@ -62,6 +65,9 @@ public record AppointmentResponse(
         appointment.getStatus(),
         appointment.getVeterinarianNotes(),
         appointment.getCancellationReason(),
+        appointment.getVetLatitude(),
+        appointment.getVetLongitude(),
+        appointment.getVetLocationUpdatedAt(),
         appointment.getVersion(),
         appointment.getCreatedAt(),
         appointment.getUpdatedAt());

@@ -287,8 +287,18 @@ public class DiseaseService {
                         && o.getStatus() != OutbreakStatus.RESOLVED)
             .count();
     long totalAffected = all.stream().mapToLong(Outbreak::getAffectedReportsCount).sum();
+    long totalMortalities = all.stream().mapToLong(Outbreak::getMortalityCount).sum();
+    long vetConfirmedMortalities =
+        all.stream().mapToLong(Outbreak::getVetConfirmedMortalityCount).sum();
 
-    return new OutbreakStatisticsResponse(total, active, critical, high, totalAffected);
+    return new OutbreakStatisticsResponse(
+        total,
+        active,
+        critical,
+        high,
+        totalAffected,
+        totalMortalities,
+        vetConfirmedMortalities);
   }
 
   /** Retrieves all disease reports contributing to a specific outbreak cluster. */

@@ -108,6 +108,15 @@ public class OperationalAlertService {
         why = "Critical outbreak severity registered (risk score and case count unavailable).";
       }
 
+      int deaths = o.getMortalityCount() != null ? o.getMortalityCount() : 0;
+      int vetDeaths = o.getVetConfirmedMortalityCount() != null ? o.getVetConfirmedMortalityCount() : 0;
+      int farmerDeaths = o.getFarmerReportedMortalityCount() != null ? o.getFarmerReportedMortalityCount() : 0;
+      if (deaths > 0) {
+        why = why + String.format(
+            " Cluster includes %d mortalities (%d vet-confirmed, %d farmer-reported).",
+            deaths, vetDeaths, farmerDeaths);
+      }
+
       list.add(
           new OperationalAlertResponse(
               generateDeterministicUuid(o.getId(), "CRITICAL"),

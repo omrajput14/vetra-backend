@@ -59,7 +59,8 @@ import org.springframework.transaction.annotation.Transactional;
       "vetra.aws.credentials.access-key=test-key",
       "vetra.aws.credentials.secret-key=test-secret",
       "vetra.aws.s3.bucket-name=vetra-test-bucket",
-      "vetra.aws.s3.presigned-url-expiry-minutes=15"
+      "vetra.aws.s3.presigned-url-expiry-minutes=15",
+      "vetra.ai.gemini.enabled=false"
     })
 class AIScanServiceTest {
 

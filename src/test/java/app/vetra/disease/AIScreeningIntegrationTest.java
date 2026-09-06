@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +83,7 @@ class AIScreeningIntegrationTest {
   @Autowired private OutbreakController outbreakController;
 
   @Test
+  @WithMockUser(roles = "GOVERNMENT_OFFICER")
   @DisplayName("Full Pipeline: Farmer AI Scan -> Government Surveillance Visibility -> Vet Review -> Outbreak Detection")
   void testEndToEndAIScreeningToOutbreakFlow() {
     // 1. Register Farmer in Pune with GPS coordinates

@@ -1,5 +1,8 @@
 package app.vetra.disease.controller;
 
+import app.vetra.infrastructure.idempotency.IdempotencyService;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import app.vetra.disease.dto.CreateDiseaseReportRequest;
 import app.vetra.disease.dto.DiseaseReportResponse;
 import app.vetra.disease.dto.NearbyReportResponse;
@@ -38,10 +41,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class DiseaseReportController {
 
   private final DiseaseService diseaseService;
+  private final IdempotencyService idempotencyService;
 
   /** Constructor injection. */
-  public DiseaseReportController(DiseaseService diseaseService) {
+  public DiseaseReportController(DiseaseService diseaseService, IdempotencyService idempotencyService) {
     this.diseaseService = diseaseService;
+    this.idempotencyService = idempotencyService;
   }
 
   /** Submits a new disease report. */
@@ -52,9 +57,18 @@ public class DiseaseReportController {
       summary = "Create Disease Report",
       description = "Submits a new verified or suspected disease report for an animal.")
   public ApiResponse<DiseaseReportResponse> createReport(
-      Principal principal, @Valid @RequestBody CreateDiseaseReportRequest request) {
-    DiseaseReportResponse response = diseaseService.createReport(principal.getName(), request);
-    return ApiResponse.created("Disease report submitted successfully", response);
+      Principal principal,
+      @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+      @Valid @RequestBody CreateDiseaseReportRequest request) {
+    return idempotencyService.executeOrGet(
+        principal.getName(),
+        idempotencyKey,
+        "/api/v1/disease/reports",
+        DiseaseReportResponse.class,
+        () -> {
+          DiseaseReportResponse response = diseaseService.createReport(principal.getName(), request);
+          return ApiResponse.created("Disease report submitted successfully", response);
+        });
   }
 
   /** Retrieves a disease report by ID. */

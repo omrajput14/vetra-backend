@@ -48,4 +48,12 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
       @Param("maxLat") Double maxLat,
       @Param("minLon") Double minLon,
       @Param("maxLon") Double maxLon);
+
+  /** Checks if any disease surveillance report exists for an animal. */
+  boolean existsByAnimalId(UUID animalId);
+
+  /** Finds distinct animal IDs with disease reports whose current status is not deceased. */
+  @Query("SELECT DISTINCT r.animal.id FROM DiseaseReport r WHERE r.animal.status != app.vetra.infrastructure.persistence.enums.AnimalStatus.DECEASED")
+  List<UUID> findDistinctActiveAnimalIds();
 }
+

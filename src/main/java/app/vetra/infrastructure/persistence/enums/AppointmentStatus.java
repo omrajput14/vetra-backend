@@ -4,6 +4,8 @@ package app.vetra.infrastructure.persistence.enums;
 public enum AppointmentStatus {
   PENDING,
   CONFIRMED,
+  EN_ROUTE,
+  ARRIVED,
   COMPLETED,
   CANCELLED,
   REJECTED;

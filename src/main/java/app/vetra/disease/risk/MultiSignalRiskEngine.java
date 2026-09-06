@@ -39,41 +39,34 @@ public class MultiSignalRiskEngine {
   }
 
   /**
-   * Evaluates composite multi-signal risk for a disease cluster.
+   * Evaluates composite multi-signal risk for a disease cluster using a risk evaluation context.
    *
-   * @param diseaseName target disease
-   * @param confirmedCases count of confirmed veterinary reports
-   * @param suspectedCases count of unverified farmer reports
-   * @param latitude cluster center latitude
-   * @param longitude cluster center longitude
-   * @param radiusKm containment radius in km
-   * @param windowHours evaluation window in hours
+   * @param ctx evaluation context encapsulating cases, mortalities, and geographic parameters
    * @return {@link RiskAssessment}
    */
-  public RiskAssessment evaluateRisk(
-      String diseaseName,
-      int confirmedCases,
-      int suspectedCases,
-      double latitude,
-      double longitude,
-      double radiusKm,
-      int windowHours) {
-
-    DiseaseProfile profile = outbreakProperties.getProfileForDisease(diseaseName);
+  public RiskAssessment evaluateRisk(RiskEvaluationContext ctx) {
+    DiseaseProfile profile = outbreakProperties.getProfileForDisease(ctx.diseaseName());
 
     double clusterRaw =
         calculateClusterSignal(
-            confirmedCases, suspectedCases, profile.severityWeight(), radiusKm, windowHours);
+            ctx.confirmedCases(),
+            ctx.suspectedCases(),
+            ctx.vetConfirmedMortalities(),
+            ctx.farmerReportedMortalities(),
+            profile.severityWeight(),
+            ctx.windowHours());
 
-    WeatherData weather = weatherService.getWeatherData(latitude, longitude);
-    double weatherRaw = calculateWeatherSignal(diseaseName, weather);
+    WeatherData weather = weatherService.getWeatherData(ctx.latitude(), ctx.longitude());
+    double weatherRaw = calculateWeatherSignal(ctx.diseaseName(), weather);
 
     HistoricalOutbreakService.HistoricalSignalResult history =
-        historyService.evaluateHistory(diseaseName, latitude, longitude, radiusKm);
+        historyService.evaluateHistory(
+            ctx.diseaseName(), ctx.latitude(), ctx.longitude(), ctx.radiusKm());
     double historyRaw = history.normalizedScore();
 
     VaccinationGapService.VaccinationGapResult vaccine =
-        vaccinationGapService.calculateVaccinationGap(diseaseName, latitude, longitude, radiusKm);
+        vaccinationGapService.calculateVaccinationGap(
+            ctx.diseaseName(), ctx.latitude(), ctx.longitude(), ctx.radiusKm());
     double vaccineGapRaw = vaccine.normalizedScore();
 
     double clusterWeighted = clusterRaw * properties.getWeightCluster();
@@ -86,12 +79,23 @@ public class MultiSignalRiskEngine {
 
     OutbreakRiskScore riskLevel = classifyRiskLevel(compositeScore);
 
+    String mortalityPart = "";
+    if (ctx.vetConfirmedMortalities() > 0 || ctx.farmerReportedMortalities() > 0) {
+      mortalityPart =
+          String.format(
+              Locale.ROOT,
+              ", %d vet-confirmed + %d farmer-reported death(s)",
+              ctx.vetConfirmedMortalities(),
+              ctx.farmerReportedMortalities());
+    }
+
     String explanation =
         String.format(
             Locale.ROOT,
-            "Evaluated with %d confirmed + %d suspected case(s) (%.1f pts). Weather: %s (%.1f pts). History: %s (%.1f pts). Herd Immunity: %s (%.1f pts).",
-            confirmedCases,
-            suspectedCases,
+            "Evaluated with %d confirmed + %d suspected case(s)%s (%.1f pts). Weather: %s (%.1f pts). History: %s (%.1f pts). Herd Immunity: %s (%.1f pts).",
+            ctx.confirmedCases(),
+            ctx.suspectedCases(),
+            mortalityPart,
             clusterWeighted,
             weather.available() ? weather.statusDescription() : "Unavailable",
             weatherWeighted,
@@ -100,7 +104,7 @@ public class MultiSignalRiskEngine {
             vaccine.explanation(),
             vaccineWeighted);
 
-    String recommendation = generateRecommendation(riskLevel, diseaseName, radiusKm);
+    String recommendation = generateRecommendation(riskLevel, ctx.diseaseName(), ctx.radiusKm());
 
     SignalBreakdown breakdown =
         new SignalBreakdown(
@@ -124,27 +128,89 @@ public class MultiSignalRiskEngine {
             explanation,
             recommendation);
 
-    return RiskAssessment.of(compositeScore, riskLevel, diseaseName, breakdown);
+    return RiskAssessment.of(compositeScore, riskLevel, ctx.diseaseName(), breakdown);
   }
 
+  /**
+   * Evaluates composite multi-signal risk for a disease cluster (backward-compatible convenience
+   * method).
+   *
+   * @param diseaseName target disease
+   * @param confirmedCases count of confirmed veterinary reports
+   * @param suspectedCases count of unverified farmer reports
+   * @param latitude cluster center latitude
+   * @param longitude cluster center longitude
+   * @param radiusKm containment radius in km
+   * @param windowHours evaluation window in hours
+   * @return {@link RiskAssessment}
+   */
+  public RiskAssessment evaluateRisk(
+      String diseaseName,
+      int confirmedCases,
+      int suspectedCases,
+      double latitude,
+      double longitude,
+      double radiusKm,
+      int windowHours) {
+    return evaluateRisk(
+        new RiskEvaluationContext(
+            diseaseName,
+            confirmedCases,
+            suspectedCases,
+            0,
+            0,
+            latitude,
+            longitude,
+            radiusKm,
+            windowHours));
+  }
+
+  /**
+   * Calculates Signal 1: Cluster Velocity & Density raw score including mortality evidence.
+   *
+   * @param confirmedCases confirmed live cases
+   * @param suspectedCases suspected live cases
+   * @param vetConfirmedMortalities vet-confirmed mortality count
+   * @param farmerReportedMortalities farmer-reported mortality count
+   * @param severityWeight disease-specific severity multiplier
+   * @param windowHours evaluation window in hours
+   * @return normalized 0–100 raw signal score
+   */
+  public double calculateClusterSignal(
+      int confirmedCases,
+      int suspectedCases,
+      int vetConfirmedMortalities,
+      int farmerReportedMortalities,
+      double severityWeight,
+      int windowHours) {
+    if (confirmedCases <= 0
+        && suspectedCases <= 0
+        && vetConfirmedMortalities <= 0
+        && farmerReportedMortalities <= 0) {
+      return 0.0;
+    }
+
+    double weightedCases =
+        (confirmedCases * properties.getConfirmedCaseWeight())
+            + (suspectedCases * properties.getSuspectedCaseWeight())
+            + (vetConfirmedMortalities * properties.getVetConfirmedMortalityWeight())
+            + (farmerReportedMortalities * properties.getFarmerReportedMortalityWeight());
+
+    double velocityFactor = Math.min(2.0, 24.0 / Math.max(1, windowHours));
+    double raw = weightedCases * severityWeight * velocityFactor * 12.5;
+
+    return Math.min(100.0, Math.max(0.0, raw));
+  }
+
+  /** Backward-compatible 5-parameter cluster signal calculation. */
   public double calculateClusterSignal(
       int confirmedCases,
       int suspectedCases,
       double severityWeight,
       double radiusKm,
       int windowHours) {
-    if (confirmedCases <= 0 && suspectedCases <= 0) {
-      return 0.0;
-    }
-
-    double weightedCases =
-        (confirmedCases * properties.getConfirmedCaseWeight())
-            + (suspectedCases * properties.getSuspectedCaseWeight());
-
-    double velocityFactor = Math.min(2.0, 24.0 / Math.max(1, windowHours));
-    double raw = weightedCases * severityWeight * velocityFactor * 12.5;
-
-    return Math.min(100.0, Math.max(0.0, raw));
+    return calculateClusterSignal(
+        confirmedCases, suspectedCases, 0, 0, severityWeight, windowHours);
   }
 
   public double calculateWeatherSignal(String diseaseName, WeatherData weather) {

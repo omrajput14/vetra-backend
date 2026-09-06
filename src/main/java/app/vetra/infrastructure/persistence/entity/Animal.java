@@ -1,6 +1,7 @@
 package app.vetra.infrastructure.persistence.entity;
 
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
+import app.vetra.infrastructure.persistence.enums.AnimalStatus;
 import app.vetra.infrastructure.persistence.enums.Species;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,6 +51,11 @@ public class Animal extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(name = "gender", nullable = false, length = 20)
   private AnimalGender gender;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false, length = 30)
+  @Builder.Default
+  private AnimalStatus status = AnimalStatus.ACTIVE;
 
   @Column(name = "birth_date")
   private LocalDate birthDate;
@@ -129,6 +135,14 @@ public class Animal extends BaseEntity {
     this.photoUrl = photoUrl;
   }
 
+  public AnimalStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(AnimalStatus status) {
+    this.status = status;
+  }
+
   public static AnimalBuilder builder() {
     return new AnimalBuilder();
   }
@@ -141,6 +155,7 @@ public class Animal extends BaseEntity {
     private Species species;
     private String breed;
     private AnimalGender gender;
+    private AnimalStatus status = AnimalStatus.ACTIVE;
     private LocalDate birthDate;
     private String photoUrl;
 
@@ -179,6 +194,11 @@ public class Animal extends BaseEntity {
       return this;
     }
 
+    public AnimalBuilder status(AnimalStatus status) {
+      this.status = status;
+      return this;
+    }
+
     public AnimalBuilder birthDate(LocalDate birthDate) {
       this.birthDate = birthDate;
       return this;
@@ -198,6 +218,7 @@ public class Animal extends BaseEntity {
       animal.setSpecies(this.species);
       animal.setBreed(this.breed);
       animal.setGender(this.gender);
+      animal.setStatus(this.status != null ? this.status : AnimalStatus.ACTIVE);
       animal.setBirthDate(this.birthDate);
       animal.setPhotoUrl(this.photoUrl);
       return animal;

@@ -3,6 +3,7 @@ package app.vetra;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Vetra Backend – Livestock and Veterinary Healthcare Platform.
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
  * from sub-packages under {@code app.vetra}.
  */
 @SpringBootApplication
+@EnableScheduling
 @ConfigurationPropertiesScan
 public class VetraApplication {
 

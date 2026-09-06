@@ -1,5 +1,8 @@
 package app.vetra.animal.controller;
 
+import app.vetra.infrastructure.idempotency.IdempotencyService;
+import org.springframework.web.bind.annotation.RequestHeader;
+
 import app.vetra.animal.dto.AnimalResponse;
 import app.vetra.animal.dto.CreateAnimalRequest;
 import app.vetra.animal.dto.UpdateAnimalRequest;
@@ -39,10 +42,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AnimalController {
 
   private final AnimalService animalService;
+  private final IdempotencyService idempotencyService;
 
   /** Constructor injection. */
-  public AnimalController(AnimalService animalService) {
+  public AnimalController(AnimalService animalService, IdempotencyService idempotencyService) {
     this.animalService = animalService;
+    this.idempotencyService = idempotencyService;
   }
 
   /** Creates a new animal record. */
@@ -52,9 +57,18 @@ public class AnimalController {
       summary = "Create Animal",
       description = "Registers a new livestock animal for the authenticated farmer")
   public ApiResponse<AnimalResponse> createAnimal(
-      Principal principal, @Valid @RequestBody CreateAnimalRequest request) {
-    AnimalResponse response = animalService.createAnimal(principal.getName(), request);
-    return ApiResponse.created("Animal registered successfully", response);
+      Principal principal,
+      @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+      @Valid @RequestBody CreateAnimalRequest request) {
+    return idempotencyService.executeOrGet(
+        principal.getName(),
+        idempotencyKey,
+        "/api/v1/animals",
+        AnimalResponse.class,
+        () -> {
+          AnimalResponse response = animalService.createAnimal(principal.getName(), request);
+          return ApiResponse.created("Animal registered successfully", response);
+        });
   }
 
   /** Lists animals owned by farmer or all animals for vets/admins (non-paginated). */

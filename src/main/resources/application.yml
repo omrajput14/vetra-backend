@@ -53,6 +53,12 @@ spring:
       fail-on-unknown-properties: false
     time-zone: UTC
 
+  # ─── Multipart Upload Limits ───────────────────────────────────────
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 # ─── Server ──────────────────────────────────────────────────────────
 server:
   port: ${SERVER_PORT:8080}
@@ -176,11 +182,11 @@ vetra:
 
   # Firebase Cloud Messaging
   firebase:
-    enabled: ${FIREBASE_ENABLED:true}
-    project-id: ${FIREBASE_PROJECT_ID:vetra-1ebfa}
-    credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
-    client-email: ${FIREBASE_CLIENT_EMAIL:}
-    private-key: ${FIREBASE_PRIVATE_KEY:}
+    enabled: ${FIREBASE_ENABLED:${FCM_ENABLED:true}}
+    project-id: ${FIREBASE_PROJECT_ID:${FCM_PROJECT_ID:vetra-1ebfa}}
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:${FCM_CREDENTIALS_PATH:}}
+    client-email: ${FIREBASE_CLIENT_EMAIL:${FCM_CLIENT_EMAIL:}}
+    private-key: ${FIREBASE_PRIVATE_KEY:${FCM_PRIVATE_KEY:}}
 
   # AI Platform Orchestration
   ai:
@@ -256,6 +262,23 @@ vetra:
       overlap: ${VETRA_RAG_OVERLAP:50}
       embedding-provider: ${VETRA_RAG_EMBEDDING_PROVIDER:local}
       vector-store-provider: ${VETRA_RAG_VECTOR_STORE_PROVIDER:in-memory}
+
+    # Modeled Livestock Economic Savings & Loss Avoidance (Phase 4B)
+    economic-impact:
+      prevention-factor: ${VETRA_ECONOMIC_PREVENTION_FACTOR:0.40}
+      reference-values:
+        cattle: ${VETRA_REF_VAL_CATTLE:45000}
+        buffalo: ${VETRA_REF_VAL_BUFFALO:55000}
+        sheep: ${VETRA_REF_VAL_SHEEP:7000}
+        goat: ${VETRA_REF_VAL_GOAT:8000}
+        swine: ${VETRA_REF_VAL_SWINE:12000}
+        poultry: ${VETRA_REF_VAL_POULTRY:350}
+        other: ${VETRA_REF_VAL_OTHER:10000}
+
+    # Isolated Media Storage Configuration
+    media:
+      storage-dir: ${VETRA_MEDIA_DIR:./media-uploads}
+      max-file-size-bytes: ${VETRA_MEDIA_MAX_BYTES:10485760}
 
   # Redis Infrastructure Foundation
   redis:

@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,6 +72,7 @@ public class OutbreakController {
 
   /** Lists active or historical disease outbreaks. */
   @GetMapping("/outbreaks")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "List Outbreak Clusters",
       description = "Retrieves active or historical disease outbreak clusters.")
@@ -82,6 +84,7 @@ public class OutbreakController {
 
   /** Retrieves high-risk outbreak clusters (HIGH or CRITICAL risk scores). */
   @GetMapping("/outbreaks/high-risk")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get High Risk Outbreaks",
       description =
@@ -93,6 +96,7 @@ public class OutbreakController {
 
   /** Generates epidemiological outbreak cluster summary statistics. */
   @GetMapping("/outbreaks/statistics")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR')")
   @Operation(
       summary = "Get Outbreak Statistics",
       description =
@@ -104,6 +108,7 @@ public class OutbreakController {
 
   /** Retrieves outbreak velocity trends. */
   @GetMapping("/outbreaks/trends")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get Outbreak Velocity Trends",
       description = "Retrieves active outbreak clusters with spatial-temporal velocity trends.")
@@ -114,6 +119,7 @@ public class OutbreakController {
 
   /** Exports active outbreaks as an RFC 7946 compliant GeoJSON FeatureCollection. */
   @GetMapping("/outbreaks/geojson")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get Outbreaks GeoJSON",
       description =
@@ -125,6 +131,7 @@ public class OutbreakController {
 
   /** Exports spatial heatmap hotspot dataset with normalized intensity weights. */
   @GetMapping("/outbreaks/heatmap")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get Outbreaks Spatial Heatmap",
       description =
@@ -136,6 +143,7 @@ public class OutbreakController {
 
   /** Generates comprehensive epidemiological analytics metrics. */
   @GetMapping("/analytics")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR')")
   @Operation(
       summary = "Get Disease Analytics",
       description = "Retrieves comprehensive epidemiological analytics and surveillance metrics.")
@@ -146,6 +154,7 @@ public class OutbreakController {
 
   /** Retrieves disease taxonomy metadata registry. */
   @GetMapping("/registry")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN', 'FARMER')")
   @Operation(
       summary = "Get Disease Registry",
       description = "Retrieves disease taxonomy metadata catalog.")
@@ -156,6 +165,7 @@ public class OutbreakController {
 
   /** Retrieves outbreak cluster details by ID. */
   @GetMapping("/outbreaks/{id}")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get Outbreak Details by ID",
       description = "Retrieves outbreak cluster details by UUID.")
@@ -166,6 +176,7 @@ public class OutbreakController {
 
   /** Retrieves all disease reports contributing to a specific outbreak cluster. */
   @GetMapping("/outbreaks/{id}/reports")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get Reports for Outbreak Cluster",
       description = "Retrieves all disease reports contributing to an outbreak cluster.")
@@ -177,6 +188,7 @@ public class OutbreakController {
 
   /** Generates regional livestock vaccination intelligence and pathogen coverage metrics. */
   @GetMapping("/vaccination/analytics")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR')")
   @Operation(
       summary = "Get Vaccination Intelligence Analytics",
       description = "Retrieves aggregated livestock vaccination coverage and regional immunity gap data.")
@@ -187,6 +199,7 @@ public class OutbreakController {
 
   /** Lists active operational surveillance alerts and critical priority events. */
   @GetMapping("/alerts")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR')")
   @Operation(
       summary = "List Operational Surveillance Alerts",
       description = "Retrieves deterministic operational surveillance alerts synthesized from active clusters.")
@@ -197,6 +210,7 @@ public class OutbreakController {
 
   /** Retrieves details of a specific operational surveillance alert by UUID. */
   @GetMapping("/alerts/{id}")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR')")
   @Operation(
       summary = "Get Operational Alert by ID",
       description = "Retrieves details of a specific operational surveillance alert by UUID.")
@@ -207,6 +221,7 @@ public class OutbreakController {
 
   /** Lists AI preliminary screening signals for government early-warning surveillance. */
   @GetMapping("/ai-screenings")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "List AI Preliminary Screenings",
       description =
@@ -220,6 +235,7 @@ public class OutbreakController {
 
   /** Lists AI preliminary screening signals with pagination. */
   @GetMapping("/ai-screenings/page")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Paginated List of AI Preliminary Screenings",
       description =
@@ -236,6 +252,7 @@ public class OutbreakController {
 
   /** Retrieves a single AI preliminary screening scan by ID. */
   @GetMapping("/ai-screenings/{id}")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
   @Operation(
       summary = "Get AI Screening by ID",
       description = "Retrieves single AI preliminary screening scan details by UUID.")

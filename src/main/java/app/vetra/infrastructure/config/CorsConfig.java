@@ -33,7 +33,8 @@ public class CorsConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
 
-    config.setAllowedOrigins(corsProperties.allowedOrigins());
+    // Use allowedOriginPatterns to safely allow wildcard patterns (including "*") even when allowCredentials is true
+    config.setAllowedOriginPatterns(corsProperties.allowedOrigins());
     config.setAllowedMethods(Arrays.asList(corsProperties.allowedMethods().split(",")));
     config.setAllowedHeaders(List.of(corsProperties.allowedHeaders()));
     config.setAllowCredentials(corsProperties.allowCredentials());

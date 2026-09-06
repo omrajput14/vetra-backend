@@ -73,6 +73,15 @@ public class Appointment extends BaseEntity {
   @Column(name = "cancellation_reason", columnDefinition = "TEXT")
   private String cancellationReason;
 
+  @Column(name = "vet_latitude")
+  private Double vetLatitude;
+
+  @Column(name = "vet_longitude")
+  private Double vetLongitude;
+
+  @Column(name = "vet_location_updated_at")
+  private java.time.Instant vetLocationUpdatedAt;
+
   @Version
   @Column(name = "version", nullable = false)
   @Builder.Default
@@ -174,6 +183,30 @@ public class Appointment extends BaseEntity {
     this.version = version;
   }
 
+  public Double getVetLatitude() {
+    return vetLatitude;
+  }
+
+  public void setVetLatitude(Double vetLatitude) {
+    this.vetLatitude = vetLatitude;
+  }
+
+  public Double getVetLongitude() {
+    return vetLongitude;
+  }
+
+  public void setVetLongitude(Double vetLongitude) {
+    this.vetLongitude = vetLongitude;
+  }
+
+  public java.time.Instant getVetLocationUpdatedAt() {
+    return vetLocationUpdatedAt;
+  }
+
+  public void setVetLocationUpdatedAt(java.time.Instant vetLocationUpdatedAt) {
+    this.vetLocationUpdatedAt = vetLocationUpdatedAt;
+  }
+
   public static AppointmentBuilder builder() {
     return new AppointmentBuilder();
   }
@@ -190,6 +223,9 @@ public class Appointment extends BaseEntity {
     private String veterinarianNotes;
     private String cancellationReason;
     private Long version = 0L;
+    private Double vetLatitude;
+    private Double vetLongitude;
+    private java.time.Instant vetLocationUpdatedAt;
 
     public AppointmentBuilder farmer(FarmerProfile farmer) {
       this.farmer = farmer;
@@ -246,6 +282,21 @@ public class Appointment extends BaseEntity {
       return this;
     }
 
+    public AppointmentBuilder vetLatitude(Double vetLatitude) {
+      this.vetLatitude = vetLatitude;
+      return this;
+    }
+
+    public AppointmentBuilder vetLongitude(Double vetLongitude) {
+      this.vetLongitude = vetLongitude;
+      return this;
+    }
+
+    public AppointmentBuilder vetLocationUpdatedAt(java.time.Instant vetLocationUpdatedAt) {
+      this.vetLocationUpdatedAt = vetLocationUpdatedAt;
+      return this;
+    }
+
     public Appointment build() {
       Appointment appointment = new Appointment();
       appointment.setFarmer(this.farmer);
@@ -259,6 +310,9 @@ public class Appointment extends BaseEntity {
       appointment.setVeterinarianNotes(this.veterinarianNotes);
       appointment.setCancellationReason(this.cancellationReason);
       appointment.setVersion(this.version);
+      appointment.setVetLatitude(this.vetLatitude);
+      appointment.setVetLongitude(this.vetLongitude);
+      appointment.setVetLocationUpdatedAt(this.vetLocationUpdatedAt);
       return appointment;
     }
   }
