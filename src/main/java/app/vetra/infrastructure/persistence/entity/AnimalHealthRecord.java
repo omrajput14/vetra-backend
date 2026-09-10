@@ -73,6 +73,12 @@ public class AnimalHealthRecord extends BaseEntity {
   @Column(name = "batch_number", length = 100)
   private String batchNumber;
 
+  @Column(name = "medical_record_id")
+  private UUID medicalRecordId;
+
+  @Column(name = "appointment_id")
+  private UUID appointmentId;
+
   @Column(name = "recorded_at", nullable = false)
   private LocalDateTime recordedAt;
 
@@ -196,6 +202,22 @@ public class AnimalHealthRecord extends BaseEntity {
     this.batchNumber = batchNumber;
   }
 
+  public UUID getMedicalRecordId() {
+    return medicalRecordId;
+  }
+
+  public void setMedicalRecordId(UUID medicalRecordId) {
+    this.medicalRecordId = medicalRecordId;
+  }
+
+  public UUID getAppointmentId() {
+    return appointmentId;
+  }
+
+  public void setAppointmentId(UUID appointmentId) {
+    this.appointmentId = appointmentId;
+  }
+
   public static AnimalHealthRecordBuilder builder() {
     return new AnimalHealthRecordBuilder();
   }
@@ -215,6 +237,8 @@ public class AnimalHealthRecord extends BaseEntity {
     private String vaccineName;
     private java.time.LocalDate nextDueDate;
     private String batchNumber;
+    private UUID medicalRecordId;
+    private UUID appointmentId;
     private LocalDateTime recordedAt;
 
     public AnimalHealthRecordBuilder animal(Animal animal) {
@@ -287,6 +311,16 @@ public class AnimalHealthRecord extends BaseEntity {
       return this;
     }
 
+    public AnimalHealthRecordBuilder medicalRecordId(UUID medicalRecordId) {
+      this.medicalRecordId = medicalRecordId;
+      return this;
+    }
+
+    public AnimalHealthRecordBuilder appointmentId(UUID appointmentId) {
+      this.appointmentId = appointmentId;
+      return this;
+    }
+
     public AnimalHealthRecordBuilder recordedAt(LocalDateTime recordedAt) {
       this.recordedAt = recordedAt;
       return this;
@@ -308,6 +342,8 @@ public class AnimalHealthRecord extends BaseEntity {
       record.setVaccineName(this.vaccineName);
       record.setNextDueDate(this.nextDueDate);
       record.setBatchNumber(this.batchNumber);
+      record.setMedicalRecordId(this.medicalRecordId);
+      record.setAppointmentId(this.appointmentId);
       record.setRecordedAt(this.recordedAt != null ? this.recordedAt : LocalDateTime.now());
       return record;
     }

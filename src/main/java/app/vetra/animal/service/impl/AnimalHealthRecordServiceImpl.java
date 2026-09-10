@@ -12,13 +12,17 @@ import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.AnimalHealthRecord;
+import app.vetra.infrastructure.persistence.entity.MedicalRecord;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.HealthRecordSource;
 import app.vetra.infrastructure.persistence.enums.HealthRecordType;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.medicalrecord.repository.MedicalRecordRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -32,17 +36,20 @@ public class AnimalHealthRecordServiceImpl implements AnimalHealthRecordService 
   private final AnimalRepository animalRepository;
   private final UserRepository userRepository;
   private final VetProfileRepository vetProfileRepository;
+  private final MedicalRecordRepository medicalRecordRepository;
 
   /** Constructor injection. */
   public AnimalHealthRecordServiceImpl(
       AnimalHealthRecordRepository healthRecordRepository,
       AnimalRepository animalRepository,
       UserRepository userRepository,
-      VetProfileRepository vetProfileRepository) {
+      VetProfileRepository vetProfileRepository,
+      MedicalRecordRepository medicalRecordRepository) {
     this.healthRecordRepository = healthRecordRepository;
     this.animalRepository = animalRepository;
     this.userRepository = userRepository;
     this.vetProfileRepository = vetProfileRepository;
+    this.medicalRecordRepository = medicalRecordRepository;
   }
 
   @Override
@@ -138,9 +145,96 @@ public class AnimalHealthRecordServiceImpl implements AnimalHealthRecordService 
     Animal animal = getAnimal(animalId);
     validateAccess(user, animal);
 
-    return healthRecordRepository.findByAnimalIdOrderByRecordedAtDesc(animalId).stream()
-        .map(AnimalHealthRecordDto::fromEntity)
-        .toList();
+    List<AnimalHealthRecord> healthRecords =
+        healthRecordRepository.findByAnimalIdOrderByRecordedAtDesc(animalId);
+    List<MedicalRecord> medicalRecords =
+        medicalRecordRepository.findByAnimalIdOrderByCreatedAtDesc(animalId);
+
+    List<AnimalHealthRecordDto> timeline = new ArrayList<>();
+    for (AnimalHealthRecord hr : healthRecords) {
+      timeline.add(AnimalHealthRecordDto.fromEntity(hr));
+    }
+
+    for (MedicalRecord mr : medicalRecords) {
+      if (!isAlreadyProjected(mr, healthRecords)) {
+        timeline.add(projectLegacyMedicalRecord(mr));
+      }
+    }
+
+    timeline.sort((a, b) -> b.recordedAt().compareTo(a.recordedAt()));
+    return timeline;
+  }
+
+  private boolean isAlreadyProjected(MedicalRecord mr, List<AnimalHealthRecord> healthRecords) {
+    for (AnimalHealthRecord hr : healthRecords) {
+      if (matchesDeterministic(hr, mr) || matchesLegacyFallback(hr, mr)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean matchesDeterministic(AnimalHealthRecord hr, MedicalRecord mr) {
+    if (hr.getMedicalRecordId() != null && hr.getMedicalRecordId().equals(mr.getId())) {
+      return true;
+    }
+    return hr.getAppointmentId() != null
+        && mr.getAppointment() != null
+        && hr.getAppointmentId().equals(mr.getAppointment().getId());
+  }
+
+  private boolean matchesLegacyFallback(AnimalHealthRecord hr, MedicalRecord mr) {
+    if (hr.getRecordType() != HealthRecordType.VET_CONSULTATION
+        || hr.getVeterinarianId() == null
+        || mr.getVeterinarian() == null
+        || !hr.getVeterinarianId().equals(mr.getVeterinarian().getId())
+        || !Objects.equals(hr.getDiagnosis(), mr.getDiagnosis())) {
+      return false;
+    }
+
+    LocalDateTime mrTime = mr.getCreatedAt() != null ? mr.getCreatedAt().toLocalDateTime() : null;
+    if (mrTime == null || hr.getRecordedAt() == null) {
+      return false;
+    }
+
+    long diffSeconds = Math.abs(java.time.Duration.between(hr.getRecordedAt(), mrTime).toSeconds());
+    return diffSeconds < 120;
+  }
+
+  private AnimalHealthRecordDto projectLegacyMedicalRecord(MedicalRecord mr) {
+    String title = "Clinical Consultation: " + mr.getDiagnosis();
+    if (title.length() > 200) {
+      title = title.substring(0, 197) + "...";
+    }
+
+    String combinedTreatment = mr.getTreatment();
+    if (mr.getPrescription() != null && !mr.getPrescription().isBlank()) {
+      combinedTreatment = combinedTreatment + "\nPrescription: " + mr.getPrescription();
+    }
+
+    LocalDateTime recordedAt =
+        mr.getCreatedAt() != null ? mr.getCreatedAt().toLocalDateTime() : LocalDateTime.now();
+
+    return new AnimalHealthRecordDto(
+        mr.getId(),
+        mr.getAnimal().getId(),
+        HealthRecordType.VET_CONSULTATION,
+        HealthRecordSource.VETERINARIAN,
+        title,
+        mr.getNotes(),
+        mr.getSymptoms(),
+        mr.getDiagnosis(),
+        combinedTreatment,
+        mr.getVeterinarian() != null ? mr.getVeterinarian().getId() : null,
+        mr.getVeterinarian() != null ? mr.getVeterinarian().getFullName() : null,
+        null,
+        null,
+        mr.getFollowUpDate(),
+        null,
+        mr.getId(),
+        mr.getAppointment() != null ? mr.getAppointment().getId() : null,
+        recordedAt,
+        recordedAt);
   }
 
   @Override
@@ -150,10 +244,9 @@ public class AnimalHealthRecordServiceImpl implements AnimalHealthRecordService 
     Animal animal = getAnimal(animalId);
     validateAccess(user, animal);
 
-    Optional<AnimalHealthRecord> latestOpt =
-        healthRecordRepository.findFirstByAnimalIdOrderByRecordedAtDesc(animalId);
+    List<AnimalHealthRecordDto> timeline = getAnimalTimeline(userIdentifier, animalId);
 
-    if (latestOpt.isEmpty()) {
+    if (timeline.isEmpty()) {
       return new AnimalHealthStatusDto(
           animalId,
           "HEALTHY",
@@ -165,33 +258,37 @@ public class AnimalHealthRecordServiceImpl implements AnimalHealthRecordService 
           null);
     }
 
-    AnimalHealthRecord record = latestOpt.get();
+    AnimalHealthRecordDto record = timeline.get(0);
     String status = "ACTIVE";
-    String summary = record.getTitle();
+    String summary = record.title();
 
-    if (record.getRecordType() == HealthRecordType.TREATMENT) {
+    if (record.recordType() == HealthRecordType.TREATMENT) {
       status = "TREATMENT_IN_PROGRESS";
-      summary = "Active Treatment: " + (record.getTreatment() != null ? record.getTreatment() : record.getTitle());
-    } else if (record.getRecordType() == HealthRecordType.DIAGNOSIS) {
+      summary =
+          "Active Treatment: "
+              + (record.treatment() != null ? record.treatment() : record.title());
+    } else if (record.recordType() == HealthRecordType.DIAGNOSIS) {
       status = "ATTENTION_REQUIRED";
-      summary = "Confirmed Diagnosis: " + (record.getDiagnosis() != null ? record.getDiagnosis() : record.getTitle());
-    } else if (record.getRecordType() == HealthRecordType.VACCINATION) {
+      summary =
+          "Confirmed Diagnosis: "
+              + (record.diagnosis() != null ? record.diagnosis() : record.title());
+    } else if (record.recordType() == HealthRecordType.VACCINATION) {
       status = "PROTECTED";
-      summary = "Vaccinated: " + record.getTitle();
-    } else if (record.getRecordType() == HealthRecordType.AI_SCREENING) {
+      summary = "Vaccinated: " + record.title();
+    } else if (record.recordType() == HealthRecordType.AI_SCREENING) {
       status = "AI_SCREENED";
-      summary = "AI Screening: " + record.getTitle();
+      summary = "AI Screening: " + record.title();
     }
 
     return new AnimalHealthStatusDto(
         animalId,
         status,
         summary,
-        record.getRecordType(),
-        record.getSource(),
-        record.getRecordedAt(),
-        record.getDiagnosis(),
-        record.getTreatment());
+        record.recordType(),
+        record.source(),
+        record.recordedAt(),
+        record.diagnosis(),
+        record.treatment());
   }
 
   private void validateAccess(User user, Animal animal) {

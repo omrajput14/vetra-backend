@@ -25,6 +25,8 @@ public record AnimalHealthRecordDto(
     String vaccineName,
     LocalDate nextDueDate,
     String batchNumber,
+    UUID medicalRecordId,
+    UUID appointmentId,
     LocalDateTime recordedAt,
     LocalDateTime createdAt) {
 
@@ -46,6 +48,8 @@ public record AnimalHealthRecordDto(
         record.getVaccineName(),
         record.getNextDueDate(),
         record.getBatchNumber(),
+        record.getMedicalRecordId(),
+        record.getAppointmentId(),
         record.getRecordedAt(),
         record.getCreatedAt() != null
             ? LocalDateTime.ofInstant(record.getCreatedAt(), ZoneOffset.UTC)

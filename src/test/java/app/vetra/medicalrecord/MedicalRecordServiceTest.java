@@ -3,10 +3,12 @@ package app.vetra.medicalrecord;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import app.vetra.animal.repository.AnimalHealthRecordRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.appointment.repository.AppointmentRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
@@ -16,12 +18,15 @@ import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ConflictException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.Animal;
+import app.vetra.infrastructure.persistence.entity.AnimalHealthRecord;
 import app.vetra.infrastructure.persistence.entity.Appointment;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.MedicalRecord;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
+import app.vetra.infrastructure.persistence.enums.HealthRecordSource;
+import app.vetra.infrastructure.persistence.enums.HealthRecordType;
 import app.vetra.infrastructure.persistence.enums.Species;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.medicalrecord.dto.CreateMedicalRecordRequest;
@@ -36,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -49,6 +55,7 @@ class MedicalRecordServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private FarmerProfileRepository farmerProfileRepository;
   @Mock private VetProfileRepository vetProfileRepository;
+  @Mock private AnimalHealthRecordRepository animalHealthRecordRepository;
 
   @InjectMocks private MedicalRecordService medicalRecordService;
 
@@ -132,7 +139,11 @@ class MedicalRecordServiceTest {
             .farmer(farmerProfile)
             .veterinarian(vetProfile)
             .diagnosis(request.diagnosis())
+            .symptoms(request.symptoms())
             .treatment(request.treatment())
+            .prescription(request.prescription())
+            .notes(request.notes())
+            .followUpDate(request.followUpDate())
             .build();
 
     when(medicalRecordRepository.save(any(MedicalRecord.class))).thenReturn(saved);
@@ -144,6 +155,25 @@ class MedicalRecordServiceTest {
     assertEquals("Bovine Mastitis", response.diagnosis());
     assertEquals("Dr. Smith", response.veterinarianName());
     verify(medicalRecordRepository).save(any(MedicalRecord.class));
+
+    ArgumentCaptor<AnimalHealthRecord> healthRecordCaptor =
+        ArgumentCaptor.forClass(AnimalHealthRecord.class);
+    verify(animalHealthRecordRepository).save(healthRecordCaptor.capture());
+    AnimalHealthRecord savedHealthRecord = healthRecordCaptor.getValue();
+
+    assertNotNull(savedHealthRecord);
+    assertEquals(animal, savedHealthRecord.getAnimal());
+    assertEquals(HealthRecordType.VET_CONSULTATION, savedHealthRecord.getRecordType());
+    assertEquals(HealthRecordSource.VETERINARIAN, savedHealthRecord.getSource());
+    assertTrue(savedHealthRecord.getTitle().contains("Bovine Mastitis"));
+    assertEquals("Bovine Mastitis", savedHealthRecord.getDiagnosis());
+    assertEquals("Swelling", savedHealthRecord.getSymptoms());
+    assertTrue(savedHealthRecord.getTreatment().contains("Antibiotics IV"));
+    assertTrue(savedHealthRecord.getTreatment().contains("Penicillin 500mg"));
+    assertEquals(vetProfile.getId(), savedHealthRecord.getVeterinarianId());
+    assertEquals("Dr. Smith", savedHealthRecord.getVeterinarianName());
+    assertEquals(saved.getId(), savedHealthRecord.getMedicalRecordId());
+    assertEquals(appointmentId, savedHealthRecord.getAppointmentId());
   }
 
   @Test

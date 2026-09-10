@@ -1,5 +1,6 @@
 package app.vetra.medicalrecord.service;
 
+import app.vetra.animal.repository.AnimalHealthRecordRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.appointment.repository.AppointmentRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
@@ -11,17 +12,21 @@ import app.vetra.infrastructure.exception.ConflictException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
 import app.vetra.infrastructure.persistence.entity.Animal;
+import app.vetra.infrastructure.persistence.entity.AnimalHealthRecord;
 import app.vetra.infrastructure.persistence.entity.Appointment;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.MedicalRecord;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.AppointmentStatus;
+import app.vetra.infrastructure.persistence.enums.HealthRecordSource;
+import app.vetra.infrastructure.persistence.enums.HealthRecordType;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import app.vetra.medicalrecord.dto.CreateMedicalRecordRequest;
 import app.vetra.medicalrecord.dto.MedicalRecordResponse;
 import app.vetra.medicalrecord.repository.MedicalRecordRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.cache.annotation.CacheEvict;
@@ -44,6 +49,7 @@ public class MedicalRecordService {
   private final UserRepository userRepository;
   private final FarmerProfileRepository farmerProfileRepository;
   private final VetProfileRepository vetProfileRepository;
+  private final AnimalHealthRecordRepository animalHealthRecordRepository;
 
   /** Constructor injection. */
   public MedicalRecordService(
@@ -52,13 +58,15 @@ public class MedicalRecordService {
       AnimalRepository animalRepository,
       UserRepository userRepository,
       FarmerProfileRepository farmerProfileRepository,
-      VetProfileRepository vetProfileRepository) {
+      VetProfileRepository vetProfileRepository,
+      AnimalHealthRecordRepository animalHealthRecordRepository) {
     this.medicalRecordRepository = medicalRecordRepository;
     this.appointmentRepository = appointmentRepository;
     this.animalRepository = animalRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
+    this.animalHealthRecordRepository = animalHealthRecordRepository;
   }
 
   /**
@@ -71,7 +79,8 @@ public class MedicalRecordService {
         CacheNames.DASHBOARD_FARMER,
         CacheNames.DASHBOARD_VET,
         CacheNames.ANIMALS,
-        CacheNames.ANALYTICS
+        CacheNames.ANALYTICS,
+        CacheNames.MEDICAL_RECORDS
       },
       allEntries = true)
   public MedicalRecordResponse createMedicalRecord(
@@ -133,6 +142,42 @@ public class MedicalRecordService {
             .build();
 
     MedicalRecord saved = medicalRecordRepository.save(record);
+
+    String title = "Clinical Consultation: " + saved.getDiagnosis();
+    if (title.length() > 200) {
+      title = title.substring(0, 197) + "...";
+    }
+
+    String combinedTreatment = saved.getTreatment();
+    if (saved.getPrescription() != null && !saved.getPrescription().isBlank()) {
+      combinedTreatment = combinedTreatment + "\nPrescription: " + saved.getPrescription();
+    }
+
+    LocalDateTime recordedAt =
+        saved.getCreatedAt() != null
+            ? saved.getCreatedAt().toLocalDateTime()
+            : LocalDateTime.now();
+
+    AnimalHealthRecord healthRecord =
+        AnimalHealthRecord.builder()
+            .animal(saved.getAnimal())
+            .recordType(HealthRecordType.VET_CONSULTATION)
+            .source(HealthRecordSource.VETERINARIAN)
+            .title(title)
+            .description(saved.getNotes())
+            .symptoms(saved.getSymptoms())
+            .diagnosis(saved.getDiagnosis())
+            .treatment(combinedTreatment)
+            .veterinarianId(vetProfile.getId())
+            .veterinarianName(vetProfile.getFullName())
+            .medicalRecordId(saved.getId())
+            .appointmentId(appointment.getId())
+            .nextDueDate(saved.getFollowUpDate())
+            .recordedAt(recordedAt)
+            .build();
+
+    animalHealthRecordRepository.save(healthRecord);
+
     return MedicalRecordResponse.fromEntity(saved);
   }
 
