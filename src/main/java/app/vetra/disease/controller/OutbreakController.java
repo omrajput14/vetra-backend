@@ -1,5 +1,6 @@
 package app.vetra.disease.controller;
 
+import app.vetra.ai.entity.AIScan;
 import app.vetra.disease.dto.AIScreeningResponse;
 import app.vetra.disease.dto.DiseaseAnalyticsResponse;
 import app.vetra.disease.dto.DiseaseReportResponse;
@@ -21,12 +22,18 @@ import app.vetra.infrastructure.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URI;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -259,5 +266,46 @@ public class OutbreakController {
   public ApiResponse<AIScreeningResponse> getAIScreeningById(@PathVariable("id") UUID id) {
     AIScreeningResponse response = diseaseService.getAIScreeningById(id);
     return ApiResponse.ok("AI preliminary screening details retrieved successfully", response);
+  }
+
+  /** Retrieves the image binary or redirect for an AI preliminary screening scan. */
+  @GetMapping("/ai-screenings/{id}/image")
+  @PreAuthorize("hasAnyRole('GOVERNMENT_OFFICER', 'ADMINISTRATOR', 'VETERINARIAN')")
+  @Operation(
+      summary = "Get AI Screening Scan Image",
+      description =
+          "Retrieves the image binary or redirect for a specific AI screening scan with role-based authorization.")
+  public ResponseEntity<byte[]> getAIScreeningImage(@PathVariable("id") UUID id) {
+    AIScan scan = diseaseService.getAIScanEntityById(id);
+    String imageUrl = scan.getImageUrl();
+    if (imageUrl == null || imageUrl.isBlank()) {
+      return ResponseEntity.notFound().build();
+    }
+
+    if (imageUrl.startsWith("data:image/")) {
+      int commaIndex = imageUrl.indexOf(',');
+      if (commaIndex != -1) {
+        String header = imageUrl.substring(0, commaIndex);
+        String base64Data = imageUrl.substring(commaIndex + 1);
+        String mimeType = "image/jpeg";
+        int mimeEnd = header.indexOf(';');
+        if (mimeEnd != -1 && header.length() > 5) {
+          mimeType = header.substring(5, mimeEnd);
+        }
+        byte[] imageBytes = Base64.getDecoder().decode(base64Data.trim());
+        return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(mimeType))
+            .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+            .body(imageBytes);
+      }
+    }
+
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return ResponseEntity.status(HttpStatus.FOUND)
+          .location(URI.create(imageUrl))
+          .build();
+    }
+
+    return ResponseEntity.notFound().build();
   }
 }

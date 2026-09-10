@@ -27,6 +27,7 @@ import app.vetra.disease.service.DiseaseService;
 import app.vetra.infrastructure.persistence.enums.AnimalGender;
 import app.vetra.infrastructure.persistence.enums.Species;
 import app.vetra.infrastructure.response.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -85,7 +88,7 @@ class AIScreeningIntegrationTest {
   @Test
   @WithMockUser(roles = "GOVERNMENT_OFFICER")
   @DisplayName("Full Pipeline: Farmer AI Scan -> Government Surveillance Visibility -> Vet Review -> Outbreak Detection")
-  void testEndToEndAIScreeningToOutbreakFlow() {
+  void testEndToEndAIScreeningToOutbreakFlow() throws Exception {
     // 1. Register Farmer in Pune with GPS coordinates
     String farmerEmail = "farmer.pune." + System.currentTimeMillis() + "@vetra.app";
     authService.registerFarmer(
@@ -146,12 +149,85 @@ class AIScreeningIntegrationTest {
     assertNotNull(scan);
     assertFalse(scan.veterinarianVerified(), "AI Scan must initially be unverified by veterinarian");
 
+    // 4b. Create a second animal and an AI scan with a base64 image data URI
+    AnimalResponse base64Animal =
+        animalService.createAnimal(
+            farmerEmail,
+            new CreateAnimalRequest(
+                "Nandini",
+                "TAG-PUNE-BASE64",
+                "QR-PUNE-BASE64",
+                Species.BUFFALO,
+                "Murrah",
+                AnimalGender.FEMALE,
+                LocalDate.now().minusYears(2),
+                null));
+
+    String dummyBase64Data =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    String largeBase64Uri = "data:image/png;base64," + dummyBase64Data;
+    AIScanResponse scan2 =
+        aiScanService.createScan(
+            farmerEmail,
+            new CreateAIScanRequest(
+                base64Animal.id(),
+                largeBase64Uri,
+                "Severe swelling and lesions on muzzle"));
+    assertNotNull(scan2);
+
     // 5. Query Government AI Screening surveillance endpoint
     ApiResponse<List<AIScreeningResponse>> govScreenings =
         outbreakController.listAIScreenings(null);
     assertNotNull(govScreenings);
     assertNotNull(govScreenings.data());
     assertFalse(govScreenings.data().isEmpty());
+
+    // 5a. INVARIANT: List endpoint response must NEVER transmit raw base64 data URIs
+    for (AIScreeningResponse item : govScreenings.data()) {
+      if (item.imageUrl() != null) {
+        assertFalse(
+            item.imageUrl().startsWith("data:image/"),
+            "List endpoint response must NEVER contain raw base64 data URIs: " + item.id());
+        assertTrue(
+            item.imageUrl().length() <= 512,
+            "List endpoint imageUrl must be a compact reference URL <= 512 chars");
+      }
+    }
+
+    // 5b. Verify base64 scan was transformed into reference endpoint in list
+    AIScreeningResponse screening2 =
+        govScreenings.data().stream()
+            .filter(s -> s.id().equals(scan2.id()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(
+        "/api/v1/disease/ai-screenings/" + scan2.id() + "/image",
+        screening2.imageUrl(),
+        "Base64 image must be replaced with dedicated reference endpoint");
+
+    // 5c. INVARIANT: Total serialized list payload size must be strictly under 50KB (< 50000 bytes)
+    ObjectMapper testMapper = new ObjectMapper();
+    testMapper.findAndRegisterModules();
+    byte[] listJsonBytes = testMapper.writeValueAsBytes(govScreenings);
+    assertTrue(
+        listJsonBytes.length < 50000,
+        "Serialized list payload must be under 50KB, actual size: " + listJsonBytes.length + " bytes");
+
+    // 5d. INVARIANT: Single item lookup endpoint DOES retain full image data
+    ApiResponse<AIScreeningResponse> singleBase64Screening =
+        outbreakController.getAIScreeningById(scan2.id());
+    assertNotNull(singleBase64Screening.data());
+    assertEquals(
+        largeBase64Uri,
+        singleBase64Screening.data().imageUrl(),
+        "Single screening lookup must retain full image data URI");
+
+    // 5e. INVARIANT: Authenticated image endpoint streams binary decoded image bytes
+    ResponseEntity<byte[]> imageResponse = outbreakController.getAIScreeningImage(scan2.id());
+    assertEquals(200, imageResponse.getStatusCode().value());
+    assertEquals(MediaType.IMAGE_PNG, imageResponse.getHeaders().getContentType());
+    assertNotNull(imageResponse.getBody());
+    assertTrue(imageResponse.getBody().length > 0);
 
     AIScreeningResponse screening =
         govScreenings.data().stream()

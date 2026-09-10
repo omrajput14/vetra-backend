@@ -397,7 +397,23 @@ public class DiseaseService {
                 () ->
                     new ResourceNotFoundException(
                         "AI preliminary screening scan not found with ID: " + id, "AI_001"));
-    return AIScreeningResponse.fromEntity(scan);
+    return AIScreeningResponse.fromEntity(scan, true);
+  }
+
+  /**
+   * Retrieves raw AIScan entity by ID for authenticated media streaming.
+   *
+   * @param id scan UUID
+   * @return {@link AIScan}
+   */
+  @Transactional(readOnly = true)
+  public AIScan getAIScanEntityById(UUID id) {
+    return aiScanRepository
+        .findById(id)
+        .orElseThrow(
+            () ->
+                new ResourceNotFoundException(
+                    "AI preliminary screening scan not found with ID: " + id, "AI_001"));
   }
 
   private void validateFarmerOwnership(User user, Animal animal) {
