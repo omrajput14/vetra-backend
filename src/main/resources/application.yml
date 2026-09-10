@@ -284,7 +284,7 @@ vetra:
   redis:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
+    password: ${REDIS_PASSWORD:vetra_redis_password_secret}
     database: ${REDIS_DATABASE:0}
     timeout: ${REDIS_TIMEOUT:2000ms}
     ssl: ${REDIS_SSL:false}

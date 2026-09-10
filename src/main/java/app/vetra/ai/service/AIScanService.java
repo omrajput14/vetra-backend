@@ -18,6 +18,8 @@ import app.vetra.ai.repository.AIScanResultRepository;
 import app.vetra.animal.repository.AnimalRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.disease.entity.DiseaseReport;
+import app.vetra.disease.service.AIScanDiseaseReportService;
 import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
@@ -65,6 +67,9 @@ public class AIScanService {
   // limit
   private VetraMetrics vetraMetrics;
 
+  // Setter-injected to avoid circular dependency and stay within constructor param limit.
+  private AIScanDiseaseReportService aiScanDiseaseReportService;
+
   /** Constructor injection with 8 parameters (Checkstyle max). */
   public AIScanService(
       AIScanRepository aiScanRepository,
@@ -89,6 +94,12 @@ public class AIScanService {
   @Autowired
   public void setVetraMetrics(VetraMetrics vetraMetrics) {
     this.vetraMetrics = vetraMetrics;
+  }
+
+  /** Setter injection for AIScanDiseaseReportService (avoids circular dependency via constructor). */
+  @Autowired
+  public void setAiScanDiseaseReportService(AIScanDiseaseReportService aiScanDiseaseReportService) {
+    this.aiScanDiseaseReportService = aiScanDiseaseReportService;
   }
 
   /**
@@ -129,7 +140,7 @@ public class AIScanService {
             .veterinarianVerified(false)
             .build();
 
-    scan = aiScanRepository.save(scan);
+    scan = aiScanRepository.saveAndFlush(scan);
     eventPublisher.publishEvent(
         new AIScanCreatedEvent(scan.getId(), animal.getId(), scan.getImageUrl(), user.getId()));
     vetraMetrics.recordAiDiagnosisRequest();
@@ -310,11 +321,17 @@ public class AIScanService {
 
     medicalRecord = medicalRecordRepository.save(medicalRecord);
 
+    // Wire the approved scan into the disease surveillance system:
+    // creates a CONFIRMED DiseaseReport (source=AI_VERIFIED) and triggers OutbreakDetectionEngine.
+    DiseaseReport diseaseReport =
+        aiScanDiseaseReportService.createConfirmedReport(scan, vetProfile, medicalRecord);
+
     log.info(
-        "AI Scan APPROVED scanId={} by vetId={} -> Created MedicalRecord id={}",
+        "AI Scan APPROVED scanId={} by vetId={} -> Created MedicalRecord id={}, DiseaseReport id={}",
         scan.getId(),
         user.getId(),
-        medicalRecord.getId());
+        medicalRecord.getId(),
+        diseaseReport.getId());
 
     eventPublisher.publishEvent(new AIScanVerifiedEvent(scan.getId(), true, user.getId()));
     eventPublisher.publishEvent(

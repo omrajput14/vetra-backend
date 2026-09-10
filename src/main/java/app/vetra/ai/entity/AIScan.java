@@ -79,8 +79,7 @@ public class AIScan extends BaseEntity {
 
   @Version
   @Column(name = "version", nullable = false)
-  @Builder.Default
-  private Long version = 0L;
+  private Long version;
 
   public Animal getAnimal() {
     return animal;
@@ -212,7 +211,7 @@ public class AIScan extends BaseEntity {
     private User verifiedBy;
     private Instant verifiedAt;
     private String notes;
-    private Long version = 0L;
+    private Long version;
 
     public AIScanBuilder animal(Animal animal) {
       this.animal = animal;

@@ -244,20 +244,7 @@ class AIScreeningIntegrationTest {
                 LocalDate.now().minusYears(4),
                 null));
 
-    // Vet creates confirmed clinical reports linked to verified scan & animals in Pune
-    diseaseService.createReport(
-        vetEmail,
-        new CreateDiseaseReportRequest(
-            animal.id(),
-            null,
-            scan.id(),
-            DiseaseReportSource.AI_VERIFIED,
-            DiagnosisConfidenceSource.AI_VERIFIED,
-            "Lumpy Skin Disease",
-            DiagnosisStatus.CONFIRMED,
-            18.5204,
-            73.8567,
-            "Clinically verified LSD"));
+    // Note: approveScan() already automatically created the confirmed DiseaseReport for animal (scanned)
 
     diseaseService.createReport(
         vetEmail,
