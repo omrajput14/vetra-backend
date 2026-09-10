@@ -8,6 +8,7 @@ import app.vetra.appointment.repository.AppointmentRepository;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
+import app.vetra.infrastructure.cache.CacheKeys;
 import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
@@ -24,6 +25,10 @@ import io.micrometer.tracing.Tracer;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -36,6 +41,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AppointmentService {
 
+  private static final Logger log = LoggerFactory.getLogger(AppointmentService.class);
+
   private final AppointmentRepository appointmentRepository;
   private final UserRepository userRepository;
   private final FarmerProfileRepository farmerProfileRepository;
@@ -44,8 +51,10 @@ public class AppointmentService {
   private final VetraMetrics vetraMetrics;
   private final Tracer tracer;
   private final AppointmentNotificationHelper notificationHelper;
+  private final CacheManager cacheManager;
 
   /** Constructor injection. */
+  @SuppressWarnings("checkstyle:ParameterNumber")
   public AppointmentService(
       AppointmentRepository appointmentRepository,
       UserRepository userRepository,
@@ -54,7 +63,8 @@ public class AppointmentService {
       AnimalRepository animalRepository,
       VetraMetrics vetraMetrics,
       Tracer tracer,
-      AppointmentNotificationHelper notificationHelper) {
+      AppointmentNotificationHelper notificationHelper,
+      CacheManager cacheManager) {
     this.appointmentRepository = appointmentRepository;
     this.userRepository = userRepository;
     this.farmerProfileRepository = farmerProfileRepository;
@@ -63,6 +73,7 @@ public class AppointmentService {
     this.vetraMetrics = vetraMetrics;
     this.tracer = tracer;
     this.notificationHelper = notificationHelper;
+    this.cacheManager = cacheManager;
   }
 
   /** Creates a new appointment for the authenticated farmer. */
@@ -126,6 +137,7 @@ public class AppointmentService {
             .build();
 
     Appointment saved = appointmentRepository.save(appointment);
+    evictAppointmentCaches(saved.getId());
     vetraMetrics.recordAppointmentCreated();
     notificationHelper.notifyBookingRequested(saved, farmer, vet, animal);
 
@@ -241,9 +253,38 @@ public class AppointmentService {
         user, appointment, request.status(), request.notes(), request.cancellationReason());
 
     Appointment updated = appointmentRepository.save(appointment);
+    evictAppointmentCaches(id);
     notificationHelper.dispatchStatusNotification(updated, request.status());
 
     return AppointmentResponse.fromEntity(updated);
+  }
+
+  /**
+   * Explicitly evicts appointment cache key and related dashboard caches.
+   * Guarantees cache invalidation even when called via internal self-invocation
+   * (e.g. confirmAppointment, completeAppointment, etc.) where Spring AOP proxy is bypassed.
+   *
+   * @param id appointment UUID
+   */
+  public void evictAppointmentCaches(UUID id) {
+    try {
+      if (cacheManager != null) {
+        Cache appointmentCache = cacheManager.getCache(CacheNames.APPOINTMENTS);
+        if (appointmentCache != null) {
+          appointmentCache.evict(CacheKeys.appointmentKey(id));
+        }
+        Cache farmerDash = cacheManager.getCache(CacheNames.DASHBOARD_FARMER);
+        if (farmerDash != null) {
+          farmerDash.clear();
+        }
+        Cache vetDash = cacheManager.getCache(CacheNames.DASHBOARD_VET);
+        if (vetDash != null) {
+          vetDash.clear();
+        }
+      }
+    } catch (Exception e) {
+      log.warn("Failed to evict appointment caches for appointment ID: {}", id, e);
+    }
   }
 
   /** Delegate helper for confirming an appointment (Vet only). */
