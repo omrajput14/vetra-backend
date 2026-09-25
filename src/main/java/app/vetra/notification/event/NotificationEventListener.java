@@ -88,12 +88,15 @@ public class NotificationEventListener {
         AIScan scan = scanOpt.get();
         UUID userId = scan.getUploadedBy() != null ? scan.getUploadedBy().getId() : null;
         if (userId != null) {
-          String status = event.accepted() ? "approved" : "reviewed";
+          String message =
+              event.accepted()
+                  ? "A licensed veterinarian has approved your animal diagnostic scan result."
+                  : "A veterinarian reviewed your scan and did not confirm the AI result. Tap to see why.";
           String payload = "{\"scanId\":\"" + event.scanId() + "\",\"route\":\"/ai-history\"}";
           notificationService.sendNotification(
               userId,
               "AI Scan Reviewed by Veterinarian",
-              "A licensed veterinarian has " + status + " your animal diagnostic scan result.",
+              message,
               payload,
               NotificationChannel.PUSH,
               NotificationPriority.NORMAL);

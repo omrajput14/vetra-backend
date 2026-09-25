@@ -74,18 +74,18 @@ public class AIScanDiseaseReportService {
 
     Animal animal = scan.getAnimal();
 
-    // GPS: prefer vet's last-known position (updated during en-route tracking),
-    // fall back to the farmer's registered farm coordinates.
+    // GPS: the case is where the animal is, so prefer the farm's registered coordinates. A vet
+    // may approve remotely from the clinic; use the vet's position only if the farm has none.
     double lat = 0.0;
     double lng = 0.0;
-    if (vetProfile.getLatitude() != null && vetProfile.getLongitude() != null) {
-      lat = vetProfile.getLatitude();
-      lng = vetProfile.getLongitude();
+    FarmerProfile farmer = animal.getFarmer();
+    if (farmer != null && farmer.getLatitude() != null && farmer.getLongitude() != null) {
+      lat = farmer.getLatitude();
+      lng = farmer.getLongitude();
     } else {
-      FarmerProfile farmer = animal.getFarmer();
-      if (farmer != null && farmer.getLatitude() != null && farmer.getLongitude() != null) {
-        lat = farmer.getLatitude();
-        lng = farmer.getLongitude();
+      if (vetProfile.getLatitude() != null && vetProfile.getLongitude() != null) {
+        lat = vetProfile.getLatitude();
+        lng = vetProfile.getLongitude();
       } else {
         log.warn(
             "[AI-SCAN APPROVAL] No GPS on vet or farmer for animalId={} scanId={}."

@@ -20,6 +20,7 @@ import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
 import app.vetra.disease.entity.DiseaseReport;
 import app.vetra.disease.service.AIScanDiseaseReportService;
+import app.vetra.infrastructure.util.VetTitle;
 import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
@@ -281,9 +282,10 @@ public class AIScanService {
         && !request.customDiagnosis().isBlank()) {
       scan.setDiagnosis(request.customDiagnosis().trim());
     }
-    if (request != null && request.notes() != null && !request.notes().isBlank()) {
-      scan.setNotes(request.notes().trim());
-    }
+    String vetNotes =
+        (request != null && request.notes() != null && !request.notes().isBlank())
+            ? request.notes().trim()
+            : null;
 
     scan = aiScanRepository.save(scan);
 
@@ -313,10 +315,9 @@ public class AIScanService {
             .symptoms(symptomsText)
             .treatment(treatmentText)
             .notes(
-                "AI Scan verified by Dr. "
-                    + vetProfile.getFullName()
-                    + ". Notes: "
-                    + (scan.getNotes() != null ? scan.getNotes() : ""))
+                "AI scan verified by "
+                    + VetTitle.of(vetProfile.getFullName())
+                    + (vetNotes != null ? ". Notes: " + vetNotes : "."))
             .build();
 
     medicalRecord = medicalRecordRepository.save(medicalRecord);
@@ -381,6 +382,7 @@ public class AIScanService {
 
     eventPublisher.publishEvent(
         new AIScanRejectedEvent(scan.getId(), request.rejectionReason().trim(), user.getId()));
+    eventPublisher.publishEvent(new AIScanVerifiedEvent(scan.getId(), false, user.getId()));
 
     return AIScanResponse.fromEntity(scan);
   }
