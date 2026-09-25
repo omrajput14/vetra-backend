@@ -194,6 +194,8 @@ vetra:
       enabled: ${GEMINI_ENABLED:true}
       api-key: ${GEMINI_API_KEY:}
       model: ${GEMINI_MODEL:gemini-3.5-flash}
+      # Tried in order when the main model is overloaded (503) or rate-limited (429).
+      fallback-models: ${GEMINI_FALLBACK_MODELS:gemini-2.5-flash,gemini-3.5-flash-lite}
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
       timeout: ${GEMINI_TIMEOUT:30s}
       max-retries: ${GEMINI_MAX_RETRIES:3}

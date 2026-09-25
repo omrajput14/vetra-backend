@@ -1,6 +1,8 @@
 package app.vetra.ai.provider.gemini;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -21,6 +23,9 @@ public class GeminiProperties {
 
   /** Gemini Vision model identifier (e.g. gemini-3.5-flash, gemini-2.5-flash). */
   private String model = "gemini-3.5-flash";
+
+  /** Models tried in order when the main model is overloaded (503) or rate-limited (429). */
+  private List<String> fallbackModels = new ArrayList<>(List.of("gemini-2.5-flash", "gemini-3.5-flash-lite"));
 
   /** Google Generative Language Base API URL. */
   private String baseUrl = "https://generativelanguage.googleapis.com";

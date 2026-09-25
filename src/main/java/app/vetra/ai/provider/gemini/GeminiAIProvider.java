@@ -58,46 +58,75 @@ public class GeminiAIProvider implements AIProvider {
     }
 
     String requestId = "GEM-" + UUID.randomUUID().toString().substring(0, 8);
-    log.info(
-        "GeminiAIProvider executing promptId={} model={}",
-        request.promptId(),
-        properties.getModel());
+    Map<String, Object> requestPayload = buildRequestPayload(request, promptText);
+    Duration timeout = properties.getTimeout() != null
+        ? properties.getTimeout()
+        : Duration.ofSeconds(30);
 
     try {
-      Map<String, Object> requestPayload = buildRequestPayload(request, promptText);
-      Duration timeout = properties.getTimeout() != null
-          ? properties.getTimeout()
-          : Duration.ofSeconds(30);
-
-      String rawResponse =
-          webClient
-              .post()
-              .uri(
-                  uriBuilder ->
-                      uriBuilder
-                          .path("/v1beta/models/" + properties.getModel() + ":generateContent")
-                          .queryParam("key", properties.getApiKey())
-                          .build())
-              .contentType(MediaType.APPLICATION_JSON)
-              .bodyValue(requestPayload)
-              .retrieve()
-              .bodyToMono(String.class)
-              .block(timeout);
-
-      return new AIResponse(
-          extractCandidateText(rawResponse),
-          "v1",
-          providerName(),
-          properties.getModel(),
-          extractPromptTokens(rawResponse),
-          extractCompletionTokens(rawResponse),
-          extractFinishReason(rawResponse));
-
+      // A busy model (503) or rate limit (429) moves on to the next model; other errors fail now.
+      return firstAvailableModel(modelsToTry(), model -> {
+        log.info("GeminiAIProvider executing promptId={} model={}", request.promptId(), model);
+        String rawResponse =
+            webClient
+                .post()
+                .uri(
+                    uriBuilder ->
+                        uriBuilder
+                            .path("/v1beta/models/" + model + ":generateContent")
+                            .queryParam("key", properties.getApiKey())
+                            .build())
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestPayload)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block(timeout);
+        return new AIResponse(
+            extractCandidateText(rawResponse),
+            "v1",
+            providerName(),
+            model,
+            extractPromptTokens(rawResponse),
+            extractCompletionTokens(rawResponse),
+            extractFinishReason(rawResponse));
+      });
     } catch (WebClientResponseException ex) {
       throw handleWebClientException(ex, requestId);
     } catch (Exception ex) {
       throw handleGenericException(ex, requestId);
     }
+  }
+
+  private List<String> modelsToTry() {
+    List<String> models = new ArrayList<>();
+    models.add(properties.getModel());
+    if (properties.getFallbackModels() != null) {
+      properties.getFallbackModels().stream()
+          .filter(m -> m != null && !m.isBlank() && !models.contains(m.trim()))
+          .forEach(m -> models.add(m.trim()));
+    }
+    return models;
+  }
+
+  /**
+   * Calls each model in order until one answers. Only "overloaded" (503) and "rate limited"
+   * (429) move on to the next model; any other error is thrown straight away.
+   */
+  static <T> T firstAvailableModel(List<String> models, java.util.function.Function<String, T> call) {
+    WebClientResponseException last = null;
+    for (String model : models) {
+      try {
+        return call.apply(model);
+      } catch (WebClientResponseException ex) {
+        int code = ex.getStatusCode().value();
+        if (code != 503 && code != 429) {
+          throw ex;
+        }
+        log.warn("Gemini model {} unavailable (HTTP {}), trying the next model", model, code);
+        last = ex;
+      }
+    }
+    throw last;
   }
 
   private Map<String, Object> buildRequestPayload(AIRequest request, String promptText) {

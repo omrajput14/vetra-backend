@@ -61,6 +61,22 @@ public class AIOrchestrator {
   }
 
   /** Returns true if AI orchestration platform is enabled in properties. */
+  // Optional so tests and dev setups without Gemini keep working; set in the running app.
+  private app.vetra.ai.provider.gemini.GeminiProperties geminiProperties;
+
+  @org.springframework.beans.factory.annotation.Autowired(required = false)
+  public void setGeminiProperties(app.vetra.ai.provider.gemini.GeminiProperties geminiProperties) {
+    this.geminiProperties = geminiProperties;
+  }
+
+  /** Gemini is configured, so a NoOp answer means every real model failed (not a dev stub). */
+  private boolean realAiConfigured() {
+    return geminiProperties != null
+        && geminiProperties.isEnabled()
+        && geminiProperties.getApiKey() != null
+        && !geminiProperties.getApiKey().isBlank();
+  }
+
   public boolean isAiEnabled() {
     return properties.isEnabled();
   }
@@ -95,6 +111,12 @@ public class AIOrchestrator {
       AgentResponse agentResponse = agentGateway.execute(agentRequest);
       AIResponse result = agentResponse.rawResponse();
       long latencyMs = System.currentTimeMillis() - startTime;
+
+      // Never store the NoOp placeholder as a diagnosis when a real AI is configured: the scan
+      // fails ("try again") instead of reaching para-vets and vets as a fake result.
+      if ("noop".equalsIgnoreCase(result.provider()) && realAiConfigured()) {
+        throw new IllegalStateException("All Gemini models were unavailable; no diagnosis produced");
+      }
 
       DiagnosticParsedResult parsedResult = parseResponseContent(result.content());
 
