@@ -52,6 +52,9 @@ public interface DiseaseReportRepository extends JpaRepository<DiseaseReport, UU
   /** Checks if any disease surveillance report exists for an animal. */
   boolean existsByAnimalId(UUID animalId);
 
+  /** The case filed from an AI scan (suspected on para-vet escalation, confirmed on vet approval). */
+  java.util.Optional<DiseaseReport> findFirstByAiScanId(UUID aiScanId);
+
   /** Finds distinct animal IDs with disease reports whose current status is not deceased. */
   @Query("SELECT DISTINCT r.animal.id FROM DiseaseReport r WHERE r.animal.status != app.vetra.infrastructure.persistence.enums.AnimalStatus.DECEASED")
   List<UUID> findDistinctActiveAnimalIds();

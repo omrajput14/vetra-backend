@@ -27,6 +27,9 @@ public interface VaccinationCampaignRepository extends JpaRepository<Vaccination
 
   long countByStatus(CampaignStatus status);
 
+  /** Open campaigns already launched for an outbreak (containment is not launched twice). */
+  List<VaccinationCampaign> findByOutbreakIdAndStatusIn(UUID outbreakId, List<CampaignStatus> statuses);
+
   @Query("SELECT COALESCE(SUM(c.plannedDoses), 0) FROM VaccinationCampaign c")
   long sumPlannedDoses();
 

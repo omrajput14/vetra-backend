@@ -354,7 +354,11 @@ public class AIScanService {
   public AIScanResponse rejectScan(
       String userIdentifier, UUID scanId, RejectAIScanRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    validateVeterinarianRole(user);
+    boolean isVet = user.getRole() == UserRole.VETERINARIAN;
+    if (!isVet && user.getRole() != UserRole.PARA_VET) {
+      throw new UnauthorizedResourceAccessException(
+          "Only veterinarians and para-vets can review AI diagnostic scans", "AUTH_006");
+    }
 
     AIScan scan =
         aiScanRepository
@@ -365,14 +369,22 @@ public class AIScanService {
                         "AI Diagnostic scan not found with ID: " + scanId, "AI_001"));
 
     validateReviewableState(scan);
+    boolean wasEscalated = scan.getStatus() == AIScanStatus.ESCALATED;
+    if (!isVet && wasEscalated) {
+      throw new BusinessRuleException("This scan is already with a veterinarian", "AI_009");
+    }
 
     scan.setStatus(AIScanStatus.REJECTED);
-    scan.setVeterinarianVerified(true);
+    scan.setVeterinarianVerified(isVet);
     scan.setVerifiedBy(user);
     scan.setVerifiedAt(Instant.now());
-    scan.setNotes("REJECTED: " + request.rejectionReason().trim());
+    // Keep the AI's own notes (severity, observations); the reason has its own column.
+    scan.setReviewNotes(request.rejectionReason().trim());
 
     scan = aiScanRepository.save(scan);
+    if (wasEscalated) {
+      aiScanDiseaseReportService.ruleOutReportForScan(scan);
+    }
 
     log.info(
         "AI Scan REJECTED scanId={} by vetId={} reason='{}'",

@@ -35,6 +35,10 @@ public record AIScanResponse(
     String verifiedByVetName,
     Instant verifiedAt,
     String notes,
+    String reviewNotes,
+    String triagedByName,
+    Instant triagedAt,
+    String triageNotes,
     Instant createdAt,
     Instant updatedAt) {
 
@@ -80,18 +84,12 @@ public record AIScanResponse(
       }
     }
 
-    String uploader =
-        scan.getUploadedBy().getEmail() != null
-            ? scan.getUploadedBy().getEmail()
-            : scan.getUploadedBy().getPhone();
+    String uploader = scan.getUploadedBy().getDisplayName();
 
     UUID verifierId = scan.getVerifiedBy() != null ? scan.getVerifiedBy().getId() : null;
     String verifierName = null;
     if (scan.getVerifiedBy() != null) {
-      verifierName =
-          scan.getVerifiedBy().getEmail() != null
-              ? scan.getVerifiedBy().getEmail()
-              : scan.getVerifiedBy().getPhone();
+      verifierName = scan.getVerifiedBy().getDisplayName();
     }
 
     return new AIScanResponse(
@@ -117,6 +115,10 @@ public record AIScanResponse(
         verifierName,
         scan.getVerifiedAt(),
         scan.getNotes(),
+        scan.getReviewNotes(),
+        scan.getTriagedBy() != null ? scan.getTriagedBy().getDisplayName() : null,
+        scan.getTriagedAt(),
+        scan.getTriageNotes(),
         scan.getCreatedAt(),
         scan.getUpdatedAt());
   }

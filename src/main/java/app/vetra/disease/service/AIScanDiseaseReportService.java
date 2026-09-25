@@ -13,6 +13,7 @@ import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
 import app.vetra.infrastructure.persistence.entity.MedicalRecord;
+import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,25 +96,33 @@ public class AIScanDiseaseReportService {
       }
     }
 
-    String diseaseName =
-        (scan.getDiagnosis() != null && !scan.getDiagnosis().isBlank())
-            ? scan.getDiagnosis().trim()
-            : "Unspecified Condition (AI-Scan)";
+    String diseaseName = diseaseNameOf(scan);
 
+    // A para-vet may already have filed this scan as a suspected case: confirm that same case.
     DiseaseReport report =
-        DiseaseReport.builder()
-            .animal(animal)
-            .medicalRecord(medicalRecord)
-            .aiScan(scan)
-            .reportedBy(vetProfile.getUser())
-            .reportSource(DiseaseReportSource.AI_VERIFIED)
-            .diagnosisConfidenceSource(DiagnosisConfidenceSource.AI_VERIFIED)
-            .diseaseName(diseaseName)
-            .diagnosisStatus(DiagnosisStatus.CONFIRMED)
-            .latitude(lat)
-            .longitude(lng)
-            .notes("Auto-generated from vet-approved AI scan " + scan.getId())
-            .build();
+        diseaseReportRepository.findFirstByAiScanId(scan.getId()).orElse(null);
+    if (report != null) {
+      report.setMedicalRecord(medicalRecord);
+      report.setReportedBy(vetProfile.getUser());
+      report.setDiseaseName(diseaseName);
+      report.setDiagnosisStatus(DiagnosisStatus.CONFIRMED);
+      report.setNotes("Escalated by a para-vet and confirmed by a vet from AI scan " + scan.getId());
+    } else {
+      report =
+          DiseaseReport.builder()
+              .animal(animal)
+              .medicalRecord(medicalRecord)
+              .aiScan(scan)
+              .reportedBy(vetProfile.getUser())
+              .reportSource(DiseaseReportSource.AI_VERIFIED)
+              .diagnosisConfidenceSource(DiagnosisConfidenceSource.AI_VERIFIED)
+              .diseaseName(diseaseName)
+              .diagnosisStatus(DiagnosisStatus.CONFIRMED)
+              .latitude(lat)
+              .longitude(lng)
+              .notes("Auto-generated from vet-approved AI scan " + scan.getId())
+              .build();
+    }
 
     report = diseaseReportRepository.save(report);
 
@@ -136,5 +145,66 @@ public class AIScanDiseaseReportService {
     outbreakDetectionEngine.evaluateReport(report);
 
     return report;
+  }
+
+  /**
+   * Files a SUSPECTED case when a para-vet escalates a scan. It raises nearby cluster risk (the
+   * engine weights suspected cases) but cannot open an outbreak on its own; a vet confirms it.
+   * Returns null when the farm has no location (nothing to place on the map).
+   */
+  @Transactional
+  @CacheEvict(
+      value = {CacheNames.DISEASE_REPORTS, CacheNames.OUTBREAKS, CacheNames.ANALYTICS},
+      allEntries = true)
+  public DiseaseReport createSuspectedReport(AIScan scan, User paraVet, String fieldNotes) {
+    Animal animal = scan.getAnimal();
+    FarmerProfile farmer = animal.getFarmer();
+    if (farmer == null || farmer.getLatitude() == null || farmer.getLongitude() == null) {
+      log.warn("[AI-SCAN ESCALATION] farm has no GPS, no suspected case filed for scan {}", scan.getId());
+      return null;
+    }
+    String diseaseName = diseaseNameOf(scan);
+    DiseaseReport report =
+        diseaseReportRepository.save(
+            DiseaseReport.builder()
+                .animal(animal)
+                .aiScan(scan)
+                .reportedBy(paraVet)
+                .reportSource(DiseaseReportSource.AI_VERIFIED)
+                .diagnosisConfidenceSource(DiagnosisConfidenceSource.AI_VERIFIED)
+                .diseaseName(diseaseName)
+                .diagnosisStatus(DiagnosisStatus.SUSPECTED)
+                .latitude(farmer.getLatitude())
+                .longitude(farmer.getLongitude())
+                .notes("AI scan escalated by a para-vet after a field check"
+                    + (fieldNotes != null ? ": " + fieldNotes : "."))
+                .build());
+    eventPublisher.publishEvent(
+        new DiseaseReportCreatedEvent(
+            report.getId(), animal.getId(), diseaseName, DiagnosisStatus.SUSPECTED,
+            report.getLatitude(), report.getLongitude()));
+    log.info("[AI-SCAN ESCALATION] SUSPECTED case id={} disease='{}' scanId={}", report.getId(), diseaseName, scan.getId());
+    return report;
+  }
+
+  /** A vet rejected an escalated scan: the suspected case it filed is ruled out. */
+  @Transactional
+  @CacheEvict(
+      value = {CacheNames.DISEASE_REPORTS, CacheNames.OUTBREAKS, CacheNames.ANALYTICS},
+      allEntries = true)
+  public void ruleOutReportForScan(AIScan scan) {
+    diseaseReportRepository
+        .findFirstByAiScanId(scan.getId())
+        .ifPresent(
+            r -> {
+              r.setDiagnosisStatus(DiagnosisStatus.REJECTED);
+              diseaseReportRepository.save(r);
+            });
+  }
+
+  private static String diseaseNameOf(AIScan scan) {
+    return (scan.getDiagnosis() != null && !scan.getDiagnosis().isBlank())
+        ? scan.getDiagnosis().trim()
+        : "Unspecified Condition (AI-Scan)";
   }
 }

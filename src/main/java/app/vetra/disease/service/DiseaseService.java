@@ -298,7 +298,8 @@ public class DiseaseService {
         high,
         totalAffected,
         totalMortalities,
-        vetConfirmedMortalities);
+        vetConfirmedMortalities,
+        all.stream().filter(o -> o.getStatus() == OutbreakStatus.RESOLVED).count());
   }
 
   /** Retrieves all disease reports contributing to a specific outbreak cluster. */

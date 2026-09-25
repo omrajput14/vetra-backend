@@ -44,11 +44,16 @@ public class AIScanController {
 
   private final AIScanService aiScanService;
   private final IdempotencyService idempotencyService;
+  private final app.vetra.ai.service.AIScanTriageService aiScanTriageService;
 
   /** Constructor injection. */
-  public AIScanController(AIScanService aiScanService, IdempotencyService idempotencyService) {
+  public AIScanController(
+      AIScanService aiScanService,
+      IdempotencyService idempotencyService,
+      app.vetra.ai.service.AIScanTriageService aiScanTriageService) {
     this.aiScanService = aiScanService;
     this.idempotencyService = idempotencyService;
+    this.aiScanTriageService = aiScanTriageService;
   }
 
   /** Registers a new AI diagnostic scan request for an animal. */
@@ -124,8 +129,23 @@ public class AIScanController {
   }
 
   /** Rejects an AI diagnostic scan result. */
+  @PostMapping("/{id}/escalate")
+  @PreAuthorize("hasRole('PARA_VET')")
+  @Operation(
+      summary = "Escalate AI Diagnostic Scan to a Vet",
+      description = "Para-vet field-checks a scan and sends it to a vet; files a suspected case.")
+  public ApiResponse<AIScanResponse> escalateScan(
+      Principal principal,
+      @PathVariable("id") UUID id,
+      @RequestBody(required = false) java.util.Map<String, String> body) {
+    String notes = body != null ? body.get("notes") : null;
+    AIScanResponse response = aiScanTriageService.escalateScan(principal.getName(), id, notes);
+    return ApiResponse.ok("AI diagnostic scan sent to a veterinarian", response);
+  }
+
+  /** Rejects an AI diagnostic scan result (vet, or para-vet before escalation). */
   @PostMapping("/{id}/reject")
-  @PreAuthorize("hasRole('VETERINARIAN')")
+  @PreAuthorize("hasAnyRole('VETERINARIAN', 'PARA_VET')")
   @Operation(
       summary = "Reject AI Diagnostic Scan",
       description = "Licensed veterinarian rejects AI scan output and records rejection reason.")

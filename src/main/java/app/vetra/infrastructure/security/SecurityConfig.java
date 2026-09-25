@@ -32,6 +32,7 @@ public class SecurityConfig {
     "/api/v1/auth/farmer/login",
     "/api/v1/auth/vet/register",
     "/api/v1/auth/vet/login",
+    "/api/v1/auth/paravet/register",
     "/api/v1/auth/refresh",
     "/api/v1/auth/logout",
     // OpenAPI / Swagger UI

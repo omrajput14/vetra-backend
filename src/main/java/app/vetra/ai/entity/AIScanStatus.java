@@ -7,5 +7,7 @@ public enum AIScanStatus {
   COMPLETED,
   FAILED,
   VERIFIED,
+  /** A para-vet checked it in the field and sent it to a vet. */
+  ESCALATED,
   REJECTED
 }

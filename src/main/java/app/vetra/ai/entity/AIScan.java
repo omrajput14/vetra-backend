@@ -77,6 +77,21 @@ public class AIScan extends BaseEntity {
   @Column(name = "notes", columnDefinition = "TEXT")
   private String notes;
 
+  /** Why the reviewer (vet or para-vet) rejected the AI result; the AI's own notes stay intact. */
+  @Column(name = "review_notes", columnDefinition = "TEXT")
+  private String reviewNotes;
+
+  /** Para-vet who checked the scan in the field and escalated it to a vet. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "triaged_by")
+  private User triagedBy;
+
+  @Column(name = "triaged_at")
+  private Instant triagedAt;
+
+  @Column(name = "triage_notes", columnDefinition = "TEXT")
+  private String triageNotes;
+
   @Version
   @Column(name = "version", nullable = false)
   private Long version;
