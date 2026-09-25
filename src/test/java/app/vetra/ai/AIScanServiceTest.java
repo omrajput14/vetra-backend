@@ -167,9 +167,9 @@ class AIScanServiceTest {
 
     assertTrue(verifiedScan.veterinarianVerified());
     assertEquals(AIScanStatus.VERIFIED, verifiedScan.status());
-    assertEquals(
-        "Confirmed dermatological inflammation. Prescribed topical ointment.",
-        verifiedScan.notes());
+    // The vet's note goes to the medical record; the scan keeps the AI's own result.
+    assertFalse(
+        verifiedScan.notes() != null && verifiedScan.notes().contains("Prescribed topical ointment"));
   }
 
   @Test
