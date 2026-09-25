@@ -82,6 +82,14 @@ public class AnimalHealthRecord extends BaseEntity {
   @Column(name = "recorded_at", nullable = false)
   private LocalDateTime recordedAt;
 
+  /** Vaccination campaign this dose was given in (drive doses recorded by para-vets). */
+  @Column(name = "campaign_id")
+  private UUID campaignId;
+
+  /** User who gave the dose. */
+  @Column(name = "administered_by")
+  private UUID administeredBy;
+
   public Animal getAnimal() {
     return animal;
   }

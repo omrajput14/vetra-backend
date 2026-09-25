@@ -3,6 +3,7 @@ package app.vetra.notification.service;
 import app.vetra.auth.repository.FarmerProfileRepository;
 import app.vetra.auth.repository.VetProfileRepository;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
+import app.vetra.infrastructure.persistence.entity.ParaVetProfile;
 import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.VerificationStatus;
 import app.vetra.notification.entity.NotificationChannel;
@@ -20,11 +21,14 @@ public class AreaNotificationService {
   private final FarmerProfileRepository farmerProfileRepository;
   private final VetProfileRepository vetProfileRepository;
   private final NotificationService notificationService;
+  private final app.vetra.auth.repository.ParaVetProfileRepository paraVetProfileRepository;
 
   public AreaNotificationService(
       FarmerProfileRepository farmerProfileRepository,
       VetProfileRepository vetProfileRepository,
-      NotificationService notificationService) {
+      NotificationService notificationService,
+      app.vetra.auth.repository.ParaVetProfileRepository paraVetProfileRepository) {
+    this.paraVetProfileRepository = paraVetProfileRepository;
     this.farmerProfileRepository = farmerProfileRepository;
     this.vetProfileRepository = vetProfileRepository;
     this.notificationService = notificationService;
@@ -69,6 +73,20 @@ public class AreaNotificationService {
     return new Reach(farmers, vets);
   }
 
+  /** Pushes to approved para-vets registered within the radius; returns how many. */
+  public int notifyParaVetsWithin(
+      double lat, double lng, double radiusKm, String title, String body, String payloadJson) {
+    int n = 0;
+    for (ParaVetProfile p : paraVetProfileRepository.findAll()) {
+      if (p.getVerificationStatus() == VerificationStatus.VERIFIED
+          && inside(p.getLatitude(), p.getLongitude(), lat, lng, radiusKm)
+          && send(p.getUser().getId(), title, body, payloadJson)) {
+        n++;
+      }
+    }
+    return n;
+  }
+
   private boolean send(java.util.UUID userId, String title, String body, String payload) {
     try {
       notificationService.sendNotification(
@@ -80,7 +98,8 @@ public class AreaNotificationService {
     }
   }
 
-  static boolean inside(Double lat, Double lng, double cLat, double cLng, double radiusKm) {
+  /** True when (lat, lng) is within radiusKm of the centre. */
+  public static boolean inside(Double lat, Double lng, double cLat, double cLng, double radiusKm) {
     if (lat == null || lng == null) {
       return false;
     }

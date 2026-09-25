@@ -106,7 +106,12 @@ public class AIScanController {
       Principal principal,
       @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
           Pageable pageable) {
-    Page<AIScanResponse> response = aiScanService.listScans(principal.getName(), pageable);
+    // A para-vet sees only scans from farms in their own district.
+    var paraVet = aiScanTriageService.paraVetProfile(principal.getName());
+    Page<AIScanResponse> response =
+        paraVet != null
+            ? aiScanTriageService.listForParaVet(paraVet, pageable)
+            : aiScanService.listScans(principal.getName(), pageable);
     return ApiResponse.ok("Paginated AI scans retrieved successfully", response);
   }
 
@@ -128,7 +133,7 @@ public class AIScanController {
     return ApiResponse.ok("AI diagnostic scan approved and MedicalRecord created", response);
   }
 
-  /** Rejects an AI diagnostic scan result. */
+  /** Para-vet sends a field-checked scan to a vet. */
   @PostMapping("/{id}/escalate")
   @PreAuthorize("hasRole('PARA_VET')")
   @Operation(
@@ -153,6 +158,9 @@ public class AIScanController {
       Principal principal,
       @PathVariable("id") UUID id,
       @Valid @RequestBody RejectAIScanRequest request) {
+    if (aiScanTriageService.paraVetProfile(principal.getName()) != null) {
+      aiScanTriageService.requireApprovedParaVet(principal.getName());
+    }
     AIScanResponse response = aiScanService.rejectScan(principal.getName(), id, request);
     return ApiResponse.ok("AI diagnostic scan rejected successfully", response);
   }

@@ -2,6 +2,8 @@ package app.vetra.infrastructure.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -9,6 +11,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import app.vetra.infrastructure.persistence.enums.VerificationStatus;
 
 /**
  * Field para-vet (livestock supervisor): first-line check of farmers' AI scans. Can escalate a
@@ -39,4 +42,9 @@ public class ParaVetProfile extends BaseEntity {
 
   @Column(name = "longitude")
   private Double longitude;
+
+  /** A para-vet can act only once an officer approves them. */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "verification_status", nullable = false, length = 32)
+  private VerificationStatus verificationStatus = VerificationStatus.PENDING;
 }

@@ -67,7 +67,7 @@ public class SurveillanceActionService {
   /** What the containment order did. */
   public record ContainmentResult(
       UUID campaignId, String campaignName, boolean campaignCreated, String campaignNote,
-      int farmersNotified, int vetsNotified, double radiusKm) {}
+      int farmersNotified, int vetsNotified, int paraVetsNotified, double radiusKm) {}
 
   /**
    * Launches (or reuses) a ring-vaccination campaign for the outbreak and pushes an advisory to
@@ -128,8 +128,14 @@ public class SurveillanceActionService {
         "The district office ordered ring vaccination for a " + disease + " outbreak near you from "
             + start + ". Please support the drive.",
         payload).vets();
-    log.info("[CONTAINMENT] outbreak={} campaign={} farmers={} vets={}", outbreakId, campaignId, farmers, vets);
-    return new ContainmentResult(campaignId, campaignName, created, campaignNote, farmers, vets, radius);
+    int paraVets = areaNotificationService.notifyParaVetsWithin(lat, lng, Math.max(radius, VET_RADIUS_KM),
+        "Vaccination drive: " + disease,
+        "Ring vaccination for a " + disease + " outbreak near you starts " + start
+            + ". Open Vaccination drives in the app to record the doses you give.",
+        "{\"campaignId\":\"" + campaignId + "\",\"route\":\"/paravet-drives\"}");
+    log.info("[CONTAINMENT] outbreak={} campaign={} farmers={} vets={} paraVets={}",
+        outbreakId, campaignId, farmers, vets, paraVets);
+    return new ContainmentResult(campaignId, campaignName, created, campaignNote, farmers, vets, paraVets, radius);
   }
 
   /** Result of an alert action. */

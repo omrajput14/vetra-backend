@@ -10,7 +10,12 @@ import app.vetra.disease.service.AIScanDiseaseReportService;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
 import app.vetra.infrastructure.exception.UnauthorizedResourceAccessException;
+import app.vetra.auth.repository.ParaVetProfileRepository;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
+import app.vetra.infrastructure.persistence.entity.ParaVetProfile;
+import app.vetra.infrastructure.persistence.enums.VerificationStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.enums.UserRole;
 import java.time.Instant;
@@ -34,28 +39,61 @@ public class AIScanTriageService {
   private final UserRepository userRepository;
   private final AIScanDiseaseReportService aiScanDiseaseReportService;
   private final ApplicationEventPublisher eventPublisher;
+  private final ParaVetProfileRepository paraVetProfileRepository;
 
   public AIScanTriageService(
       AIScanRepository aiScanRepository,
       UserRepository userRepository,
       AIScanDiseaseReportService aiScanDiseaseReportService,
-      ApplicationEventPublisher eventPublisher) {
+      ApplicationEventPublisher eventPublisher,
+      ParaVetProfileRepository paraVetProfileRepository) {
+    this.paraVetProfileRepository = paraVetProfileRepository;
     this.aiScanRepository = aiScanRepository;
     this.userRepository = userRepository;
     this.aiScanDiseaseReportService = aiScanDiseaseReportService;
     this.eventPublisher = eventPublisher;
   }
 
+  /** The para-vet's profile, or null when the user is not a para-vet. */
+  @Transactional(readOnly = true)
+  public ParaVetProfile paraVetProfile(String userIdentifier) {
+    return userRepository
+        .findByIdentifier(userIdentifier)
+        .filter(u -> u.getRole() == UserRole.PARA_VET)
+        .flatMap(u -> paraVetProfileRepository.findByUserId(u.getId()))
+        .orElse(null);
+  }
+
+  /** Throws unless the user is a para-vet an officer has approved. */
+  public void requireApprovedParaVet(String userIdentifier) {
+    ParaVetProfile p = paraVetProfile(userIdentifier);
+    if (p == null) {
+      throw new UnauthorizedResourceAccessException("Only para-vets can do this", "AUTH_006");
+    }
+    if (p.getVerificationStatus() != VerificationStatus.VERIFIED) {
+      throw new UnauthorizedResourceAccessException(
+          "Your para-vet account is waiting for approval by the district office", "AUTH_007");
+    }
+  }
+
+  /** Scans from the para-vet's own district (all scans if their district is not set). */
+  @Transactional(readOnly = true)
+  public Page<AIScanResponse> listForParaVet(ParaVetProfile p, Pageable pageable) {
+    Page<AIScan> page =
+        p.getDistrict() == null || p.getDistrict().isBlank()
+            ? aiScanRepository.findAll(pageable)
+            : aiScanRepository.findByFarmDistrict(p.getDistrict().trim(), pageable);
+    return page.map(AIScanResponse::fromEntity);
+  }
+
   /** Sends a completed scan to a vet; only a vet can then confirm or reject it. */
   @Transactional
   public AIScanResponse escalateScan(String userIdentifier, UUID scanId, String fieldNotes) {
+    requireApprovedParaVet(userIdentifier);
     User user =
         userRepository
             .findByIdentifier(userIdentifier)
             .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
-    if (user.getRole() != UserRole.PARA_VET) {
-      throw new UnauthorizedResourceAccessException("Only para-vets can escalate AI scans", "AUTH_006");
-    }
     AIScan scan =
         aiScanRepository
             .findById(scanId)

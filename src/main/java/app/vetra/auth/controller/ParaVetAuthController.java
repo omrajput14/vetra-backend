@@ -9,6 +9,9 @@ import app.vetra.infrastructure.exception.ConflictException;
 import app.vetra.infrastructure.persistence.entity.ParaVetProfile;
 import app.vetra.infrastructure.persistence.entity.User;
 import app.vetra.infrastructure.persistence.enums.UserRole;
+import app.vetra.infrastructure.persistence.enums.VerificationStatus;
+import app.vetra.infrastructure.exception.ResourceNotFoundException;
+import java.security.Principal;
 import app.vetra.infrastructure.response.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -17,6 +20,7 @@ import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +28,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Para-vet sign-up: creates the account and profile, then logs in. */
-// ponytail: no admin approval step for para-vets yet; add one before a public launch.
+// New para-vets start PENDING; an officer approves them on the dashboard (Field Workforce).
 @RestController
 @RequestMapping("/api/v1/auth/paravet")
 public class ParaVetAuthController {
@@ -88,5 +92,25 @@ public class ParaVetAuthController {
     return ApiResponse.created(
         "Para-vet registered successfully",
         authService.loginUser(new LoginRequest(request.email(), request.password())));
+  }
+
+  /** The signed-in para-vet's profile and approval status. */
+  public record ParaVetMe(
+      String fullName, String district, String taluka, VerificationStatus verificationStatus) {}
+
+  @GetMapping("/me")
+  @Transactional(readOnly = true)
+  public ApiResponse<ParaVetMe> me(Principal principal) {
+    User user =
+        userRepository
+            .findByIdentifier(principal.getName())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found", "USER_004"));
+    ParaVetProfile p =
+        paraVetProfileRepository
+            .findByUserId(user.getId())
+            .orElseThrow(() -> new ResourceNotFoundException("Para-vet profile not found", "USER_004"));
+    return ApiResponse.ok(
+        "Para-vet profile",
+        new ParaVetMe(p.getFullName(), p.getDistrict(), p.getTaluka(), p.getVerificationStatus()));
   }
 }

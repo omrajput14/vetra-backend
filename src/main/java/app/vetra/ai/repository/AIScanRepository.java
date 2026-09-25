@@ -19,6 +19,11 @@ public interface AIScanRepository extends JpaRepository<AIScan, UUID> {
   /** Finds scans for an animal ordered by creation date descending. */
   List<AIScan> findByAnimalOrderByCreatedAtDesc(Animal animal);
 
+  /** Scans from farms in one district (a para-vet's area). */
+  @Query("SELECT s FROM AIScan s WHERE lower(s.animal.farmer.district) = lower(:district)")
+  Page<AIScan> findByFarmDistrict(
+      @org.springframework.data.repository.query.Param("district") String district, Pageable pageable);
+
   /** Finds scans for an animal by animal ID with pagination. */
   Page<AIScan> findByAnimalId(UUID animalId, Pageable pageable);
 
