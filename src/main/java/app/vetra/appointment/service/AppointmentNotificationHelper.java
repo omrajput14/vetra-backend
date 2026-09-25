@@ -1,5 +1,6 @@
 package app.vetra.appointment.service;
 
+import app.vetra.infrastructure.util.VetTitle;
 import app.vetra.infrastructure.persistence.entity.Animal;
 import app.vetra.infrastructure.persistence.entity.Appointment;
 import app.vetra.infrastructure.persistence.entity.FarmerProfile;
@@ -43,8 +44,8 @@ public class AppointmentNotificationHelper {
       notificationService.sendNotification(
           farmer.getUser().getId(),
           "Appointment Requested",
-          "Appointment requested with Dr. "
-              + vet.getFullName()
+          "Appointment requested with "
+              + VetTitle.of(vet.getFullName())
               + " on "
               + saved.getAppointmentDate()
               + " for "
@@ -117,11 +118,11 @@ public class AppointmentNotificationHelper {
 
   private String getNotificationBody(AppointmentStatus status, String vetName, String dateStr) {
     return switch (status) {
-      case CONFIRMED -> "Dr. " + vetName + " confirmed your appointment on " + dateStr + ".";
-      case EN_ROUTE -> "Dr. " + vetName + " is on the way to your farm for appointment on " + dateStr + ".";
-      case ARRIVED -> "Dr. " + vetName + " has arrived for your appointment.";
-      case CANCELLED -> "Appointment on " + dateStr + " with Dr. " + vetName + " was cancelled.";
-      case REJECTED -> "Dr. " + vetName + " was unable to accept your appointment on " + dateStr + ".";
+      case CONFIRMED -> VetTitle.of(vetName) + " confirmed your appointment on " + dateStr + ".";
+      case EN_ROUTE -> VetTitle.of(vetName) + " is on the way to your farm for appointment on " + dateStr + ".";
+      case ARRIVED -> VetTitle.of(vetName) + " has arrived for your appointment.";
+      case CANCELLED -> "Appointment on " + dateStr + " with " + VetTitle.of(vetName) + " was cancelled.";
+      case REJECTED -> VetTitle.of(vetName) + " was unable to accept your appointment on " + dateStr + ".";
       default -> "";
     };
   }

@@ -1,5 +1,6 @@
 package app.vetra.mortality.service;
 
+import app.vetra.infrastructure.util.VetTitle;
 import app.vetra.animal.repository.AnimalHealthRecordRepository;
 import app.vetra.auth.dto.VetSummaryDto;
 import app.vetra.auth.repository.VetProfileRepository;
@@ -409,8 +410,7 @@ public class MortalityReviewService {
       if (event.getFarmer() != null && event.getFarmer().getUser() != null) {
         User farmerUser = event.getFarmer().getUser();
         String body =
-            "Dr. "
-                + vet.getFullName()
+            VetTitle.of(vet.getFullName())
                 + " "
                 + actionDescription
                 + " animal "
