@@ -42,7 +42,7 @@ public record DiseaseReportResponse(
         report.getMedicalRecord() != null ? report.getMedicalRecord().getId() : null,
         report.getAiScan() != null ? report.getAiScan().getId() : null,
         report.getReportedBy().getId(),
-        report.getReportedBy().getEmail(),
+        report.getReportedBy().getDisplayName(),
         report.getReportSource(),
         report.getDiagnosisConfidenceSource(),
         report.getDiseaseName(),

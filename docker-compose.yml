@@ -84,6 +84,14 @@ services:
       FCM_PROJECT_ID: ${FCM_PROJECT_ID:-}
       FCM_PRIVATE_KEY: ${FCM_PRIVATE_KEY:-}
       FCM_CLIENT_EMAIL: ${FCM_CLIENT_EMAIL:-}
+      # Firebase key for real FCM pushes; without it FirebaseConfig silently runs in dry-run.
+      # Put the service-account JSON at ./secrets/firebase-adminsdk.json (mounted below).
+      # FIREBASE_PROJECT_ID must be non-empty: FCM_PROJECT_ID above is passed as "" and
+      # would otherwise replace the vetra-1ebfa default.
+      FIREBASE_CREDENTIALS_PATH: ${FIREBASE_CREDENTIALS_PATH:-/app/secrets/firebase-adminsdk.json}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-vetra-1ebfa}
+      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
+      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
       # ─── Stage 12.5.0: Distributed Tracing ───────────────────────
       # OTLP/HTTP endpoint: Tempo OTLP receiver on vetra-network.
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
@@ -94,6 +102,8 @@ services:
       OTEL_SERVICE_INSTANCE_ID: vetra-backend-01
       # Sampling: 100% in dev; override with MANAGEMENT_TRACING_SAMPLING_PROBABILITY in prod.
       MANAGEMENT_TRACING_SAMPLING_PROBABILITY: ${TRACING_SAMPLE_RATE:-1.0}
+    volumes:
+      - ./secrets:/app/secrets:ro
     depends_on:
       postgres:
         condition: service_healthy

@@ -146,7 +146,6 @@ class AIScanWorkflowTest {
     assertEquals(AIScanStatus.VERIFIED, approvedScan.status());
     assertTrue(approvedScan.veterinarianVerified());
     assertEquals("Bovine Dermatitis (Confirmed)", approvedScan.diagnosis());
-    assertEquals("Confirmed dermatitis observation.", approvedScan.notes());
 
     // 4. Verify Automatic Immutable MedicalRecord Creation
     List<MedicalRecord> records =
@@ -156,6 +155,8 @@ class AIScanWorkflowTest {
     MedicalRecord record = records.get(0);
     assertEquals("Bovine Dermatitis (Confirmed)", record.getDiagnosis());
     assertEquals("Topical antiseptic spray twice daily.", record.getTreatment());
+    // The vet's note is kept on the medical record (not written over the AI result on the scan).
+    assertTrue(record.getNotes().contains("Confirmed dermatitis observation."));
     assertNotNull(record.getCreatedAt());
   }
 
@@ -224,7 +225,8 @@ class AIScanWorkflowTest {
 
     assertEquals(AIScanStatus.REJECTED, rejectedScan.status());
     assertTrue(rejectedScan.veterinarianVerified());
-    assertTrue(rejectedScan.notes().contains("false positive"));
+    // The reason has its own field; the AI result stays in notes.
+    assertTrue(rejectedScan.reviewNotes().contains("false positive"));
 
     // MedicalRecord MUST NOT be created on rejection
     List<MedicalRecord> records =

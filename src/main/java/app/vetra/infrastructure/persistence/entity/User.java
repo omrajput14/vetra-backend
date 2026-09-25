@@ -46,6 +46,22 @@ public class User extends BaseEntity {
   @Column(name = "preferred_language", nullable = false, length = 10)
   private String preferredLanguage = "en";
 
+  /** Person's name from whichever profile the account has; read-only, never stored. */
+  @org.hibernate.annotations.Formula(
+      "(SELECT COALESCE("
+          + "(SELECT f.full_name FROM farmer_profiles f WHERE f.user_id = id),"
+          + " (SELECT v.full_name FROM vet_profiles v WHERE v.user_id = id),"
+          + " (SELECT p.full_name FROM para_vet_profiles p WHERE p.user_id = id)))")
+  private String profileName;
+
+  /** Name for display: the profile name, else the email or phone. */
+  public String getDisplayName() {
+    if (profileName != null && !profileName.isBlank()) {
+      return profileName;
+    }
+    return email != null ? email : phone;
+  }
+
   public String getEmail() {
     return email;
   }

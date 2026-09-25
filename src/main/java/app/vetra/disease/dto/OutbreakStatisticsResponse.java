@@ -18,5 +18,6 @@ public record OutbreakStatisticsResponse(
     long highRiskOutbreaks,
     long totalAffectedReports,
     long totalMortalities,
-    long vetConfirmedMortalities) {}
+    long vetConfirmedMortalities,
+    long resolvedOutbreaks) {}
 

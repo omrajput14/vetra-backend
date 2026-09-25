@@ -1,6 +1,7 @@
 package app.vetra.disease.dto;
 
 import app.vetra.disease.entity.DiagnosisConfidenceSource;
+import app.vetra.disease.entity.DiagnosisStatus;
 import java.util.List;
 import java.util.Map;
 
@@ -30,5 +31,6 @@ public record DiseaseAnalyticsResponse(
     Map<DiagnosisConfidenceSource, Long> reportsByConfidenceSource,
     long totalMortalityReports,
     long farmerReportedMortalityCount,
-    long vetConfirmedMortalityCount) {}
+    long vetConfirmedMortalityCount,
+    Map<DiagnosisStatus, Long> reportsByDiagnosisStatus) {}
 

@@ -423,7 +423,8 @@ public class AuthService {
     return new UserProfileDto(
         user.getId(), user.getEmail(), user.getPhone(), user.getRole(),
         user.isActive(), user.getPreferredLanguage(),
-        null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+        user.getRole() == UserRole.PARA_VET ? user.getDisplayName() : null,
+        null, null, null, null, null, null, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null);
   }
 

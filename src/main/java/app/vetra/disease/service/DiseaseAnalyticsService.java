@@ -124,6 +124,8 @@ public class DiseaseAnalyticsService {
         reportsByConfidenceSource,
         totalMortalities,
         farmerMortalities,
-        vetMortalities);
+        vetMortalities,
+        allReports.stream()
+            .collect(Collectors.groupingBy(DiseaseReport::getDiagnosisStatus, Collectors.counting())));
   }
 }

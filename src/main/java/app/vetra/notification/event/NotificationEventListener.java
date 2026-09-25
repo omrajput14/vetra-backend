@@ -2,6 +2,7 @@ package app.vetra.notification.event;
 
 import app.vetra.ai.entity.AIScan;
 import app.vetra.ai.event.AIInferenceCompletedEvent;
+import app.vetra.ai.event.AIScanEscalatedEvent;
 import app.vetra.ai.event.AIScanVerifiedEvent;
 import app.vetra.ai.repository.AIScanRepository;
 import app.vetra.appointment.event.AppointmentBookedEvent;
@@ -13,6 +14,7 @@ import app.vetra.infrastructure.persistence.entity.VetProfile;
 import app.vetra.infrastructure.persistence.enums.VerificationStatus;
 import app.vetra.notification.entity.NotificationChannel;
 import app.vetra.notification.entity.NotificationPriority;
+import app.vetra.notification.service.AreaNotificationService;
 import app.vetra.notification.service.NotificationService;
 import java.util.List;
 import java.util.Optional;
@@ -32,15 +34,51 @@ public class NotificationEventListener {
   private final NotificationService notificationService;
   private final AIScanRepository aiScanRepository;
   private final VetProfileRepository vetProfileRepository;
+  private final AreaNotificationService areaNotificationService;
 
   /** Constructor injection. */
   public NotificationEventListener(
       NotificationService notificationService,
       AIScanRepository aiScanRepository,
-      VetProfileRepository vetProfileRepository) {
+      VetProfileRepository vetProfileRepository,
+      AreaNotificationService areaNotificationService) {
     this.notificationService = notificationService;
     this.aiScanRepository = aiScanRepository;
     this.vetProfileRepository = vetProfileRepository;
+    this.areaNotificationService = areaNotificationService;
+  }
+
+  /** A para-vet escalated a scan: tell the farmer, and the vets within 50 km of the farm. */
+  @Async
+  @EventListener
+  public void handleAIScanEscalated(AIScanEscalatedEvent event) {
+    String payload = "{\"scanId\":\"" + event.scanId() + "\",\"route\":\"/ai-history\"}";
+    try {
+      if (event.farmerUserId() != null) {
+        notificationService.sendNotification(
+            event.farmerUserId(),
+            "Scan sent to a veterinarian",
+            "A para-vet checked "
+                + (event.animalName() != null ? event.animalName() : "your animal")
+                + " and sent the scan to a vet for confirmation.",
+            payload,
+            NotificationChannel.PUSH,
+            NotificationPriority.HIGH);
+      }
+      if (event.farmLatitude() != null && event.farmLongitude() != null) {
+        areaNotificationService.notifyWithin(
+            event.farmLatitude(),
+            event.farmLongitude(),
+            50.0,
+            null,
+            null,
+            "Scan escalated for review",
+            "A para-vet escalated a suspected " + event.diagnosis() + " case near you. Please review.",
+            "{\"scanId\":\"" + event.scanId() + "\",\"route\":\"/vet-scan-reviews\"}");
+      }
+    } catch (Exception e) {
+      log.warn("Failed to dispatch AI scan escalation notifications: {}", e.getMessage());
+    }
   }
 
   /** Consumes AppointmentBookedEvent. */
@@ -88,12 +126,16 @@ public class NotificationEventListener {
         AIScan scan = scanOpt.get();
         UUID userId = scan.getUploadedBy() != null ? scan.getUploadedBy().getId() : null;
         if (userId != null) {
-          String status = event.accepted() ? "approved" : "reviewed";
+          String reviewer = scan.isVeterinarianVerified() ? "A veterinarian" : "A para-vet";
+          String message =
+              event.accepted()
+                  ? "A licensed veterinarian has approved your animal diagnostic scan result."
+                  : reviewer + " reviewed your scan and did not confirm the AI result. Tap to see why.";
           String payload = "{\"scanId\":\"" + event.scanId() + "\",\"route\":\"/ai-history\"}";
           notificationService.sendNotification(
               userId,
               "AI Scan Reviewed by Veterinarian",
-              "A licensed veterinarian has " + status + " your animal diagnostic scan result.",
+              message,
               payload,
               NotificationChannel.PUSH,
               NotificationPriority.NORMAL);

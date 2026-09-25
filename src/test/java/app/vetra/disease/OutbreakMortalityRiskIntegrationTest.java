@@ -93,7 +93,8 @@ class OutbreakMortalityRiskIntegrationTest {
     detectionEngine.setMortalityEventRepository(mortalityEventRepository);
 
     alertService = new OperationalAlertService(
-        outbreakRepository, diseaseReportRepository, vaccinationGapService);
+        outbreakRepository, diseaseReportRepository, vaccinationGapService,
+            org.mockito.Mockito.mock(app.vetra.disease.repository.AlertActionRepository.class));
 
     analyticsService = new DiseaseAnalyticsService(
         outbreakRepository, diseaseReportRepository, mortalityEventRepository);

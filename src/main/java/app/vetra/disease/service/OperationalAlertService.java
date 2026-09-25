@@ -34,15 +34,18 @@ public class OperationalAlertService {
   private final OutbreakRepository outbreakRepository;
   private final DiseaseReportRepository diseaseReportRepository;
   private final VaccinationGapService vaccinationGapService;
+  private final app.vetra.disease.repository.AlertActionRepository alertActionRepository;
 
   /** Constructor injection. */
   public OperationalAlertService(
       OutbreakRepository outbreakRepository,
       DiseaseReportRepository diseaseReportRepository,
-      VaccinationGapService vaccinationGapService) {
+      VaccinationGapService vaccinationGapService,
+      app.vetra.disease.repository.AlertActionRepository alertActionRepository) {
     this.outbreakRepository = outbreakRepository;
     this.diseaseReportRepository = diseaseReportRepository;
     this.vaccinationGapService = vaccinationGapService;
+    this.alertActionRepository = alertActionRepository;
   }
 
   /**
@@ -86,7 +89,16 @@ public class OperationalAlertService {
             .thenComparing(
                 Comparator.comparing(OperationalAlertResponse::detectedAt).reversed()));
 
-    return alerts;
+    // An officer's acknowledge/escalate (stored) replaces the computed status.
+    java.util.Map<UUID, String> actions = new java.util.HashMap<>();
+    alertActionRepository.findAll().forEach(a -> actions.put(a.getAlertId(), a.getStatus()));
+    return alerts.stream()
+        .map(a -> !actions.containsKey(a.id()) ? a : new OperationalAlertResponse(
+            a.id(), a.eventType(), a.title(), a.diseaseName(), a.locationName(), a.latitude(),
+            a.longitude(), a.severity(), a.compositeRiskScore(), a.vaccinationGapScore(),
+            a.affectedCasesCount(), a.detectedAt(), a.source(), actions.get(a.id()),
+            a.whyItMatters(), a.recommendedNextStep(), a.relatedOutbreakId(), a.relatedReportId()))
+        .toList();
   }
 
   private void checkCriticalAlert(

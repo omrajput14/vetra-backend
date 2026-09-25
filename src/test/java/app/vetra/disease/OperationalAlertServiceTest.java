@@ -43,7 +43,8 @@ class OperationalAlertServiceTest {
   void setUp() {
     alertService =
         new OperationalAlertService(
-            outbreakRepository, diseaseReportRepository, vaccinationGapService);
+            outbreakRepository, diseaseReportRepository, vaccinationGapService,
+            org.mockito.Mockito.mock(app.vetra.disease.repository.AlertActionRepository.class));
   }
 
   @Test

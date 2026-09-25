@@ -1,5 +1,6 @@
 package app.vetra.appointment.service;
 
+import app.vetra.infrastructure.util.VetTitle;
 import app.vetra.appointment.dto.ChatMessageDto;
 import app.vetra.appointment.dto.SendChatMessageRequest;
 import app.vetra.appointment.repository.AppointmentChatMessageRepository;
@@ -105,8 +106,8 @@ public class AppointmentChatService {
       String vetName = appointment.getVeterinarian().getFullName();
       String farmerName = appointment.getFarmer().getFullName();
       String notifTitle = isTreatment
-          ? "Treatment Instructions from Dr. " + vetName
-          : "New message from " + (isFarmer ? farmerName : "Dr. " + vetName);
+          ? "Treatment Instructions from " + VetTitle.of(vetName)
+          : "New message from " + (isFarmer ? farmerName : VetTitle.of(vetName));
 
       String animalDesc = "livestock";
       if (appointment.getAnimal() != null && appointment.getAnimal().getAnimalName() != null) {

@@ -20,6 +20,7 @@ import app.vetra.auth.repository.UserRepository;
 import app.vetra.auth.repository.VetProfileRepository;
 import app.vetra.disease.entity.DiseaseReport;
 import app.vetra.disease.service.AIScanDiseaseReportService;
+import app.vetra.infrastructure.util.VetTitle;
 import app.vetra.infrastructure.cache.CacheNames;
 import app.vetra.infrastructure.exception.BusinessRuleException;
 import app.vetra.infrastructure.exception.ResourceNotFoundException;
@@ -281,9 +282,10 @@ public class AIScanService {
         && !request.customDiagnosis().isBlank()) {
       scan.setDiagnosis(request.customDiagnosis().trim());
     }
-    if (request != null && request.notes() != null && !request.notes().isBlank()) {
-      scan.setNotes(request.notes().trim());
-    }
+    String vetNotes =
+        (request != null && request.notes() != null && !request.notes().isBlank())
+            ? request.notes().trim()
+            : null;
 
     scan = aiScanRepository.save(scan);
 
@@ -313,10 +315,9 @@ public class AIScanService {
             .symptoms(symptomsText)
             .treatment(treatmentText)
             .notes(
-                "AI Scan verified by Dr. "
-                    + vetProfile.getFullName()
-                    + ". Notes: "
-                    + (scan.getNotes() != null ? scan.getNotes() : ""))
+                "AI scan verified by "
+                    + VetTitle.of(vetProfile.getFullName())
+                    + (vetNotes != null ? ". Notes: " + vetNotes : "."))
             .build();
 
     medicalRecord = medicalRecordRepository.save(medicalRecord);
@@ -353,7 +354,11 @@ public class AIScanService {
   public AIScanResponse rejectScan(
       String userIdentifier, UUID scanId, RejectAIScanRequest request) {
     User user = getUserByEmailOrPhone(userIdentifier);
-    validateVeterinarianRole(user);
+    boolean isVet = user.getRole() == UserRole.VETERINARIAN;
+    if (!isVet && user.getRole() != UserRole.PARA_VET) {
+      throw new UnauthorizedResourceAccessException(
+          "Only veterinarians and para-vets can review AI diagnostic scans", "AUTH_006");
+    }
 
     AIScan scan =
         aiScanRepository
@@ -364,14 +369,22 @@ public class AIScanService {
                         "AI Diagnostic scan not found with ID: " + scanId, "AI_001"));
 
     validateReviewableState(scan);
+    boolean wasEscalated = scan.getStatus() == AIScanStatus.ESCALATED;
+    if (!isVet && wasEscalated) {
+      throw new BusinessRuleException("This scan is already with a veterinarian", "AI_009");
+    }
 
     scan.setStatus(AIScanStatus.REJECTED);
-    scan.setVeterinarianVerified(true);
+    scan.setVeterinarianVerified(isVet);
     scan.setVerifiedBy(user);
     scan.setVerifiedAt(Instant.now());
-    scan.setNotes("REJECTED: " + request.rejectionReason().trim());
+    // Keep the AI's own notes (severity, observations); the reason has its own column.
+    scan.setReviewNotes(request.rejectionReason().trim());
 
     scan = aiScanRepository.save(scan);
+    if (wasEscalated) {
+      aiScanDiseaseReportService.ruleOutReportForScan(scan);
+    }
 
     log.info(
         "AI Scan REJECTED scanId={} by vetId={} reason='{}'",
@@ -381,6 +394,7 @@ public class AIScanService {
 
     eventPublisher.publishEvent(
         new AIScanRejectedEvent(scan.getId(), request.rejectionReason().trim(), user.getId()));
+    eventPublisher.publishEvent(new AIScanVerifiedEvent(scan.getId(), false, user.getId()));
 
     return AIScanResponse.fromEntity(scan);
   }

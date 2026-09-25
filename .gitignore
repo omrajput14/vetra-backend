@@ -90,3 +90,6 @@ demo_data_report.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Service-account keys mounted into the backend container (never commit).
+secrets/
