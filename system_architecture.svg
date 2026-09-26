@@ -1,0 +1,258 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 900" width="100%" height="100%">
+  <defs>
+    <!-- Arrow markers -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#15803d" />
+    </marker>
+    <!-- Shadow filters -->
+    <filter id="card-shadow" x="-3%" y="-3%" width="106%" height="108%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.05"/>
+    </filter>
+    <filter id="subtle-shadow" x="-2%" y="-2%" width="104%" height="106%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.03"/>
+    </filter>
+  </defs>
+
+  <style>
+    .font { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .card-title { font-size: 14px; font-weight: 700; fill: #0f172a; }
+    .card-subtitle { font-size: 11px; font-weight: 500; fill: #64748b; }
+    .card-desc { font-size: 10px; font-weight: 400; fill: #475569; }
+    .badge-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .layer-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; }
+    .pill-tag { font-size: 10px; font-weight: 600; text-anchor: middle; }
+    .conn-label { font-size: 10px; font-weight: 600; fill: #475569; text-anchor: middle; }
+    .flow-line { stroke: #94a3b8; stroke-width: 1.5; fill: none; }
+    .dashed-green { stroke: #16a34a; stroke-width: 1.5; stroke-dasharray: 4 4; fill: none; }
+  </style>
+
+  <!-- Base Card Container -->
+  <rect x="0" y="0" width="940" height="900" rx="16" fill="#F8FAF7" stroke="#e2e8f0" stroke-width="1.5" />
+
+  <!-- Top Title Banner -->
+  <rect x="30" y="20" width="880" height="46" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" filter="url(#subtle-shadow)" />
+  <circle cx="54" cy="43" r="5.5" fill="#16a34a" />
+  <circle cx="70" cy="43" r="5.5" fill="#f59e0b" />
+  <circle cx="86" cy="43" r="5.5" fill="#0ea5e9" />
+  <text x="108" y="48" class="font" font-size="14" font-weight="800" fill="#0f172a" letter-spacing="0.3">PASHU SATHI · UNIFIED SYSTEM ARCHITECTURE</text>
+  <rect x="690" y="30" width="205" height="26" rx="13" fill="#ecfdf5" stroke="#10b981" stroke-width="1.2" />
+  <text x="792" y="47" class="font badge-text" fill="#047857" text-anchor="middle">SIH 2026 · PS #26128</text>
+
+  <!-- ========================================== -->
+  <!-- 1. CLIENT LAYER -->
+  <!-- ========================================== -->
+  <rect x="30" y="82" width="880" height="136" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)" />
+  <rect x="42" y="92" width="130" height="20" rx="5" fill="#ecfdf5" />
+  <text x="49" y="106" class="font layer-label" fill="#047857">1. CLIENT LAYER</text>
+
+  <!-- Mobile App Card -->
+  <rect x="48" y="120" width="398" height="84" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2" />
+  <rect x="60" y="132" width="32" height="32" rx="7" fill="#15803d" />
+  <text x="76" y="153" class="font" font-size="16" fill="#ffffff" text-anchor="middle">📱</text>
+  <text x="102" y="141" class="font card-title">Farmer &amp; Paravet Mobile App</text>
+  <text x="102" y="157" class="font card-subtitle">Flutter 3.x · Dart · Riverpod · SQLite Offline Sync</text>
+  
+  <rect x="102" y="168" width="76" height="20" rx="4" fill="#dcfce7" />
+  <text x="140" y="182" class="font pill-tag" fill="#166534">2-Way Voice AI</text>
+  <rect x="184" y="168" width="76" height="20" rx="4" fill="#dcfce7" />
+  <text x="222" y="182" class="font pill-tag" fill="#166534">QR Passport</text>
+  <rect x="266" y="168" width="78" height="20" rx="4" fill="#dcfce7" />
+  <text x="305" y="182" class="font pill-tag" fill="#166534">Photo Triage</text>
+  <rect x="350" y="168" width="84" height="20" rx="4" fill="#dcfce7" />
+  <text x="392" y="182" class="font pill-tag" fill="#166534">4 Languages</text>
+
+  <!-- Dashboard Card -->
+  <rect x="494" y="120" width="398" height="84" rx="10" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="1.2" />
+  <rect x="506" y="132" width="32" height="32" rx="7" fill="#0284c7" />
+  <text x="522" y="153" class="font" font-size="16" fill="#ffffff" text-anchor="middle">🖥️</text>
+  <text x="548" y="141" class="font card-title">Government Surveillance Command</text>
+  <text x="548" y="157" class="font card-subtitle">React 18 · TypeScript 5.7 · Vite 6 · Leaflet GIS</text>
+
+  <rect x="548" y="168" width="80" height="20" rx="4" fill="#e0f2fe" />
+  <text x="588" y="182" class="font pill-tag" fill="#0369a1">GIS Heatmaps</text>
+  <rect x="634" y="168" width="82" height="20" rx="4" fill="#e0f2fe" />
+  <text x="675" y="182" class="font pill-tag" fill="#0369a1">SitRep CSV</text>
+  <rect x="722" y="168" width="82" height="20" rx="4" fill="#e0f2fe" />
+  <text x="763" y="182" class="font pill-tag" fill="#0369a1">Ring Vaccine</text>
+  <rect x="810" y="168" width="72" height="20" rx="4" fill="#e0f2fe" />
+  <text x="846" y="182" class="font pill-tag" fill="#0369a1">Directives</text>
+
+  <!-- Connectors: Client -> Gateway -->
+  <line x1="247" y1="204" x2="247" y2="242" class="flow-line" />
+  <line x1="693" y1="204" x2="693" y2="242" class="flow-line" />
+  <line x1="247" y1="242" x2="693" y2="242" class="flow-line" />
+  <line x1="470" y1="242" x2="470" y2="258" class="flow-line" marker-end="url(#arrow)" />
+  <rect x="410" y="233" width="120" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="470" y="245" class="conn-label">HTTPS / REST / JSON</text>
+
+  <!-- ========================================== -->
+  <!-- 2. INGRESS & API GATEWAY -->
+  <!-- ========================================== -->
+  <rect x="30" y="258" width="880" height="66" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)" />
+  <rect x="42" y="266" width="180" height="18" rx="4" fill="#eff6ff" />
+  <text x="48" y="279" class="font layer-label" fill="#1d4ed8">2. API &amp; CLOUD INGRESS</text>
+
+  <rect x="236" y="268" width="468" height="46" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2" />
+  <text x="470" y="286" class="font card-title" text-anchor="middle">Azure Container Apps / Cloud Ingress Gateway</text>
+  <text x="470" y="302" class="font card-subtitle" text-anchor="middle">TLS 1.3 Termination · Distributed Rate Limiting · Spring Actuator Health Probes</text>
+
+  <!-- Connector: Gateway -> Application -->
+  <line x1="470" y1="324" x2="470" y2="348" class="flow-line" marker-end="url(#arrow)" />
+  <rect x="408" y="328" width="124" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="470" y="340" class="conn-label">Stateless Request Triage</text>
+
+  <!-- ========================================== -->
+  <!-- 3. APPLICATION & INTELLIGENCE TIER -->
+  <!-- ========================================== -->
+  <rect x="30" y="348" width="880" height="308" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)" />
+  <rect x="42" y="358" width="360" height="20" rx="5" fill="#fdf4ff" />
+  <text x="48" y="372" class="font layer-label" fill="#701a75">3. CORE APPLICATION &amp; INTELLIGENCE (SPRING BOOT 3.5 / JAVA 21)</text>
+
+  <!-- Row 1: Auth + GIS Outbreak + Multi-Agent AI -->
+  <!-- Auth Box -->
+  <rect x="48" y="388" width="268" height="114" rx="9" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.2" />
+  <rect x="58" y="398" width="26" height="26" rx="5" fill="#9333ea" />
+  <text x="71" y="416" class="font" font-size="14" fill="#ffffff" text-anchor="middle">🔐</text>
+  <text x="92" y="411" class="font card-title">Auth &amp; Security Shield</text>
+  <text x="92" y="425" class="font card-subtitle">Spring Security 6 · Stateless JWT</text>
+  <text x="58" y="448" class="font card-desc" font-weight="600">Role-Based Access Control (RBAC):</text>
+  <text x="58" y="463" class="font" font-size="10" font-weight="700" fill="#7e22ce">FARMER · VET · ADMIN · OFFICER</text>
+  <text x="58" y="478" class="font card-desc">BCrypt Cryptography · Device Tokens</text>
+  <text x="58" y="492" class="font card-desc">Idempotency Keys · Circuit Breakers</text>
+
+  <!-- GIS Outbreak Engine Box -->
+  <rect x="336" y="388" width="268" height="114" rx="9" fill="#f0fdfa" stroke="#5eead4" stroke-width="1.2" />
+  <rect x="346" y="398" width="26" height="26" rx="5" fill="#0d9488" />
+  <text x="359" y="416" class="font" font-size="14" fill="#ffffff" text-anchor="middle">🗺️</text>
+  <text x="380" y="411" class="font card-title">GIS &amp; Outbreak Engine</text>
+  <text x="380" y="425" class="font card-subtitle">Spatial-Temporal Surveillance</text>
+  <text x="346" y="448" class="font card-desc">PostGIS 25km Haversine Clustering</text>
+  <text x="346" y="463" class="font" font-size="10" font-weight="700" fill="#0f766e">4-Signal Risk Engine: Score (0–100)</text>
+  <text x="346" y="478" class="font card-desc">Cases + Weather + History + Vaccine Gap</text>
+  <text x="346" y="492" class="font card-desc">Automated Ring Containment Directives</text>
+
+  <!-- Multi-Agent AI Gateway Box -->
+  <rect x="624" y="388" width="268" height="114" rx="9" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2" />
+  <rect x="634" y="398" width="26" height="26" rx="5" fill="#d97706" />
+  <text x="647" y="416" class="font" font-size="14" fill="#ffffff" text-anchor="middle">🤖</text>
+  <text x="668" y="411" class="font card-title">Multi-Agent AI Gateway</text>
+  <text x="668" y="425" class="font card-subtitle">RAG Clinical Knowledge Base</text>
+  <text x="634" y="448" class="font card-desc">Lesion Vision Diagnostic + Symptoms</text>
+  <text x="634" y="463" class="font" font-size="10" font-weight="700" fill="#b45309">Pluggable: Gemini / DeepSeek / Noop</text>
+  <text x="634" y="478" class="font card-desc">Human-in-the-Loop Vet Verification</text>
+  <text x="634" y="492" class="font card-desc">Resilience4j Circuit Breaker &amp; Audit Log</text>
+
+  <!-- Row 2: Domain Microservices + Notification Hub -->
+  <!-- Domain Microservices -->
+  <rect x="48" y="516" width="556" height="124" rx="9" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" />
+  <rect x="58" y="526" width="26" height="26" rx="5" fill="#334155" />
+  <text x="71" y="544" class="font" font-size="14" fill="#ffffff" text-anchor="middle">📋</text>
+  <text x="92" y="539" class="font card-title">Livestock &amp; Veterinary Healthcare Domain Services</text>
+  <text x="92" y="553" class="font card-subtitle">Transactional Business Boundaries · Google Java Checkstyle (0 Violations)</text>
+
+  <rect x="58" y="566" width="124" height="62" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="120" y="584" class="font" font-size="11" font-weight="700" fill="#1e293b" text-anchor="middle">Livestock Registry</text>
+  <text x="120" y="599" class="font card-desc" text-anchor="middle">Unique Tag Number</text>
+  <text x="120" y="614" class="font card-desc" text-anchor="middle">QR Health Passport</text>
+
+  <rect x="194" y="566" width="128" height="62" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="258" y="584" class="font" font-size="11" font-weight="700" fill="#1e293b" text-anchor="middle">Clinical Telemedicine</text>
+  <text x="258" y="599" class="font card-desc" text-anchor="middle">Vet Appointments</text>
+  <text x="258" y="614" class="font card-desc" text-anchor="middle">E-Prescription Ledger</text>
+
+  <rect x="334" y="566" width="128" height="62" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="398" y="584" class="font" font-size="11" font-weight="700" fill="#1e293b" text-anchor="middle">Vaccine Campaigns</text>
+  <text x="398" y="599" class="font card-desc" text-anchor="middle">Cold-Chain Tracking</text>
+  <text x="398" y="614" class="font card-desc" text-anchor="middle">Booster Reminders</text>
+
+  <rect x="474" y="566" width="120" height="62" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" />
+  <text x="534" y="584" class="font" font-size="11" font-weight="700" fill="#1e293b" text-anchor="middle">Mortality &amp; Loss</text>
+  <text x="534" y="599" class="font card-desc" text-anchor="middle">Verified Necropsy</text>
+  <text x="534" y="614" class="font card-desc" text-anchor="middle">₹ Economic Loss Audit</text>
+
+  <!-- Notification Hub -->
+  <rect x="624" y="516" width="268" height="124" rx="9" fill="#fdf2f8" stroke="#fbcfe8" stroke-width="1.2" />
+  <rect x="634" y="526" width="26" height="26" rx="5" fill="#db2777" />
+  <text x="647" y="544" class="font" font-size="14" fill="#ffffff" text-anchor="middle">🔔</text>
+  <text x="668" y="539" class="font card-title">Notification Hub</text>
+  <text x="668" y="553" class="font card-subtitle">Firebase Admin SDK (FCM)</text>
+  <text x="634" y="578" class="font card-desc">Direct Multilingual Push Dispatch</text>
+  <text x="634" y="594" class="font" font-size="10" font-weight="700" fill="#9d174d">Early Outbreak Alerts · Containment</text>
+  <text x="634" y="610" class="font card-desc">Vet Reminders · Quarantine Orders</text>
+  <text x="634" y="626" class="font card-desc">In-App Notification Ledger</text>
+
+  <!-- Connector: App -> Data Layer -->
+  <line x1="470" y1="656" x2="470" y2="690" class="flow-line" marker-end="url(#arrow)" />
+  <rect x="408" y="666" width="124" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" />
+  <text x="470" y="678" class="conn-label">JPA / PostGIS / Redis API</text>
+
+  <!-- Push Notification Green Dashed Arc (Clean Right Margin) -->
+  <path d="M 892 578 H 912 V 150 H 448" class="dashed-green" marker-end="url(#arrow-green)" />
+  <rect x="856" y="270" width="76" height="18" rx="4" fill="#ffffff" stroke="#86efac" stroke-width="1" />
+  <text x="894" y="282" class="font" font-size="9" font-weight="700" fill="#15803d" text-anchor="middle">FCM Push</text>
+
+  <!-- ========================================== -->
+  <!-- 4. DATA PERSISTENCE & STORAGE LAYER -->
+  <!-- ========================================== -->
+  <rect x="30" y="690" width="880" height="180" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)" />
+  <rect x="42" y="700" width="220" height="20" rx="5" fill="#f1f5f9" />
+  <text x="48" y="714" class="font layer-label" fill="#334155">4. DATA &amp; STORAGE PERSISTENCE TIER</text>
+
+  <!-- Database 1: PostgreSQL + PostGIS -->
+  <g transform="translate(48, 730)">
+    <rect x="0" y="0" width="268" height="124" rx="9" fill="#f8fafc" stroke="#38bdf8" stroke-width="1.2" />
+    <!-- Cylinder Icon -->
+    <ellipse cx="26" cy="22" rx="14" ry="6" fill="#0284c7" />
+    <rect x="12" y="22" width="28" height="20" fill="#0284c7" />
+    <ellipse cx="26" cy="42" rx="14" ry="6" fill="#0369a1" />
+    
+    <text x="48" y="26" class="font card-title" font-size="13">PostgreSQL 17 + PostGIS</text>
+    <text x="48" y="40" class="font card-subtitle">Spatial Epidemiological Datastore</text>
+    <line x1="12" y1="52" x2="256" y2="52" stroke="#e2e8f0" stroke-width="1" />
+    <text x="14" y="68" class="font card-desc">• ST_DWithin 25km Haversine Queries</text>
+    <text x="14" y="84" class="font card-desc">• ST_ClusterDBSCAN Spatial Hotspots</text>
+    <text x="14" y="100" class="font card-desc">• 18 Normalized Tables &amp; Spatial Indexes</text>
+    <text x="14" y="115" class="font" font-size="10" font-weight="700" fill="#0369a1">Flyway V1–V18 Migrations (Zero Drift)</text>
+  </g>
+
+  <!-- Database 2: Redis -->
+  <g transform="translate(336, 730)">
+    <rect x="0" y="0" width="268" height="124" rx="9" fill="#f8fafc" stroke="#f87171" stroke-width="1.2" />
+    <!-- Cylinder Icon -->
+    <ellipse cx="26" cy="22" rx="14" ry="6" fill="#dc2626" />
+    <rect x="12" y="22" width="28" height="20" fill="#dc2626" />
+    <ellipse cx="26" cy="42" rx="14" ry="6" fill="#b91c1c" />
+
+    <text x="48" y="26" class="font card-title" font-size="13">Redis 7.4 In-Memory Cache</text>
+    <text x="48" y="40" class="font card-subtitle">High-Throughput Ephemeral Store</text>
+    <line x1="12" y1="52" x2="256" y2="52" stroke="#e2e8f0" stroke-width="1" />
+    <text x="14" y="68" class="font card-desc">• JWT Token Denylist &amp; Session Store</text>
+    <text x="14" y="84" class="font card-desc">• Outbreak Heatmap GeoJSON Caching</text>
+    <text x="14" y="100" class="font card-desc">• API Rate Limiting (Token Bucket)</text>
+    <text x="14" y="115" class="font" font-size="10" font-weight="700" fill="#b91c1c">Sub-5ms Query Latency · Resilience4j</text>
+  </g>
+
+  <!-- Database 3: Azure Blob -->
+  <g transform="translate(624, 730)">
+    <rect x="0" y="0" width="268" height="124" rx="9" fill="#f8fafc" stroke="#60a5fa" stroke-width="1.2" />
+    <!-- Cylinder Icon -->
+    <ellipse cx="26" cy="22" rx="14" ry="6" fill="#2563eb" />
+    <rect x="12" y="22" width="28" height="20" fill="#2563eb" />
+    <ellipse cx="26" cy="42" rx="14" ry="6" fill="#1d4ed8" />
+
+    <text x="48" y="26" class="font card-title" font-size="13">Azure Blob Document Store</text>
+    <text x="48" y="40" class="font card-subtitle">Clinical Media &amp; Diagnostic Assets</text>
+    <line x1="12" y1="52" x2="256" y2="52" stroke="#e2e8f0" stroke-width="1" />
+    <text x="14" y="68" class="font card-desc">• Encrypted Lesion Inspection Images</text>
+    <text x="14" y="84" class="font card-desc">• Laboratory Diagnostic Test Reports</text>
+    <text x="14" y="100" class="font card-desc">• Digital Vaccine Cards &amp; Quarantine Orders</text>
+    <text x="14" y="115" class="font" font-size="10" font-weight="700" fill="#1d4ed8">AES-256 Encryption · Expiring SAS URLs</text>
+  </g>
+
+</svg>
