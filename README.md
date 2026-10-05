@@ -15,7 +15,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PostGIS-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA?logo=terraform&logoColor=white)
+![Azure](https://img.shields.io/badge/Azure-VM-0078D4?logo=microsoftazure&logoColor=white)
 
 [Overview](#overview) ·
 [Architecture](#architecture) ·
@@ -46,7 +46,7 @@ The backend is a **modular monolith** built with Java 21 and Spring Boot 3.5. It
 
 ## Architecture
 
-![Vetra system architecture](system_architecture.svg)
+![Pashu Sathi / Vetra system architecture](docs/images/system-architecture.png)
 
 ```mermaid
 graph LR
@@ -60,7 +60,7 @@ graph LR
 
     Core --> PG[("PostgreSQL + PostGIS")]
     Core --> RD[("Redis")]
-    Core --> S3[("Object Storage")]
+    Core --> Blob[("Azure Blob Storage")]
     Core --> FCM["Firebase Cloud Messaging"]
 ```
 
@@ -112,14 +112,14 @@ stateDiagram-v2
 |---|---|
 | Language & framework | Java 21, Spring Boot 3.5 (Web, WebFlux, Security, Validation, Data JPA, Cache) |
 | Data | PostgreSQL + PostGIS, Hibernate Spatial, Flyway (38 migrations) |
-| Cache | Redis 7 with Lettuce (TLS in cloud environments) |
+| Cache | Redis 7 with Lettuce |
 | Auth | JJWT (HMAC-SHA256), BCrypt |
 | Resilience | Resilience4j |
 | Observability | Actuator, Micrometer, Prometheus, Grafana, Tempo, Alertmanager, OpenTelemetry |
-| Integrations | AWS S3 / STS, Firebase Admin (push) |
+| Integrations | Google Gemini (AI), Open-Meteo (weather), Firebase Cloud Messaging (push), Azure Blob Storage (media) |
 | API docs | springdoc OpenAPI / Swagger UI |
 | Quality | Spotless (Google Java Format), Checkstyle, JUnit 5, H2 for tests, CodeQL, Gitleaks |
-| Delivery | Docker multi-stage image, GitHub Actions, Terraform |
+| Delivery | Docker multi-stage image, Docker Compose, NGINX, GitHub Actions |
 
 ---
 
@@ -196,12 +196,12 @@ The interactive reference is served at `/swagger-ui.html`; the written specifica
 | Layer | Controls |
 |---|---|
 | Identity | Stateless JWT, refresh-token rotation with single-use revocation, role-based access control |
-| Secrets | Injected at runtime from AWS Secrets Manager; nothing sensitive is committed (Gitleaks enforced in CI) |
-| Network | Public load balancer only; compute in private subnets; data tier in isolated subnets |
-| Transport | HTTPS at the load balancer (TLS 1.2+), TLS-encrypted Redis |
+| Secrets | Supplied through environment variables (`.env`), never committed; Gitleaks enforced in CI |
+| Network | NGINX reverse proxy as the single public entry point; database and cache are not exposed externally |
+| Transport | HTTPS at the proxy; JWT on every API call |
 | Idempotency | Idempotency keys on mutating requests to prevent duplicate writes |
 | Container | Minimal Alpine JRE image, non-root user |
-| CI/CD | Keyless GitHub OIDC to AWS with least-privilege IAM; CodeQL static analysis |
+| CI/CD | Gitleaks secret scanning and CodeQL static analysis on every push |
 
 Please report vulnerabilities privately to the maintainers rather than opening a public issue.
 
@@ -209,18 +209,19 @@ Please report vulnerabilities privately to the maintainers rather than opening a
 
 ## Deployment
 
-Vetra ships as a single container image and supports two deployment targets.
+Vetra runs on an **Azure Ubuntu VM** with **Docker Compose**: NGINX in front, the Spring Boot API, PostgreSQL 17 with PostGIS, Redis 7, and a Grafana / Prometheus / Tempo / Alertmanager monitoring stack. Media is stored in Azure Blob Storage and push notifications go through Firebase Cloud Messaging.
 
-**AWS (staging and production)** — provisioned with Terraform in [`infra/`](infra/README.md): multi-AZ VPC, ECS Fargate behind an Application Load Balancer, RDS PostgreSQL, ElastiCache Redis, Secrets Manager, CloudWatch dashboards and alarms, and auto scaling.
+```bash
+./deploy.sh        # build and (re)start the stack on the VM
+```
 
-**Single VM (Docker Compose)** — see [`DEPLOYMENT.md`](DEPLOYMENT.md).
+Full step-by-step instructions are in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
-The CI/CD pipeline (GitHub Actions) runs on every push:
+The GitHub Actions pipeline runs on every push:
 
 1. Secret scan (Gitleaks) and static analysis (CodeQL)
 2. Compile, Checkstyle, and the full test suite
-3. On `main`: assume an AWS role via OIDC, build and push an image tagged with the commit SHA
-4. Roll out to ECS with a circuit breaker, wait for stability, verify target health and run smoke tests
+3. Docker image build and Compose manifest validation
 
 ---
 
@@ -232,7 +233,7 @@ The CI/CD pipeline (GitHub Actions) runs on every push:
 | Domain & data | [Domain model](docs/domain/03-domain-model.md) · [Database design](docs/database/04-database-design.md) · [ERD](docs/database/05-ERD.md) |
 | API & security | [API specification](docs/api/06-specification.md) · [Auth design](docs/api/07-auth-design.md) · [Error catalogue](docs/api/23-error-catalogue.md) · [Security design](docs/security/11-security-design.md) |
 | AI platform | [AI gateway](docs/architecture/ai-gateway.md) · [RAG platform](docs/architecture/ai-rag-platform.md) · [Governance](docs/architecture/ai-governance.md) · [Clinical triage](docs/architecture/clinical-triage.md) |
-| Operations | [CI/CD](docs/operations/cicd-deployment.md) · [Production infrastructure](docs/operations/production-infrastructure.md) · [Monitoring](docs/operations/cloudwatch-monitoring.md) · [Auto scaling](docs/operations/autoscaling.md) · [Disaster recovery](docs/operations/17-disaster-recovery.md) |
+| Operations | [CI/CD](docs/operations/15-cicd.md) · [Deployment guide](DEPLOYMENT.md) · [Disaster recovery](docs/operations/17-disaster-recovery.md) |
 | Engineering | [Principles](docs/engineering/00-principles.md) · [Coding standards](docs/engineering/12-coding-standards.md) · [Git workflow](docs/engineering/13-git-workflow.md) · [Testing strategy](docs/guides/14-testing-strategy.md) · [Onboarding](docs/guides/20-developer-onboarding.md) |
 
 Release history is tracked in [`CHANGELOG.md`](CHANGELOG.md).
